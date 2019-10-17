@@ -21,7 +21,7 @@ extern mutex camera_status_mutex;
 extern int camera_exception_topic;
 extern mutex camera_exception_mutex;
 
-void cameraLoop( int id, int width, int height );
+void cameraLoop( FileNode camera_config );
 
 void cameraLoopTest();
 

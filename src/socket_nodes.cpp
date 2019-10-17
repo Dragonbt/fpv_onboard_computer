@@ -1,17 +1,36 @@
 #include "socket_nodes.hpp"
 
-void sendLoop( const char* host, int port )
+void sendLoop( FileNode send_config )
 {
+    int enable;
+    string host;
+    int port;
+    double img_msg_freq;
+    double img_msg_resize;
+    int img_msg_quality;
+    send_config["ENABLE"] >> enable;
+    send_config["HOST"] >> host;
+    send_config["PORT"] >> port;
+    send_config["IMG_MSG_FREQ"] >> img_msg_freq;
+    send_config["IMG_MSG_RESIZE"] >> img_msg_resize;
+    send_config["IMG_MSG_QUALITY"] >> img_msg_quality;
+    if( enable == 0 )
+    {
+        cout << "[WARNING]: udp send node disabled" << endl;
+        return;
+    }
+
     int udp_fd;
     Mat image;
     vector< uchar > img_buffer;
     int64_t timepoint_ms;
-    if ( ! udpClientInit( udp_fd, host, port) ){
+    if ( ! udpClientInit( udp_fd, host.c_str(), port) ){
         socket_exception_mutex.lock();
         socket_exception_topic = -1;
         socket_exception_mutex.unlock();
-        cout << "[WARNING]: " << strerror(errno) << endl;
+        cout << "[WARNING]: " + string(strerror(errno)) << endl;
         cout << "[WARNING]: no udp connection to GC" << endl;
+        cout << "[WARNING]: send node shutdown" << endl;
         return;
     }
     while( true )
@@ -19,7 +38,7 @@ void sendLoop( const char* host, int port )
         image_mutex.lock();
         image = image_topic.clone();
         image_mutex.unlock();
-        if( ! image.empty() && compress( image, img_buffer ) ){
+        if( ! image.empty() && compress( image, img_msg_resize, img_msg_quality, img_buffer ) ){
             timepoint_ms = intervalMs( high_resolution_clock::now(), init_timepoint );
             //cout << img_buffer.size() << endl;
             sendMsg( udp_fd, timepoint_ms, 1, (uint16_t) img_buffer.size(), img_buffer.data() );
@@ -27,22 +46,37 @@ void sendLoop( const char* host, int port )
         }
         this_thread::sleep_for( milliseconds( 30 ) );
     }
+    cout << "[WARNING]: send node shutdown" << endl;
+    return;
 }
 
-void recvLoop( const char* host, int port )
+void recvLoop( FileNode recv_config )
 {
+    int enable;
+    string host;
+    int port;
+    recv_config["ENABLE"] >> enable;
+    recv_config["HOST"] >> host;
+    recv_config["PORT"] >> port;
+    if( enable == 0 )
+    {
+        cout << "[WARNING]: tcp send node disabled" << endl;
+        return;
+    }
+
     int tcp_fd;
     uint16_t head, tail;
     uint8_t msg_type;
     uint16_t length;
     int64_t timestamp_ms;
     bool video;
-    if ( ! tcpClientInit(tcp_fd, host, port) ){
+    if ( ! tcpClientInit(tcp_fd, host.c_str(), port) ){
         socket_exception_mutex.lock();
         socket_exception_topic = -2;
         socket_exception_mutex.unlock();
-        cout << "[WARNING]: " << strerror(errno) << endl;
+        cout << "[WARNING]: " + string(strerror(errno)) << endl;
         cout << "[WARNING]: no tcp connection to GC" << endl;
+        cout << "[WARNING]: recv node shutdown" << endl;
         return;
     }
     while (true)
@@ -50,7 +84,7 @@ void recvLoop( const char* host, int port )
         try{
             if (!recvAll(tcp_fd, &head, sizeof head))
             {
-                cout << strerror(errno) << endl;
+                cout << "[WARNING]: " + string(strerror(errno)) << endl;
                 continue;
             }
             if (head != HEAD)
@@ -58,13 +92,13 @@ void recvLoop( const char* host, int port )
             if ( recvAll(tcp_fd, &msg_type, sizeof msg_type) 
                 && recvAll(tcp_fd, &length, sizeof length) == false)
             {
-                cout << strerror(errno) << endl;
+                cout << "[WARNING]: " + string(strerror(errno)) << endl;
                 continue;
             }
             char buffer[length];
             if (recvAll(tcp_fd, buffer, length) && recvAll(tcp_fd, &timestamp_ms, sizeof timestamp_ms) && recvAll(tcp_fd, &tail, sizeof tail) == false)
             {
-                cout << strerror(errno) << endl;
+                cout << "[WARNING]: " + string(strerror(errno)) << endl;
                 continue;
             }
             if (tail != TAIL)
@@ -92,7 +126,7 @@ void recvLoop( const char* host, int port )
                 close(tcp_fd);
                 cout << "[WARNING]: try reconnect" << endl;
                 cout << "[WARNING]: no tcp connection to GC" << endl;
-                while ( ! tcpClientInit(tcp_fd, host, port) ){
+                while ( ! tcpClientInit(tcp_fd, host.c_str(), port) ){
                     close(tcp_fd);
                 }
                 socket_exception_mutex.lock();
@@ -103,6 +137,7 @@ void recvLoop( const char* host, int port )
         }
         this_thread::sleep_for( milliseconds( 30 ) );
     }
+    cout << "[WARNING]: send node shutdown" << endl;
     return;
 }
 
@@ -121,18 +156,18 @@ bool sendMsg( int fd, int64_t timepoint_ms, uint8_t msg_type, uint16_t length, v
         && sendAll( fd, &timepoint_ms, sizeof timepoint_ms )
         && sendAll( fd, &tail, sizeof tail ) == false )
     {
-        cout << "[ERROR]: " << strerror(errno) << endl;
+        cout << "[WARNING]: " + string(strerror(errno)) << endl;
         return false;
     }
     return true;
 }
 
-bool compress( Mat image, vector<uchar>& img_buffer)
+bool compress( Mat image, double resize_k, int quality, vector<uchar>& img_buffer)
 {
-    vector< int > quality{ IMWRITE_JPEG_QUALITY, img_msg_quality };
-    resize( image, image, Size(), img_msg_resize, img_msg_resize );
+    vector< int > jpeg_quality{ IMWRITE_JPEG_QUALITY, quality };
+    resize( image, image, Size(), resize_k, resize_k );
     //cvtColor( frame, gray_frame, COLOR_BGR2GRAY );
-    return imencode(".jpeg", image, img_buffer, quality);
+    return imencode(".jpeg", image, img_buffer, jpeg_quality);
 }
 
 bool udpServerInit( int& server_fd, const char* host, const int port){

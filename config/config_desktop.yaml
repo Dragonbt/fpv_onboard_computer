@@ -1,0 +1,22 @@
+%YAML:1.0
+#cautious: NO TABS!!!!!!!
+CAMERA_NODE:{
+    ENABLE: 1,
+    ID: 0,
+    WIDTH: 1280,
+    HEIGHT: 720,
+    CAMERA_INTRINSIC_XML: "camera_intrinsic.xml"}
+LOG_NODE:{
+    ENABLE: 1,
+    LOG_FILE_PATH: "../log/"}
+SOCKET_SEND_NODE:{
+    ENABLE: 1,
+    HOST: "127.0.0.1",
+    PORT: 8080,
+    IMG_MSG_FREQ: 30,
+    IMG_MSG_RESIZE: 0.2,
+    IMG_MSG_QUALITY: 60}
+SOCKET_RECV_NODE:{
+    ENABLE: 1,
+    HOST: "127.0.0.1",
+    PORT: 8080}

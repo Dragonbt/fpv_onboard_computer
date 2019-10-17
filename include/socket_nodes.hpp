@@ -31,8 +31,6 @@ using namespace std;
 using namespace cv;
 
 extern high_resolution_clock::time_point init_timepoint;
-extern int img_msg_quality;
-extern double img_msg_resize;
 
 extern Mat image_topic;
 extern mutex image_mutex;
@@ -46,11 +44,11 @@ extern mutex socket_exception_mutex;
 extern LogStatus log_status_topic;
 extern mutex log_status_mutex;
 
-void sendLoop( const char* host, int port );
-void recvLoop( const char* host, int port );
+void sendLoop( FileNode send_config );
+void recvLoop( FileNode recv_config );
 
 bool sendMsg( int fd, int64_t timepoint_ms, uint8_t msg_type, uint16_t length, void* buffer );
-bool compress( Mat image, vector<uchar>& img_buffer );
+bool compress( Mat image, double resize_k, int quality, vector<uchar>& img_buffer );
 
 bool udpServerInit( int& sock_fd, const char* host, const int port );
 bool udpClientInit( int& sock_fd, const char* host, const int port );

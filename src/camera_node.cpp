@@ -1,7 +1,19 @@
 #include "camera_node.hpp"
 
-void cameraLoop( int id, int width, int height )
+void cameraLoop( FileNode camera_config )
 {
+    int enable;
+    int id, width, height;
+    camera_config["ENABLE"] >> enable;
+    camera_config["ID"] >> id;
+    camera_config["WIDTH"] >> width;
+    camera_config["HEIGHT"] >> height;
+    if( enable == 0 )
+    {
+        cout << "[WARNING]: camera node disabled" << endl;
+        return;
+    }
+
     Mat image;
     int camera_status;
 
@@ -12,6 +24,7 @@ void cameraLoop( int id, int width, int height )
         camera_exception_mutex.lock();
         camera_exception_topic = -1;
         camera_exception_mutex.unlock();
+        cout << "[WARNING]: camera node shut down" << endl;
         return;
     }
     while( true )
@@ -32,6 +45,7 @@ void cameraLoop( int id, int width, int height )
             break;
         }
     }
+    cout << "[WARNING]: camera node shut down" << endl;
     return;
 }
 
@@ -68,7 +82,6 @@ bool Camera::init( int id, int _width, int _height ){
     fps = cap.get(CAP_PROP_FPS);
     if ( width != _width || height != _height ){
         cout << "[ERROR]: set camera resolution fail" << endl;
-        cout << "[ERROR]: width = " << width << ", height = " << height << endl;
         return false;
     }
     interval = 1000.0 / fps;

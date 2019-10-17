@@ -9,6 +9,7 @@
 #include "clock.hpp"
 #include <atomic>
 
+
 #define WRITE_VIDEO_WAIT_FOR_MS 50
 
 using namespace std;
@@ -24,7 +25,7 @@ extern mutex log_status_mutex;
 extern Mat image_topic;
 extern mutex image_mutex;
 
-void logLoop( const char* path );
+void logLoop( FileNode log_config );
 
 class Video{
     public:

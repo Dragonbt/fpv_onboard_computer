@@ -12,8 +12,6 @@ using namespace cv;
 
 /*declaration of shared constant*/
 high_resolution_clock::time_point init_timepoint = high_resolution_clock::now();
-int img_msg_quality = 60;
-double img_msg_resize = 0.2;
 
 /*declaration of shared topics( or variables ) between nodes,
 CAUTIOUS: every topics must own a mutex*/
@@ -32,18 +30,27 @@ mutex log_status_mutex;
 int socket_exception_topic = 0;
 mutex socket_exception_mutex;
 
+string getAbsolutePath( void );
+
 /*program entrance*/
-int main()
+int main( int argc,char *argv[] )
 {
-    thread camera_node( cameraLoop, 0, 1280, 720 );
+    FileStorage config( "../config/config.yaml", FileStorage::READ );
+    FileNode camera_config = config["CAMERA_NODE"];
+    FileNode send_config = config["SOCKET_SEND_NODE"];
+    FileNode recv_config = config["SOCKET_RECV_NODE"];
+    FileNode log_config = config["LOG_NODE"];
+
+    thread camera_node( cameraLoop, camera_config );
     //thread camera_node_test( cameraLoopTest );
-    thread send_node( sendLoop, "127.0.0.1", 8080 );
-    thread recv_node( recvLoop, "127.0.0.1", 8080 );
-    thread log_node( logLoop, "./" );
+    thread socket_send_node( sendLoop, send_config );
+    thread socket_recv_node( recvLoop, recv_config );
+    thread log_node( logLoop, log_config );
     camera_node.join();
     //camera_node_test.join();
-    send_node.join();
-    recv_node.join();
+    socket_send_node.join();
+    socket_recv_node.join();
     log_node.join();
+
     return 0;
 }

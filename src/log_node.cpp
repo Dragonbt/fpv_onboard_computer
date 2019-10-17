@@ -1,9 +1,18 @@
 #include "log_node.hpp"
 
-void logLoop( const char* _path)
+void logLoop( FileNode log_config )
 {
+    int enable;
+    string path;
+    log_config["ENABLE"] >> enable;
+    log_config["LOG_FILE_PATH"] >> path;
+    if( enable == 0 )
+    {
+        cout << "[WARNING]: log node disabled" << endl;
+        return;
+    }
+
     LogStatus log_status;
-    string path = _path;
     Video video( path );
     Mat image;
     while( true )
@@ -20,6 +29,7 @@ void logLoop( const char* _path)
         video.run( log_status.video, image );
         this_thread::sleep_for( milliseconds(50) );
     }
+    cout << "[WARNING]: log node shutdown" << endl;
     return;
 }
 
@@ -44,13 +54,13 @@ void Video::run( bool flag, Mat image ){
         width = image.cols;
         height = image.rows;
         if( ! video.open( path + getCurrentTime() + ".avi", VideoWriter::fourcc( 'D', 'I', 'V', 'X' ), 15.0, Size( width , height ) ) ){
-            cout << "[LOGGING]: fail to open videowriter" << endl;
+            cout << "[ERROR]: fail to open videowriter" << endl;
         }
     }
     else
     {
         if( ! write_mutex.try_lock_for( milliseconds( WRITE_VIDEO_WAIT_FOR_MS ) ) ){
-            cout << "[LOGGING]: write frame timeout" << endl;
+            cout << "[WARNING]: write frame timeout" << endl;
             return;
         }
         write_mutex.unlock();
