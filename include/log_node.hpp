@@ -9,7 +9,6 @@
 #include "clock.hpp"
 #include <atomic>
 
-
 #define WRITE_VIDEO_WAIT_FOR_MS 50
 
 using namespace std;

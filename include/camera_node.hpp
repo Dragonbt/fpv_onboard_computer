@@ -5,9 +5,10 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
-#include "clock.hpp"
 #include <thread>
 #include <mutex>
+
+#include "clock.hpp"
 
 using namespace std;
 using namespace cv;

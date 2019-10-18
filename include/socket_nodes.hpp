@@ -16,22 +16,26 @@
 #include <string.h>
 #include <errno.h>
 
-#include "clock.hpp"
 #include <thread>
 #include <mutex>
 
+#include "clock.hpp"
 #include "log_node.hpp"
 
 #define PEER_SHUTDOWN -1
-#define MAX_MSG_CONTENT_LENGTH 0xFFFF
+#define MAX_MSG_LENGTH 0x22FF
 #define HEAD 0xAAAA
 #define TAIL 0xDDDD
 
 using namespace std;
 using namespace cv;
 
-extern high_resolution_clock::time_point init_timepoint;
+static int fd = -1;
+static mutex fd_mutex;
+static struct sockaddr_in send_to_addr;
+static struct sockaddr_in recv_from_addr;
 
+extern high_resolution_clock::time_point init_timepoint;
 extern Mat image_topic;
 extern mutex image_mutex;
 
@@ -47,16 +51,10 @@ extern mutex log_status_mutex;
 void sendLoop( FileNode send_config );
 void recvLoop( FileNode recv_config );
 
-bool sendMsg( int fd, int64_t timepoint_ms, uint8_t msg_type, uint16_t length, void* buffer );
+bool socketInit();
+
+void sendMsg( uint8_t msg_type, uint16_t length, void* buffer );
+void recvMsg( char* msg, int msg_length, sockaddr_in address );
 bool compress( Mat image, double resize_k, int quality, vector<uchar>& img_buffer );
-
-bool udpServerInit( int& sock_fd, const char* host, const int port );
-bool udpClientInit( int& sock_fd, const char* host, const int port );
-
-bool tcpServerInit( int& server_fd, int& client_fd, const char* host, const int port);
-bool tcpClientInit( int& client_fd, const char* host, const int port );
-
-bool sendAll( int socket, void *buffer, size_t length );
-bool recvAll( int socket, void *buffer, size_t length );
 
 #endif
