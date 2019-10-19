@@ -30,6 +30,7 @@ void logLoop( FileNode log_config )
         log_status_mutex.lock();
         log_status = log_status_topic;
         log_status_mutex.unlock();
+        /*
         if( log_status.video )
         {
             image_mutex.lock();
@@ -37,6 +38,7 @@ void logLoop( FileNode log_config )
             image_mutex.unlock();
         }
         video.run( log_status.video, image );
+        */
         if( log_status.log )
         {
             position_vec_mutex.lock();

@@ -14,13 +14,13 @@ SOCKET_SEND_NODE:{
     HOST: "192.168.43.230",
     PORT: 8080,
     IMG_MSG_FREQ: 30,
-    IMG_MSG_RESIZE: 0.2,
-    IMG_MSG_QUALITY: 60}
+    IMG_MSG_RESIZE: 0.1,
+    IMG_MSG_QUALITY: 10}
 SOCKET_RECV_NODE:{
     ENABLE: 1,
     HOST: "192.168.43.230",
     PORT: 8080}
 CONTROL_NODE:{
     ENABLE: 1,
-    URL: "serial:///dev/ttyUSB0:115200",
+    URL: "serial:///dev/ttyS0:115200",
     TAKEOFF_ALTITUDE: 4.0}
