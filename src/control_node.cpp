@@ -36,7 +36,7 @@ void controlLoop( FileNode control_config )
     //healthCheck( telemetry );
     setTelemetry( telemetry );
     /*Arm*/
-    //arm( telemetry, action );
+    arm( telemetry, action );
     /*Takeoff*/
     //takeoff( telemetry, action, takeoff_altitude );
     //this_thread::sleep_for(seconds(10));
