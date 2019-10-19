@@ -19,7 +19,6 @@ void logLoop( FileNode log_config )
     velocity_log.open(path + getCurrentTime() + "_velocity.csv");
     attitude_log.open(path + getCurrentTime() + "_attitude.csv");
     u_log.open(path + getCurrentTime() + "_u.csv" );
-
     Mat image;
     vector<PositionNED> position_vec;
     vector<VelocityNED> velocity_vec;
@@ -45,7 +44,7 @@ void logLoop( FileNode log_config )
             position_vec = position_vec_topic;
             position_vec_topic.clear();
             position_vec_mutex.unlock();
-            for( int i=0; i < position_vec.size(); i++)
+            for( unsigned int i=0; i < position_vec.size(); i++)
             {
                 position_log << position_vec[i].north_m << ", "
                     << position_vec[i].east_m << ", "
@@ -56,7 +55,7 @@ void logLoop( FileNode log_config )
             velocity_vec = velocity_vec_topic;
             velocity_vec_topic.clear();
             velocity_vec_mutex.unlock();
-            for( int i=0; i < velocity_vec.size(); i++)
+            for( unsigned int i=0; i < velocity_vec.size(); i++)
             {
                 velocity_log << velocity_vec[i].north_m_s << ", "
                     << velocity_vec[i].east_m_s << ", "
@@ -67,7 +66,7 @@ void logLoop( FileNode log_config )
             euler_angle_vec = euler_angle_vec_topic;
             euler_angle_vec_topic.clear();
             euler_angle_vec_mutex.unlock();
-            for( int i=0; i < euler_angle_vec.size(); i++)
+            for( unsigned int i=0; i < euler_angle_vec.size(); i++)
             {
                 attitude_log << euler_angle_vec[i].roll_deg << ", "
                     << euler_angle_vec[i].pitch_deg << ", "
@@ -78,7 +77,7 @@ void logLoop( FileNode log_config )
             u_vec = u_vec_topic;
             u_vec_topic.clear();
             u_vec_mutex.unlock();
-            for( int i=0; i < u_vec.size(); i++)
+            for( unsigned int i=0; i < u_vec.size(); i++)
             {
                 u_log << u_vec[i].forward_m_s << ", "
                     << u_vec[i].right_m_s << ", "

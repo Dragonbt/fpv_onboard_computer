@@ -25,10 +25,10 @@
 using namespace std;
 using namespace cv;
 
-static int fd = -1;
-static mutex fd_mutex;
-static struct sockaddr_in send_to_addr;
-static struct sockaddr_in recv_from_addr;
+extern int fd;
+extern mutex fd_mutex;
+extern struct sockaddr_in send_to_addr;
+extern struct sockaddr_in recv_from_addr;
 
 extern high_resolution_clock::time_point init_timepoint;
 extern Mat image_topic;

@@ -5,11 +5,12 @@
 #include <mavsdk/plugins/telemetry/telemetry.h>
 #include <opencv2/core/core.hpp>
 #include <chrono>
+#include "socket_nodes.hpp"
 
 using namespace std;
 using namespace cv;
 using namespace std::chrono;
-/*
+
 /*declaration of shared constant*/
 high_resolution_clock::time_point init_timepoint = high_resolution_clock::now();
 
@@ -44,6 +45,11 @@ mutex u_vec_mutex;
 /*sockets_node*/
 int socket_exception_topic = 0;
 mutex socket_exception_mutex;
+
+int fd = -1;
+mutex fd_mutex;
+struct sockaddr_in send_to_addr;
+struct sockaddr_in recv_from_addr;
 
 /*control_node*/
 PositionNED position_topic;

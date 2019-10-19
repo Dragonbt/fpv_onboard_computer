@@ -11,9 +11,9 @@ using namespace std;
 using namespace cv;
 
 /*program entrance*/
-int main( int argc,char *argv[] )
+int main()
 {
-    FileStorage config( "../config/config.yaml", FileStorage::READ );
+    FileStorage config( "../config/config_desktop.yaml", FileStorage::READ );
     FileNode camera_config = config["CAMERA_NODE"];
     FileNode send_config = config["SOCKET_SEND_NODE"];
     FileNode recv_config = config["SOCKET_RECV_NODE"];

@@ -82,12 +82,8 @@ void recvLoop( FileNode recv_config )
 
     char msg[MAX_MSG_LENGTH];
     int msg_length;
-    uint16_t head, tail;
-    uint8_t msg_type;
-    uint16_t length;
     struct sockaddr_in addr;
     socklen_t addr_len  = sizeof recv_from_addr;
-    bool video;
     while (true)
     {
         msg_length = (int)recvfrom( fd, msg, sizeof msg, 0, (struct sockaddr *)&addr, &addr_len );

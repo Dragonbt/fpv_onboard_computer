@@ -107,18 +107,18 @@ void controlLoop( FileNode control_config )
     return;
 }
 
-bool setTelemetry( shared_ptr<Telemetry> telemetry )
+void setTelemetry( shared_ptr<Telemetry> telemetry )
 {
     Telemetry::Result set_rate_result;
     set_rate_result = telemetry->set_rate_position_velocity_ned( 250 );
     if (set_rate_result != Telemetry::Result::SUCCESS) {
         cout << string("[ERROR]: ") + Telemetry::result_str(set_rate_result) << endl;
-        return false;
+        return;
     }
     set_rate_result = telemetry->set_rate_attitude( 250 );
     if (set_rate_result != Telemetry::Result::SUCCESS) {
         cout << string("[ERROR]: ") + Telemetry::result_str(set_rate_result) << endl;
-        return false;
+        return;
     }
 
     // Set up callback to monitor altitude while the vehicle is in flight
@@ -160,7 +160,7 @@ bool setTelemetry( shared_ptr<Telemetry> telemetry )
         velocity_vec_topic.push_back(velocity);
         velocity_vec_mutex.unlock();
         //cout << string("[LOGGING]: altitude speed ") << position_velocity_ned.velocity.down_m_s << endl;
-
+        return;
     });
 
     telemetry->attitude_euler_angle_async([](Telemetry::EulerAngle _euler_angle){

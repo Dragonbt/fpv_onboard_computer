@@ -46,7 +46,7 @@ extern GCCommand command_topic;
 extern mutex command_mutex;
 
 void controlLoop( FileNode control_config );
-bool setTelemetry( shared_ptr<Telemetry> telemetry );
+void setTelemetry( shared_ptr<Telemetry> telemetry );
 
 void healthCheck( shared_ptr<Telemetry> telemetry );
 void arm( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action );
