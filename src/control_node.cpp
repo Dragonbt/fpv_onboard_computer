@@ -207,6 +207,7 @@ void arm( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action )
             arm_result = action->arm();
             if ( arm_result != Action::Result::SUCCESS ){
                 cout << string("[ERROR]: ") + Action::result_str(arm_result) << endl;
+                cout << "[ERROR]: unable to arm" << endl;
             }
         }
         this_thread::sleep_for( seconds(1) );
@@ -260,12 +261,14 @@ void ctrlVelocityBody( std::shared_ptr<mavsdk::Offboard> offboard, Offboard::Vel
     offboard_result = offboard->start();
     if ( offboard_result != Offboard::Result::SUCCESS ){
         cout << string("[ERROR]: ") + Offboard::result_str(offboard_result) << endl;
+        cout << "[ERROR]: unable to start offboard" << endl;
         return;
     }
     offboard->set_velocity_body( u );
     offboard_result = offboard->stop();
     if ( offboard_result != Offboard::Result::SUCCESS ){
         cout << string("[ERROR]: ") + Offboard::result_str(offboard_result) << endl;
+        cout << "[ERROR]: unable to stop offboard" << endl;
         return;
     }
     return;
