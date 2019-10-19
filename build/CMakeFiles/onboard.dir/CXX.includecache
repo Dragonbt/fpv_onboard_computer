@@ -153,8 +153,6 @@ socket_nodes.hpp
 /home/tao/Desktop/onboard/src/topics.cpp
 struct.hpp
 /home/tao/Desktop/onboard/src/struct.hpp
-mavsdk/plugins/offboard/offboard.h
--
 opencv2/core/core.hpp
 -
 chrono

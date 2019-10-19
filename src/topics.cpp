@@ -1,5 +1,4 @@
 #include "struct.hpp"
-#include <mavsdk/plugins/offboard/offboard.h>
 #include <opencv2/core/core.hpp>
 #include <chrono>
 #include <unistd.h>
