@@ -1,6 +1,6 @@
 #include "clock.hpp"
 
-int intervalMs(high_resolution_clock::time_point end, high_resolution_clock::time_point start)
+int64_t intervalMs(high_resolution_clock::time_point end, high_resolution_clock::time_point start)
 {
     duration<double> time_span = end - start;
     milliseconds d = duration_cast< milliseconds >( time_span );

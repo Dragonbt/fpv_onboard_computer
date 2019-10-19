@@ -108,7 +108,7 @@ bool Camera::read( Mat& image ){
         cout << "[ERROR]: cap closed" << endl;
         return false;
     }
-    if ( intervalMs( high_resolution_clock::now(), last_grab ) > interval * 0.3 || new_frame == false ){
+    if ( intervalMs( high_resolution_clock::now(), last_grab ) > (int64_t) (interval * 0.3) || new_frame == false ){
         cap.grab();
         new_frame = true;
         last_grab = high_resolution_clock::now();
@@ -134,7 +134,7 @@ void Camera::updating( void ){
             cout << "[ERROR]: cap closed" << endl;
             break;
         }
-        if ( intervalMs(high_resolution_clock::now(), last_grab) > interval * 0.9 ){
+        if ( intervalMs(high_resolution_clock::now(), last_grab) > (int64_t) (interval * 0.9) ){
             cap.grab();
             new_frame = true;
             last_grab = high_resolution_clock::now();

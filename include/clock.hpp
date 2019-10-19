@@ -7,7 +7,7 @@
 using namespace std::chrono;
 using namespace std;
 
-int intervalMs(high_resolution_clock::time_point end, high_resolution_clock::time_point start);
+int64_t intervalMs(high_resolution_clock::time_point end, high_resolution_clock::time_point start);
 
 string getCurrentTime( void );
 

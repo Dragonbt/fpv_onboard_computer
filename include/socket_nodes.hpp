@@ -40,9 +40,6 @@ extern mutex camera_status_mutex;
 extern int socket_exception_topic;
 extern mutex socket_exception_mutex;
 
-extern LogStatus log_status_topic;
-extern mutex log_status_mutex;
-
 extern GCCommand command_topic;
 extern mutex command_mutex;
 

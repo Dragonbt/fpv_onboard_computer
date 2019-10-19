@@ -36,73 +36,13 @@ void controlLoop( FileNode control_config )
     //healthCheck( telemetry );
     setTelemetry( telemetry );
     /*Arm*/
-    arm( telemetry, action );
+    //arm( telemetry, action );
+    //waitForArmed( telemetry );
     /*Takeoff*/
     //takeoff( telemetry, action, takeoff_altitude );
     //this_thread::sleep_for(seconds(10));
-
-    GCCommand command;
-    while( true )
-    {
-        command_mutex.lock();
-        command = command_topic;
-        command_mutex.unlock();
-        if( command.land )
-        {
-            land( telemetry, action );
-            break;
-        }
-        else{
-            clearCommand();
-            Input input;
-            Offboard::VelocityBodyYawspeed u = {0.0f, 0.0f, 0.0f, 0.0f};
-            if( command.up )
-            {
-                cout << "UP" << endl;
-                u = {0.0f, 0.0f, -0.5f, 0.0f};
-            }
-            if( command.down )
-            {
-                cout << "DOWN" << endl;
-                u = {0.0f, 0.0f, 0.5f, 0.0f};
-            }
-            if( command.forward )
-            {
-                cout << "FORWARD" << endl;
-                u = {0.5f, 0.0f, 0.0f, 0.0f};
-            }
-            if( command.backward )
-            {
-                cout << "BACKWARD" << endl;
-                u = {-0.5f, 0.0f, 0.0f, 0.0f};
-            }
-            if( command.left )
-            {
-                cout << "LEFT" << endl;
-                u = {0.0f, 0.0f, -0.5f, 0.0f};
-            }
-            if( command.right )
-            {
-                cout << "RIGHT" << endl;
-                u = {0.0f, 0.0f, 0.5f, 0.0f};
-            }
-            u_vec_mutex.lock();
-            if( u_vec_topic.size() > MAX_VEC_SIZE )
-            {
-                u_vec_topic.clear();
-            }
-            input.forward_m_s = u.forward_m_s;
-            input.right_m_s = u.right_m_s;
-            input.down_m_s = u.down_m_s;
-            input.yaw_speed_deg_s = u.yawspeed_deg_s;
-            input.time_ms = intervalMs(high_resolution_clock::now(), init_timepoint);
-            u_vec_topic.push_back( input );
-            u_vec_mutex.unlock();
-            ctrlVelocityBody( offboard, u);
-            this_thread::sleep_for(milliseconds(500));
-        }
-    }
-    cout << "[LOGGING]: takeoff success" << endl;
+    test(telemetry, action, offboard);
+    cout << "[LOGGING]: land success" << endl;
     cout << "[WARNING]: control node shut down" << endl;
     return;
 }
@@ -136,10 +76,6 @@ void setTelemetry( shared_ptr<Telemetry> telemetry )
         velocity.down_m_s = position_velocity_ned.velocity.down_m_s;
         velocity.time_ms = intervalMs( high_resolution_clock::now(), init_timepoint );
         
-        position_mutex.lock();
-        position_topic = position;
-        position_mutex.unlock();
-
         position_vec_mutex.lock();
         if( position_vec_topic.size() > MAX_VEC_SIZE )
         {
@@ -148,9 +84,13 @@ void setTelemetry( shared_ptr<Telemetry> telemetry )
         position_vec_topic.push_back(position);
         position_vec_mutex.unlock();
 
-        velocity_mutex.lock();
-        velocity_topic = velocity;
-        velocity_mutex.unlock();
+        position_vec_log_mutex.lock();
+        if( position_vec_log_topic.size() > MAX_VEC_SIZE )
+        {
+            position_vec_log_topic.clear();
+        }
+        position_vec_log_topic.push_back(position);
+        position_vec_log_mutex.unlock();
 
         velocity_vec_mutex.lock();
         if( velocity_vec_topic.size() > MAX_VEC_SIZE )
@@ -159,21 +99,24 @@ void setTelemetry( shared_ptr<Telemetry> telemetry )
         }
         velocity_vec_topic.push_back(velocity);
         velocity_vec_mutex.unlock();
+
+        velocity_vec_log_mutex.lock();
+        if( velocity_vec_log_topic.size() > MAX_VEC_SIZE )
+        {
+            velocity_vec_log_topic.clear();
+        }
+        velocity_vec_log_topic.push_back(velocity);
+        velocity_vec_log_mutex.unlock();
         //cout << string("[LOGGING]: altitude speed ") << position_velocity_ned.velocity.down_m_s << endl;
-        return;
     });
 
-    telemetry->attitude_euler_angle_async([](Telemetry::EulerAngle _euler_angle){
+    telemetry->attitude_euler_angle_async([](Telemetry::EulerAngle attitude_euler_angle){
         EulerAngle euler_angle;
-        euler_angle.roll_deg = _euler_angle.roll_deg;
-        euler_angle.pitch_deg = _euler_angle.pitch_deg;
-        euler_angle.yaw_deg = _euler_angle.yaw_deg;
+        euler_angle.roll_deg = attitude_euler_angle.roll_deg;
+        euler_angle.pitch_deg = attitude_euler_angle.pitch_deg;
+        euler_angle.yaw_deg = attitude_euler_angle.yaw_deg;
         euler_angle.time_ms = intervalMs( high_resolution_clock::now(), init_timepoint );
         
-        euler_angle_mutex.lock();
-        euler_angle_topic = euler_angle;
-        euler_angle_mutex.unlock();
-
         euler_angle_vec_mutex.lock();
         if( euler_angle_vec_topic.size() > MAX_VEC_SIZE )
         {
@@ -181,8 +124,17 @@ void setTelemetry( shared_ptr<Telemetry> telemetry )
         }
         euler_angle_vec_topic.push_back(euler_angle);
         euler_angle_vec_mutex.unlock();
+
+        euler_angle_vec_log_mutex.lock();
+        if( euler_angle_vec_log_topic.size() > MAX_VEC_SIZE )
+        {
+            euler_angle_vec_log_topic.clear();
+        }
+        euler_angle_vec_log_topic.push_back(euler_angle);
+        euler_angle_vec_log_mutex.unlock();
         //cout << string("[LOGGING]: yaw ") << euler_angle.yaw_deg << endl;
     });
+    return;
 }
 
 void healthCheck( shared_ptr<Telemetry> telemetry )
@@ -274,7 +226,7 @@ void ctrlVelocityBody( std::shared_ptr<mavsdk::Offboard> offboard, Offboard::Vel
     return;
 }
 
-void clearCommand()
+void clearOffboardCommand()
 {
     command_mutex.lock();
     command_topic.up = false;
@@ -284,4 +236,91 @@ void clearCommand()
     command_topic.forward = false;
     command_topic.backward = false;
     command_mutex.unlock();
+}
+
+void waitForArmed( shared_ptr<Telemetry> telemetry )
+{
+    while( ! telemetry->armed() )
+    {
+        this_thread::sleep_for(seconds(1));
+    }
+    cout << "[LOGGING]: armed" << endl;
+    return;
+}
+
+void test( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, shared_ptr<Offboard> offboard )
+{
+    GCCommand command;
+    Offboard::VelocityBodyYawspeed u;
+    Input input;
+    while( true )
+    {
+        command_mutex.lock();
+        command = command_topic;
+        command_mutex.unlock();
+        if( command.land )
+        {
+            land( telemetry, action );
+            break;
+        }
+        else{
+            clearOffboardCommand();
+            u = {0.0f, 0.0f, 0.0f, 0.0f};
+            if( command.up )
+            {
+                cout << "UP" << endl;
+                u = {0.0f, 0.0f, -0.5f, 0.0f};
+            }
+            if( command.down )
+            {
+                cout << "DOWN" << endl;
+                u = {0.0f, 0.0f, 0.5f, 0.0f};
+            }
+            if( command.forward )
+            {
+                cout << "FORWARD" << endl;
+                u = {0.5f, 0.0f, 0.0f, 0.0f};
+            }
+            if( command.backward )
+            {
+                cout << "BACKWARD" << endl;
+                u = {-0.5f, 0.0f, 0.0f, 0.0f};
+            }
+            if( command.left )
+            {
+                cout << "LEFT" << endl;
+                u = {0.0f, 0.0f, -0.5f, 0.0f};
+            }
+            if( command.right )
+            {
+                cout << "RIGHT" << endl;
+                u = {0.0f, 0.0f, 0.5f, 0.0f};
+            }
+
+            input.forward_m_s = u.forward_m_s;
+            input.right_m_s = u.right_m_s;
+            input.down_m_s = u.down_m_s;
+            input.yawspeed_deg_s = u.yawspeed_deg_s;
+            input.time_ms = intervalMs(high_resolution_clock::now(), init_timepoint);
+
+            input_vec_mutex.lock();
+            if( input_vec_topic.size() > MAX_VEC_SIZE )
+            {
+                input_vec_topic.clear();
+            }
+            input_vec_topic.push_back( input );
+            input_vec_mutex.unlock();
+
+            input_vec_log_mutex.lock();
+            if( input_vec_log_topic.size() > MAX_VEC_SIZE )
+            {
+                input_vec_log_topic.clear();
+            }
+            input_vec_log_topic.push_back( input );
+            input_vec_log_mutex.unlock();
+            ctrlVelocityBody( offboard, u);
+            this_thread::sleep_for(milliseconds(500));
+        }
+    }
+    return;
 }

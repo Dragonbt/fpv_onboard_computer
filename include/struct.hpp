@@ -14,10 +14,7 @@
 
 #define MAX_VEC_SIZE 40
 
-typedef struct{
-    bool video = false;
-    bool log = false;
-}LogStatus;
+#include <chrono>
 
 typedef struct{
     bool arm = false;
@@ -29,35 +26,37 @@ typedef struct{
     bool backward = false;
     bool left = false;
     bool right = false;
+    bool log = false;
+    bool video = false;
 }GCCommand;
 
 typedef struct{
     double north_m = 0;
     double east_m = 0;
     double down_m = 0;
-    int time_ms = 0;
+    int64_t time_ms = 0;
 }PositionNED;
 
 typedef struct{
     double north_m_s = 0;
     double east_m_s = 0;
     double down_m_s = 0;
-    int time_ms = 0;
+    int64_t time_ms = 0;
 }VelocityNED;
 
 typedef struct{
     double roll_deg = 0;
     double pitch_deg = 0;
     double yaw_deg = 0;
-    int time_ms = 0;
+    int64_t time_ms = 0;
 }EulerAngle;
 
 typedef struct{
     float forward_m_s;
     float right_m_s;
     float down_m_s;
-    float yaw_speed_deg_s;
-    int time_ms = 0;
+    float yawspeed_deg_s;
+    int64_t time_ms = 0;
 }Input;
 
 

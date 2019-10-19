@@ -46,7 +46,7 @@ void sendLoop( FileNode send_config )
             sendMsg( 1, (uint16_t) img_buffer.size(), img_buffer.data() );
             img_buffer.clear();
         }
-        this_thread::sleep_for( milliseconds( 30 ) );
+        this_thread::sleep_for( milliseconds( 50 ) );
     }
     cout << "[WARNING]: send node shutdown" << endl;
     return;
@@ -176,76 +176,73 @@ void recvMsg( char* msg, int msg_length, sockaddr_in addr )
     memcpy( &tail, p, sizeof tail );
     if( tail != TAIL )
         return;
-    bool arm, takeoff, land;
-    bool video;
-    bool log;
-    bool up, down, forward, backward, left, right;
+    bool flag;
     switch(msg_type)
     {
         case 0:
-            memcpy( &arm, buffer, sizeof arm );
+            memcpy( &flag, buffer, sizeof flag );
             command_mutex.lock();
-            command_topic.arm = arm;
+            command_topic.arm = flag;
             command_mutex.unlock();
             break;
         case 1:
-            memcpy( &takeoff, buffer, sizeof takeoff );
+            memcpy( &flag, buffer, sizeof flag );
             command_mutex.lock();
-            command_topic.takeoff = takeoff;
+            command_topic.takeoff = flag;
             command_mutex.unlock();
             break;
         case 2:
-            memcpy( &land, buffer, sizeof land );
+            memcpy( &flag, buffer, sizeof flag );
             command_mutex.lock();
-            command_topic.land = land;
+            command_topic.land = flag;
             command_mutex.unlock();
             break;
         case 3:
-            memcpy( &up, buffer, sizeof up );
+            memcpy( &flag, buffer, sizeof flag );
             command_mutex.lock();
-            command_topic.up = up;
+            command_topic.up = flag;
             command_mutex.unlock();
             break;
         case 4:
-            memcpy( &down, buffer, sizeof down );
+            memcpy( &flag, buffer, sizeof flag );
             command_mutex.lock();
-            command_topic.down = down;
+            command_topic.down = flag;
             command_mutex.unlock();
             break;
         case 5:
-            memcpy( &video, buffer, sizeof video );
-            log_status_mutex.lock();
-            log_status_topic.video = video;
-            log_status_mutex.unlock();
+            memcpy( &flag, buffer, sizeof flag );
+            command_mutex.lock();
+            command_topic.video = flag;
+            command_mutex.unlock();
             break;
         case 6:
-            memcpy( &log, buffer, sizeof log );
-            log_status_mutex.lock();
-            log_status_topic.log = log;
-            log_status_mutex.unlock();
+            memcpy( &flag, buffer, sizeof flag );
+            command_mutex.lock();
+            command_topic.log = flag;
+            command_mutex.unlock();
             break;
         case 7:
-            memcpy( &forward, buffer, sizeof forward );
+            memcpy( &flag, buffer, sizeof flag );
             command_mutex.lock();
-            command_topic.forward = forward;
+            command_topic.forward = flag;
             command_mutex.unlock();
             break;
         case 8:
-            memcpy( &backward, buffer, sizeof backward );
+            memcpy( &flag, buffer, sizeof flag );
             command_mutex.lock();
-            command_topic.backward = backward;
+            command_topic.backward = flag;
             command_mutex.unlock();
             break;
         case 9:
-            memcpy( &left, buffer, sizeof left );
+            memcpy( &flag, buffer, sizeof flag );
             command_mutex.lock();
-            command_topic.left = left;
+            command_topic.left = flag;
             command_mutex.unlock();
             break;
         case 10:
-            memcpy( &right, buffer, sizeof right );
+            memcpy( &flag, buffer, sizeof flag );
             command_mutex.lock();
-            command_topic.right = right;
+            command_topic.right = flag;
             command_mutex.unlock();
             break;
         default:
