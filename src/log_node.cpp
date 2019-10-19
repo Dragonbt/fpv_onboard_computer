@@ -14,7 +14,17 @@ void logLoop( FileNode log_config )
 
     LogStatus log_status;
     Video video( path );
+    ofstream position_log, velocity_log, attitude_log, u_log;
+    position_log.open(path + getCurrentTime() + "_position.csv");
+    velocity_log.open(path + getCurrentTime() + "_velocity.csv");
+    attitude_log.open(path + getCurrentTime() + "_attitude.csv");
+    u_log.open(path + getCurrentTime() + "_u.csv" );
+
     Mat image;
+    vector<PositionNED> position_vec;
+    vector<VelocityNED> velocity_vec;
+    vector<EulerAngle> euler_angle_vec;
+    vector<Input> u_vec;
     while( true )
     {
         log_status_mutex.lock();
@@ -27,7 +37,55 @@ void logLoop( FileNode log_config )
             image_mutex.unlock();
         }
         video.run( log_status.video, image );
-        this_thread::sleep_for( milliseconds(50) );
+        if( log_status.log )
+        {
+            position_vec_mutex.lock();
+            position_vec = position_vec_topic;
+            position_vec_topic.clear();
+            position_vec_mutex.unlock();
+            for( int i=0; i < position_vec.size(); i++)
+            {
+                position_log << position_vec[i].north_m << ", "
+                    << position_vec[i].east_m << ", "
+                    << position_vec[i].down_m << ", "
+                    << position_vec[i].time_ms << endl;
+            }
+            velocity_vec_mutex.lock();
+            velocity_vec = velocity_vec_topic;
+            velocity_vec_topic.clear();
+            velocity_vec_mutex.unlock();
+            for( int i=0; i < velocity_vec.size(); i++)
+            {
+                velocity_log << velocity_vec[i].north_m_s << ", "
+                    << velocity_vec[i].east_m_s << ", "
+                    << velocity_vec[i].down_m_s << ", "
+                    << velocity_vec[i].time_ms << endl;
+            }
+            euler_angle_vec_mutex.lock();
+            euler_angle_vec = euler_angle_vec_topic;
+            euler_angle_vec_topic.clear();
+            euler_angle_vec_mutex.unlock();
+            for( int i=0; i < euler_angle_vec.size(); i++)
+            {
+                attitude_log << euler_angle_vec[i].roll_deg << ", "
+                    << euler_angle_vec[i].pitch_deg << ", "
+                    << euler_angle_vec[i].yaw_deg << ", "
+                    << euler_angle_vec[i].time_ms << endl;
+            }
+            u_vec_mutex.lock();
+            u_vec = u_vec_topic;
+            u_vec_topic.clear();
+            u_vec_mutex.unlock();
+            for( int i=0; i < u_vec.size(); i++)
+            {
+                u_log << u_vec[i].forward_m_s << ", "
+                    << u_vec[i].right_m_s << ", "
+                    << u_vec[i].down_m_s << ", "
+                    << u_vec[i].yaw_speed_deg_s << ", "
+                    << u_vec[i].time_ms << endl;
+            }
+        }
+        this_thread::sleep_for( milliseconds(30) );
     }
     cout << "[WARNING]: log node shutdown" << endl;
     return;

@@ -20,12 +20,7 @@
 #include <mutex>
 
 #include "clock.hpp"
-#include "log_node.hpp"
-
-#define PEER_SHUTDOWN -1
-#define MAX_MSG_LENGTH 0x22FF
-#define HEAD 0xAAAA
-#define TAIL 0xDDDD
+#include "struct.hpp"
 
 using namespace std;
 using namespace cv;
@@ -47,6 +42,9 @@ extern mutex socket_exception_mutex;
 
 extern LogStatus log_status_topic;
 extern mutex log_status_mutex;
+
+extern GCCommand command_topic;
+extern mutex command_mutex;
 
 void sendLoop( FileNode send_config );
 void recvLoop( FileNode recv_config );

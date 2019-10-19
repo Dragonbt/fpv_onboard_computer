@@ -1,10 +1,10 @@
 #include "clock.hpp"
 
-double intervalMs(high_resolution_clock::time_point end, high_resolution_clock::time_point start)
+int intervalMs(high_resolution_clock::time_point end, high_resolution_clock::time_point start)
 {
     duration<double> time_span = end - start;
-    microseconds d = duration_cast< microseconds >( time_span );
-    return d.count() / 1000.0;
+    milliseconds d = duration_cast< milliseconds >( time_span );
+    return d.count();
 }
 
 string getCurrentTime( void )

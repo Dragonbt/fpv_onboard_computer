@@ -180,14 +180,77 @@ void recvMsg( char* msg, int msg_length, sockaddr_in addr )
     memcpy( &tail, p, sizeof tail );
     if( tail != TAIL )
         return;
+    bool arm, takeoff, land;
     bool video;
+    bool log;
+    bool up, down, forward, backward, left, right;
     switch(msg_type)
     {
+        case 0:
+            memcpy( &arm, buffer, sizeof arm );
+            command_mutex.lock();
+            command_topic.arm = arm;
+            command_mutex.unlock();
+            break;
+        case 1:
+            memcpy( &takeoff, buffer, sizeof takeoff );
+            command_mutex.lock();
+            command_topic.takeoff = takeoff;
+            command_mutex.unlock();
+            break;
+        case 2:
+            memcpy( &land, buffer, sizeof land );
+            command_mutex.lock();
+            command_topic.land = land;
+            command_mutex.unlock();
+            break;
+        case 3:
+            memcpy( &up, buffer, sizeof up );
+            command_mutex.lock();
+            command_topic.up = up;
+            command_mutex.unlock();
+            break;
+        case 4:
+            memcpy( &down, buffer, sizeof down );
+            command_mutex.lock();
+            command_topic.down = down;
+            command_mutex.unlock();
+            break;
         case 5:
             memcpy( &video, buffer, sizeof video );
             log_status_mutex.lock();
             log_status_topic.video = video;
             log_status_mutex.unlock();
+            break;
+        case 6:
+            memcpy( &log, buffer, sizeof log );
+            log_status_mutex.lock();
+            log_status_topic.log = log;
+            log_status_mutex.unlock();
+            break;
+        case 7:
+            memcpy( &forward, buffer, sizeof forward );
+            command_mutex.lock();
+            command_topic.forward = forward;
+            command_mutex.unlock();
+            break;
+        case 8:
+            memcpy( &backward, buffer, sizeof backward );
+            command_mutex.lock();
+            command_topic.backward = backward;
+            command_mutex.unlock();
+            break;
+        case 9:
+            memcpy( &left, buffer, sizeof left );
+            command_mutex.lock();
+            command_topic.left = left;
+            command_mutex.unlock();
+            break;
+        case 10:
+            memcpy( &right, buffer, sizeof right );
+            command_mutex.lock();
+            command_topic.right = right;
+            command_mutex.unlock();
             break;
         default:
             break;

@@ -20,3 +20,7 @@ SOCKET_RECV_NODE:{
     ENABLE: 1,
     HOST: "127.0.0.1",
     PORT: 8080}
+CONTROL_NODE:{
+    ENABLE: 1,
+    URL: "serial:///dev/ttyUSB0:115200",
+    TAKEOFF_ALTITUDE: 4.0}
