@@ -42,7 +42,11 @@ void controlLoop( FileNode control_config )
     //this_thread::sleep_for(seconds(10));
     waitForArmed( telemetry );
     waitForOffboard( offboard );
-    test(telemetry, action, offboard);
+    bool ret = offb_ctrl_attitude(offboard);
+    if (ret == false) {
+        cout << "attitude fail" << endl;
+    }
+    //test(telemetry, action, offboard);
     cout << "[LOGGING]: land success" << endl;
     cout << "[WARNING]: control node shut down" << endl;
     return;
@@ -357,4 +361,51 @@ void test( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, shared_pt
         }
     }
     return;
+}
+
+bool offb_ctrl_attitude(std::shared_ptr<mavsdk::Offboard> offboard)
+{
+    const std::string offb_mode = "ATTITUDE";
+
+    // Send it once before starting offboard, otherwise it will be rejected.
+    offboard->set_attitude({30.0f, 0.0f, 0.0f, 0.6f});
+
+    Offboard::Result offboard_result = offboard->start();
+    offboard_error_exit(offboard_result, "Offboard start failed");
+    offboard_log(offb_mode, "Offboard started");
+
+    offboard_log(offb_mode, "ROLL 30");
+    offboard->set_attitude({30.0f, 0.0f, 0.0f, 0.6f});
+    this_thread::sleep_for(seconds(2)); // rolling
+
+    offboard_log(offb_mode, "ROLL -30");
+    offboard->set_attitude({-30.0f, 0.0f, 0.0f, 0.6f});
+    this_thread::sleep_for(seconds(2)); // Let yaw settle.
+
+    offboard_log(offb_mode, "ROLL 0");
+    offboard->set_attitude({0.0f, 0.0f, 0.0f, 0.6f});
+    this_thread::sleep_for(seconds(2)); // Let yaw settle.
+
+    // Now, stop offboard mode.
+    offboard_result = offboard->stop();
+    offboard_error_exit(offboard_result, "Offboard stop failed: ");
+    offboard_log(offb_mode, "Offboard stopped");
+
+    return true;
+}
+
+// Logs during Offboard control
+inline void offboard_log(const std::string& offb_mode, const std::string msg)
+{
+    std::cout << "[" << offb_mode << "] " << msg << std::endl;
+}
+
+// Handles Offboard's result
+inline void offboard_error_exit(Offboard::Result result, const std::string& message)
+{
+    if (result != Offboard::Result::SUCCESS) {
+        std::cerr << ERROR_CONSOLE_TEXT << message << Offboard::result_str(result)
+                  << NORMAL_CONSOLE_TEXT << std::endl;
+        exit(EXIT_FAILURE);
+    }
 }

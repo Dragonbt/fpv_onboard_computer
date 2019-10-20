@@ -65,4 +65,7 @@ void waitForOffboard( shared_ptr<Offboard> offboard );
 void pushInput( Input input );
 void test( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, shared_ptr<Offboard> offboard );
 
+inline void offboard_log(const std::string& offb_mode, const std::string msg);
+inline void offboard_error_exit(Offboard::Result result, const std::string& message);
+bool offb_ctrl_attitude(std::shared_ptr<mavsdk::Offboard> offboard);
 #endif
