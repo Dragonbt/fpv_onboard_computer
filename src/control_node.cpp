@@ -372,12 +372,12 @@ void test( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, shared_pt
                 Offboard::Attitude att = {0.0f, 0.0f, 0.0f, 0.4f};
                 offboard->set_attitude( att );
             }
-            else{
+            /*else{
                 u = {0.0f, 0.0f, 0.0f, 0.0f};
                 offboard->set_velocity_body( {0.0f, 0.0f, 0.0f, 0.0f} );
                 cout << "set to 0" << endl;
                 this_thread::sleep_for(seconds(5));
-            }
+            }*/
             
 
             input.forward_m_s = u.forward_m_s;
