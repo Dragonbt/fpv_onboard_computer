@@ -338,6 +338,7 @@ void test( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, shared_pt
                 offboard->set_velocity_body( u );
                 this_thread::sleep_for(seconds(5));
             }
+            if( !command.up) cout << "stop forward" << endl;
             if( command.backward )
             {
                 cout << "BACKWARD" << endl;
