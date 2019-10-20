@@ -286,6 +286,7 @@ void test( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, shared_pt
             clearOffboardCommand();
             u = {0.0f, 0.0f, 0.0f, 0.0f};
             offboard->set_velocity_body( {0.0f, 0.0f, 0.0f, 0.0f} );
+            cout << "set" << endl;
             if( command.up )
             {
                 cout << "UP" << endl;
