@@ -41,12 +41,12 @@ void controlLoop( FileNode control_config )
     //takeoff( telemetry, action, takeoff_altitude );
     //this_thread::sleep_for(seconds(10));
     waitForArmed( telemetry );
-    waitForOffboard( offboard );
-    bool ret = offb_ctrl_attitude(offboard);
-    if (ret == false) {
-        cout << "attitude fail" << endl;
-    }
-    //test(telemetry, action, offboard);
+    //waitForOffboard( offboard );
+    //bool ret = offb_ctrl_attitude(offboard);
+    //if (ret == false) {
+    //    cout << "attitude fail" << endl;
+    //}
+    test(telemetry, action, offboard);
     cout << "[LOGGING]: land success" << endl;
     cout << "[WARNING]: control node shut down" << endl;
     return;
