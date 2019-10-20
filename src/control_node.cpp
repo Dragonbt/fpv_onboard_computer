@@ -40,7 +40,7 @@ void controlLoop( FileNode control_config )
     /*Takeoff*/
     //takeoff( telemetry, action, takeoff_altitude );
     //this_thread::sleep_for(seconds(10));
-    //waitForArmed( telemetry );
+    waitForArmed( telemetry );
     waitForOffboard( offboard );
     test(telemetry, action, offboard);
     cout << "[LOGGING]: land success" << endl;
@@ -231,11 +231,12 @@ void waitForArmed( shared_ptr<Telemetry> telemetry )
 }
 
 void waitForOffboard( shared_ptr<Offboard> offboard ){
-    Offboard::Result offboard_result;
-    offboard->set_velocity_body({0.0f, 0.0f, 0.0f, 0.0f});
+    
+    
     while( true )
     {
-        offboard_result = offboard->start();
+        offboard->set_velocity_body({0.0f, 0.0f, 0.0f, 0.0f});
+        Offboard::Result offboard_result = offboard->start();
         if ( offboard_result != Offboard::Result::SUCCESS ){
             cout << string("[ERROR]: ") + Offboard::result_str(offboard_result) << endl;
             cout << "[ERROR]: unable to start offboard" << endl;
@@ -287,11 +288,16 @@ void test( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, shared_pt
             u = {0.0f, 0.0f, 0.0f, 0.0f};
             offboard->set_velocity_body( {0.0f, 0.0f, 0.0f, 0.0f} );
             cout << "set to 0" << endl;
+            this_thread::sleep_for(seconds(5));
+            cout << "thrust" << endl;
+            offboard->set_attitude({0.0f, 0.0f, 0.0f, 0.6f});
+            this_thread::sleep_for(seconds(5));
             if( command.up )
             {
                 cout << "UP" << endl;
                 u = {0.0f, 0.0f, -0.5f, 0.0f};
                 offboard->set_velocity_body( u );
+                cout << "UP success" << endl;
             }
             if( command.down )
             {
