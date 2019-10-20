@@ -283,18 +283,14 @@ void test( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, shared_pt
     this_thread::sleep_for(seconds(5));
    
     offboard_log(offb_mode, "ROLL 30");
-    offboard->set_attitude({30.0f, 0.0f, 0.0f, 0.4f});
+    offboard->set_attitude({30.0f, 0.0f, 0.0f, 0.6f});
     this_thread::sleep_for(seconds(5)); // rolling
 
     
 
     
-
+    cout << "enter while" << endl;
     // Now, stop offboard mode.
-    Offboard::Result offboard_result;
-    offboard_result = offboard->stop();
-    offboard_error_exit(offboard_result, "Offboard stop failed: ");
-    offboard_log(offb_mode, "Offboard stopped");
     while( true )
     {
         offboard_log(offb_mode, "ROLL -30");
