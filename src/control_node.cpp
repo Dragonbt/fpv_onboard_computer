@@ -366,13 +366,13 @@ void test( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, shared_pt
 bool offb_ctrl_attitude(std::shared_ptr<mavsdk::Offboard> offboard)
 {
     const std::string offb_mode = "ATTITUDE";
-
+    Offboard::Result offboard_result;
     // Send it once before starting offboard, otherwise it will be rejected.
-    offboard->set_attitude({30.0f, 0.0f, 0.0f, 0.6f});
+    //offboard->set_attitude({30.0f, 0.0f, 0.0f, 0.6f});
 
-    Offboard::Result offboard_result = offboard->start();
-    offboard_error_exit(offboard_result, "Offboard start failed");
-    offboard_log(offb_mode, "Offboard started");
+    //Offboard::Result offboard_result = offboard->start();
+    //offboard_error_exit(offboard_result, "Offboard start failed");
+    //offboard_log(offb_mode, "Offboard started");
 
     offboard_log(offb_mode, "ROLL 30");
     offboard->set_attitude({30.0f, 0.0f, 0.0f, 0.6f});
