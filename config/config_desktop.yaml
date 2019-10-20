@@ -1,7 +1,7 @@
 %YAML:1.0
 #cautious: NO TABS!!!!!!!
 CAMERA_NODE:{
-    ENABLE: 1,
+    ENABLE: 0,
     ID: 0,
     WIDTH: 1280,
     HEIGHT: 720,

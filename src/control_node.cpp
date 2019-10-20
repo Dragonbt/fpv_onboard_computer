@@ -286,7 +286,7 @@ void test( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, shared_pt
             clearOffboardCommand();
             u = {0.0f, 0.0f, 0.0f, 0.0f};
             offboard->set_velocity_body( {0.0f, 0.0f, 0.0f, 0.0f} );
-            cout << "set" << endl;
+            cout << "set to 0" << endl;
             if( command.up )
             {
                 cout << "UP" << endl;
@@ -338,7 +338,7 @@ void test( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, shared_pt
             if( command.thrust )
             {
                 cout << "thrust" << endl;
-                Offboard::Attitude att = {0.0f, 0.0f, 0.0f, 0.2f};
+                Offboard::Attitude att = {0.0f, 0.0f, 0.0f, 0.4f};
                 offboard->set_attitude( att );
             }
             input.forward_m_s = u.forward_m_s;

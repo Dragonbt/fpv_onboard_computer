@@ -33,7 +33,7 @@ void sendLoop( FileNode send_config )
     }
     send_to_addr.sin_family = AF_INET; 
     send_to_addr.sin_port = htons( port );
-
+    bool heart_beat = true;
     Mat image;
     vector< uchar > img_buffer;
     while( true )
@@ -45,7 +45,8 @@ void sendLoop( FileNode send_config )
             //cout << img_buffer.size() << endl;
             sendMsg( 1, (uint16_t) img_buffer.size(), img_buffer.data() );
             img_buffer.clear();
-        }
+        } 
+        sendMsg( 0, 1, &heart_beat);
         this_thread::sleep_for( milliseconds( 50 ) );
     }
     cout << "[WARNING]: send node shutdown" << endl;
@@ -180,7 +181,6 @@ void recvMsg( char* msg, int msg_length, sockaddr_in addr )
     switch(msg_type)
     {
         case 0:
-            cout << "got it" << endl;
             memcpy( &flag, buffer, sizeof flag );
             command_mutex.lock();
             command_topic.arm = flag;
