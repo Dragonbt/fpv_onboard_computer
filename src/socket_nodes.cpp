@@ -180,6 +180,7 @@ void recvMsg( char* msg, int msg_length, sockaddr_in addr )
     switch(msg_type)
     {
         case 0:
+            cout << "got it" << endl;
             memcpy( &flag, buffer, sizeof flag );
             command_mutex.lock();
             command_topic.arm = flag;
