@@ -41,7 +41,7 @@ void controlLoop( FileNode control_config )
     //takeoff( telemetry, action, takeoff_altitude );
     //this_thread::sleep_for(seconds(10));
     waitForArmed( telemetry );
-    //waitForOffboard( offboard );
+    waitForOffboard( offboard );
     //bool ret = offb_ctrl_attitude(offboard);
     //if (ret == false) {
     //    cout << "attitude fail" << endl;
@@ -277,8 +277,29 @@ void test( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, shared_pt
     GCCommand command;
     Offboard::VelocityBodyYawspeed u;
     Input input;
+    const std::string offb_mode = "ATTITUDE";
+    cout << "thrust" << endl;
+    offboard->set_attitude({0.0f, 0.0f, 0.0f, 0.6f});
+    this_thread::sleep_for(seconds(5));
+   
+    offboard_log(offb_mode, "ROLL 30");
+    offboard->set_attitude({30.0f, 0.0f, 0.0f, 0.4f});
+    this_thread::sleep_for(seconds(5)); // rolling
+
+    
+
+    
+
+    // Now, stop offboard mode.
+    Offboard::Result offboard_result;
+    offboard_result = offboard->stop();
+    offboard_error_exit(offboard_result, "Offboard stop failed: ");
+    offboard_log(offb_mode, "Offboard stopped");
     while( true )
     {
+        offboard_log(offb_mode, "ROLL -30");
+        offboard->set_attitude({-30.0f, 0.0f, 0.0f, 0.6f});
+        this_thread::sleep_for(seconds(5)); // Let yaw settle.
         command_mutex.lock();
         command = command_topic;
         command_mutex.unlock();
@@ -289,20 +310,24 @@ void test( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, shared_pt
         }
         else{
             clearOffboardCommand();
-            u = {0.0f, 0.0f, 0.0f, 0.0f};
-            offboard->set_velocity_body( {0.0f, 0.0f, 0.0f, 0.0f} );
-            cout << "set to 0" << endl;
-            this_thread::sleep_for(seconds(5));
-            cout << "thrust" << endl;
-            offboard->set_attitude({0.0f, 0.0f, 0.0f, 0.6f});
-            this_thread::sleep_for(seconds(5));
+            offboard_log(offb_mode, "ROLL 0");
+            offboard->set_attitude({0.0f, 0.0f, 0.0f, 0.4f});
+            this_thread::sleep_for(seconds(5)); // Let yaw settle.
+            
+            //switch()
             if( command.up )
             {
+                /*
                 cout << "UP" << endl;
                 u = {0.0f, 0.0f, -0.5f, 0.0f};
                 offboard->set_velocity_body( u );
                 cout << "UP success" << endl;
+                */
+                offboard_log(offb_mode, "PITCH 30");
+                offboard->set_attitude({0.0f, 30.0f, 0.0f, 0.6f});
+                this_thread::sleep_for(seconds(5)); // Let yaw settle.
             }
+            if( !command.up) cout << "stop up" << endl;
             if( command.down )
             {
                 cout << "DOWN" << endl;
@@ -351,6 +376,14 @@ void test( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, shared_pt
                 Offboard::Attitude att = {0.0f, 0.0f, 0.0f, 0.4f};
                 offboard->set_attitude( att );
             }
+            else{
+                u = {0.0f, 0.0f, 0.0f, 0.0f};
+                offboard->set_velocity_body( {0.0f, 0.0f, 0.0f, 0.0f} );
+                cout << "set to 0" << endl;
+                this_thread::sleep_for(seconds(5));
+            }
+            
+
             input.forward_m_s = u.forward_m_s;
             input.right_m_s = u.right_m_s;
             input.down_m_s = u.down_m_s;
