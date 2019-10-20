@@ -37,10 +37,11 @@ void controlLoop( FileNode control_config )
     setTelemetry( telemetry );
     /*Arm*/
     //arm( telemetry, action );
-    //waitForArmed( telemetry );
     /*Takeoff*/
     //takeoff( telemetry, action, takeoff_altitude );
     //this_thread::sleep_for(seconds(10));
+    //waitForArmed( telemetry );
+    waitForOffboard( offboard );
     test(telemetry, action, offboard);
     cout << "[LOGGING]: land success" << endl;
     cout << "[WARNING]: control node shut down" << endl;
@@ -204,28 +205,6 @@ void land( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action )
     }
 }
 
-void ctrlVelocityBody( std::shared_ptr<mavsdk::Offboard> offboard, Offboard::VelocityBodyYawspeed u )
-{
-    // Send it once before starting offboard, otherwise it will be rejected.
-    offboard->set_velocity_body({0.0f, 0.0f, 0.0f, 0.0f});
-
-    Offboard::Result offboard_result;
-    offboard_result = offboard->start();
-    if ( offboard_result != Offboard::Result::SUCCESS ){
-        cout << string("[ERROR]: ") + Offboard::result_str(offboard_result) << endl;
-        cout << "[ERROR]: unable to start offboard" << endl;
-        return;
-    }
-    offboard->set_velocity_body( u );
-    offboard_result = offboard->stop();
-    if ( offboard_result != Offboard::Result::SUCCESS ){
-        cout << string("[ERROR]: ") + Offboard::result_str(offboard_result) << endl;
-        cout << "[ERROR]: unable to stop offboard" << endl;
-        return;
-    }
-    return;
-}
-
 void clearOffboardCommand()
 {
     command_mutex.lock();
@@ -235,6 +214,9 @@ void clearOffboardCommand()
     command_topic.right = false;
     command_topic.forward = false;
     command_topic.backward = false;
+    command_topic.yaw_pos = false;
+    command_topic.yaw_neg = false;
+    command_topic.thrust = false;
     command_mutex.unlock();
 }
 
@@ -248,6 +230,43 @@ void waitForArmed( shared_ptr<Telemetry> telemetry )
     return;
 }
 
+void waitForOffboard( shared_ptr<Offboard> offboard ){
+    Offboard::Result offboard_result;
+    offboard->set_velocity_body({0.0f, 0.0f, 0.0f, 0.0f});
+    while( true )
+    {
+        offboard_result = offboard->start();
+        if ( offboard_result != Offboard::Result::SUCCESS ){
+            cout << string("[ERROR]: ") + Offboard::result_str(offboard_result) << endl;
+            cout << "[ERROR]: unable to start offboard" << endl;
+        }
+        else{
+            break;
+        }
+        this_thread::sleep_for(seconds(1));
+    }
+    cout << "[LOGGING]: offboard mode start" << endl;
+    return;
+}
+
+void pushInput( Input input )
+{
+    input_vec_mutex.lock();
+    if( input_vec_topic.size() > MAX_VEC_SIZE )
+    {
+        input_vec_topic.clear();
+    }
+    input_vec_topic.push_back( input );
+    input_vec_mutex.unlock();
+
+    input_vec_log_mutex.lock();
+    if( input_vec_log_topic.size() > MAX_VEC_SIZE )
+    {
+        input_vec_log_topic.clear();
+    }
+    input_vec_log_topic.push_back( input );
+    input_vec_log_mutex.unlock();
+}
 void test( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, shared_ptr<Offboard> offboard )
 {
     GCCommand command;
@@ -266,60 +285,68 @@ void test( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, shared_pt
         else{
             clearOffboardCommand();
             u = {0.0f, 0.0f, 0.0f, 0.0f};
+            offboard->set_velocity_body( {0.0f, 0.0f, 0.0f, 0.0f} );
             if( command.up )
             {
                 cout << "UP" << endl;
                 u = {0.0f, 0.0f, -0.5f, 0.0f};
+                offboard->set_velocity_body( u );
             }
             if( command.down )
             {
                 cout << "DOWN" << endl;
                 u = {0.0f, 0.0f, 0.5f, 0.0f};
+                offboard->set_velocity_body( u );
             }
             if( command.forward )
             {
                 cout << "FORWARD" << endl;
                 u = {0.5f, 0.0f, 0.0f, 0.0f};
+                offboard->set_velocity_body( u );
             }
             if( command.backward )
             {
                 cout << "BACKWARD" << endl;
                 u = {-0.5f, 0.0f, 0.0f, 0.0f};
+                offboard->set_velocity_body( u );
             }
             if( command.left )
             {
                 cout << "LEFT" << endl;
                 u = {0.0f, 0.0f, -0.5f, 0.0f};
+                offboard->set_velocity_body( u );
             }
             if( command.right )
             {
                 cout << "RIGHT" << endl;
                 u = {0.0f, 0.0f, 0.5f, 0.0f};
+                offboard->set_velocity_body( u );
             }
-
+            if( command.yaw_pos )
+            {
+                cout << "YAW+" << endl;
+                u = {0.0f, 0.0f, 0.0f, 10.0f};
+                offboard->set_velocity_body( u );
+            }
+            if( command.yaw_neg )
+            {
+                cout << "YAW-" << endl;
+                u = {0.0f, 0.0f, 0.0f, -10.0f};
+                offboard->set_velocity_body( u );
+            }
+            if( command.thrust )
+            {
+                cout << "thrust" << endl;
+                Offboard::Attitude att = {0.0f, 0.0f, 0.0f, 0.2f};
+                offboard->set_attitude( att );
+            }
             input.forward_m_s = u.forward_m_s;
             input.right_m_s = u.right_m_s;
             input.down_m_s = u.down_m_s;
             input.yawspeed_deg_s = u.yawspeed_deg_s;
             input.time_ms = intervalMs(high_resolution_clock::now(), init_timepoint);
-
-            input_vec_mutex.lock();
-            if( input_vec_topic.size() > MAX_VEC_SIZE )
-            {
-                input_vec_topic.clear();
-            }
-            input_vec_topic.push_back( input );
-            input_vec_mutex.unlock();
-
-            input_vec_log_mutex.lock();
-            if( input_vec_log_topic.size() > MAX_VEC_SIZE )
-            {
-                input_vec_log_topic.clear();
-            }
-            input_vec_log_topic.push_back( input );
-            input_vec_log_mutex.unlock();
-            ctrlVelocityBody( offboard, u);
-            this_thread::sleep_for(milliseconds(500));
+            pushInput( input );
+            this_thread::sleep_for(milliseconds(300));
         }
     }
     return;

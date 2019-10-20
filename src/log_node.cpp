@@ -4,8 +4,11 @@ void logLoop( FileNode log_config )
 {
     int enable;
     string path;
+    int width, height;
     log_config["ENABLE"] >> enable;
     log_config["LOG_FILE_PATH"] >> path;
+    log_config["WIDTH"] >> width;
+    log_config["HEIGHT"] >> height;
     if( enable == 0 )
     {
         cout << "[WARNING]: log node disabled" << endl;
@@ -14,6 +17,7 @@ void logLoop( FileNode log_config )
 
     GCCommand command;
     Log log(path);
+    Video video(path, width, height);
     while( true )
     {
         command_mutex.lock();
@@ -30,7 +34,15 @@ void logLoop( FileNode log_config )
         else{
             log.close();
         }
-        this_thread::sleep_for( milliseconds(1000) );
+        if( command.video )
+        {
+            video.open();
+            video.writeImage();
+        }
+        else{
+            video.close();
+        }
+        this_thread::sleep_for( milliseconds(50) );
     }
     cout << "[WARNING]: log node shutdown" << endl;
     return;
@@ -123,5 +135,41 @@ void Log::writeInputVec()
             << input_vec[i].down_m_s << ", "
             << input_vec[i].yawspeed_deg_s << ", "
             << input_vec[i].time_ms << endl;
+    }
+}
+
+Video::Video( string path, int img_width, int img_height )
+{
+    video_path = path;
+    width = img_width;
+    height = img_height;
+}
+
+void Video::open()
+{
+    if( ! writer.isOpened() )
+    {
+        writer.open( video_path + getCurrentTime() + string(".avi"), VideoWriter::fourcc('D', 'I', 'V', 'X'), 30, Size(width, height) );
+    }
+}
+
+void Video::close()
+{
+    if( writer.isOpened() )
+    {
+        writer.release();
+    }
+}
+
+void Video::writeImage()
+{
+    Mat image;
+    if( writer.isOpened() )
+    {
+        image_mutex.lock();
+        image = image_topic.clone();
+        image_mutex.unlock();
+        resize(image, image, Size(width, height));
+        writer.write( image );
     }
 }

@@ -245,6 +245,24 @@ void recvMsg( char* msg, int msg_length, sockaddr_in addr )
             command_topic.right = flag;
             command_mutex.unlock();
             break;
+        case 11:
+            memcpy( &flag, buffer, sizeof flag );
+            command_mutex.lock();
+            command_topic.yaw_pos = flag;
+            command_mutex.unlock();
+            break;
+        case 12:
+            memcpy( &flag, buffer, sizeof flag );
+            command_mutex.lock();
+            command_topic.yaw_neg = flag;
+            command_mutex.unlock();
+            break;
+        case 13:
+            memcpy( &flag, buffer, sizeof flag );
+            command_mutex.lock();
+            command_topic.thrust = flag;
+            command_mutex.unlock();
+            break;
         default:
             break;
     }
@@ -256,27 +274,4 @@ bool compress( Mat image, double resize_k, int quality, vector<uchar>& img_buffe
     resize( image, image, Size(), resize_k, resize_k );
     //cvtColor( frame, gray_frame, COLOR_BGR2GRAY );
     return imencode(".jpeg", image, img_buffer, jpeg_quality);
-}
-
-bool udpClientInit( int& client_fd, const char* host, const int port ){
-    //set to UDP
-    if ( ( client_fd = socket(AF_INET, SOCK_DGRAM, 0 ) ) < 0 )
-        return false;
-    //set send buffer size
-    int send_buffer_size = 32 * 1024 * 1024; //32MB
-    if ( setsockopt( client_fd, SOL_SOCKET, SO_SNDBUF, &send_buffer_size, sizeof send_buffer_size ) < 0 )
-        return false;
-    
-    //connect to server
-    struct sockaddr_in server_address;
-    if( inet_pton( AF_INET, host, &server_address.sin_addr ) <= 0 ) 
-        return false;
-    server_address.sin_family = AF_INET; 
-    server_address.sin_port = htons( port );
-    if ( connect( client_fd, (struct sockaddr*)& server_address, sizeof( server_address ) ) < 0 )
-        return false;
-    //set to non-blocking
-    if ( fcntl( client_fd, F_SETFL, O_NONBLOCK | O_WRONLY ) < 0 )
-        return false;
-    return true;
 }

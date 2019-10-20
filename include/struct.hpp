@@ -28,6 +28,9 @@ typedef struct{
     bool right = false;
     bool log = false;
     bool video = false;
+    bool yaw_pos = false;
+    bool yaw_neg = false;
+    bool thrust = false;
 }GCCommand;
 
 typedef struct{

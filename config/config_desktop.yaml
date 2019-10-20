@@ -8,7 +8,9 @@ CAMERA_NODE:{
     CAMERA_INTRINSIC_XML: "camera_intrinsic.xml"}
 LOG_NODE:{
     ENABLE: 1,
-    LOG_FILE_PATH: "../log/"}
+    LOG_FILE_PATH: "../log/",
+    WIDTH: 1280,
+    HEIGHT: 720}
 SOCKET_SEND_NODE:{
     ENABLE: 1,
     HOST: "127.0.0.1",

@@ -56,9 +56,13 @@ void healthCheck( shared_ptr<Telemetry> telemetry );
 void arm( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action );
 void takeoff( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, float altitude );
 void land( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action );
+
 void ctrlVelocityBody( std::shared_ptr<mavsdk::Offboard> offboard, Offboard::VelocityBodyYawspeed u );
 void clearCommand();
+
 void waitForArmed( shared_ptr<Telemetry> telemetry );
+void waitForOffboard( shared_ptr<Offboard> offboard );
+void pushInput( Input input );
 void test( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, shared_ptr<Offboard> offboard );
 
 #endif

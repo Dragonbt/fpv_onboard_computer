@@ -5,6 +5,7 @@
 #include <fstream>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 #include <thread>
 #include <mutex>
 #include <atomic>
@@ -30,6 +31,9 @@ extern mutex euler_angle_vec_log_mutex;
 extern vector<Input> input_vec_log_topic;
 extern mutex input_vec_log_mutex;
 
+extern Mat image_topic;
+extern mutex image_mutex;
+
 void logLoop( FileNode log_config );
 
 class Log{
@@ -44,6 +48,18 @@ class Log{
     private:
         string log_path;
         ofstream log_file;
+};
+
+class Video{
+    public:
+        Video( string path, int width, int height );
+        void open();
+        void close();
+        void writeImage();
+    private:
+        string video_path;
+        int width, height;
+        VideoWriter writer;
 };
 
 #endif
