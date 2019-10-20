@@ -329,12 +329,14 @@ void test( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, shared_pt
                 cout << "DOWN" << endl;
                 u = {0.0f, 0.0f, 0.5f, 0.0f};
                 offboard->set_velocity_body( u );
+                this_thread::sleep_for(seconds(5));
             }
             if( command.forward )
             {
                 cout << "FORWARD" << endl;
                 u = {0.5f, 0.0f, 0.0f, 0.0f};
                 offboard->set_velocity_body( u );
+                this_thread::sleep_for(seconds(5));
             }
             if( command.backward )
             {
