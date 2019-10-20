@@ -169,6 +169,8 @@ void Video::writeImage()
         image_mutex.lock();
         image = image_topic.clone();
         image_mutex.unlock();
+        if( image.empty() )
+            return;
         resize(image, image, Size(width, height));
         writer.write( image );
     }
