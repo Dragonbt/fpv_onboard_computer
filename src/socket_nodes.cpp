@@ -33,20 +33,14 @@ void sendLoop( FileNode send_config )
     }
     send_to_addr.sin_family = AF_INET; 
     send_to_addr.sin_port = htons( port );
-    bool heart_beat = true;
-    Mat image;
-    vector< uchar > img_buffer;
+    
     while( true )
     {
-        image_mutex.lock();
-        image = image_topic.clone();
-        image_mutex.unlock();
-        if( ! image.empty() && compress( image, img_msg_resize, img_msg_quality, img_buffer ) ){
-            //cout << img_buffer.size() << endl;
-            sendMsg( 1, (uint16_t) img_buffer.size(), img_buffer.data() );
-            img_buffer.clear();
-        } 
-        sendMsg( 0, 1, &heart_beat);
+        sendHeartBeat();
+        sendImg(img_msg_resize, img_msg_quality);
+        sendPosition();
+        sendVelocity();
+        sendAttitude();
         this_thread::sleep_for( milliseconds( 50 ) );
     }
     cout << "[WARNING]: send node shutdown" << endl;
@@ -258,12 +252,6 @@ void recvMsg( char* msg, int msg_length, sockaddr_in addr )
             command_topic.yaw_neg = flag;
             command_mutex.unlock();
             break;
-        case 13:
-            memcpy( &flag, buffer, sizeof flag );
-            command_mutex.lock();
-            command_topic.thrust = flag;
-            command_mutex.unlock();
-            break;
         default:
             break;
     }
@@ -275,4 +263,71 @@ bool compress( Mat image, double resize_k, int quality, vector<uchar>& img_buffe
     resize( image, image, Size(), resize_k, resize_k );
     //cvtColor( frame, gray_frame, COLOR_BGR2GRAY );
     return imencode(".jpeg", image, img_buffer, jpeg_quality);
+}
+
+void sendHeartBeat()
+{
+    bool heart_beat = true;
+    sendMsg( HEART_BEAT_MSG, 1, &heart_beat);
+    return;
+}
+
+void sendImg( double img_msg_resize, int img_msg_quality )
+{
+    Mat image;
+    vector< uchar > img_buffer;
+    image_mutex.lock();
+    image = image_topic.clone();
+    image_mutex.unlock();
+    if( ! image.empty() && compress( image, img_msg_resize, img_msg_quality, img_buffer ) ){
+        //cout << img_buffer.size() << endl;
+        sendMsg( IMG_MSG, (uint16_t) img_buffer.size(), img_buffer.data() );
+        img_buffer.clear();
+    }
+    return;
+}
+
+void sendPosition()
+{
+    vector<PositionNED> position_vec;
+    position_vec_mutex.lock();
+    position_vec = position_vec_topic;
+    position_vec_topic.clear();
+    position_vec_mutex.unlock();
+    if( ! position_vec.empty() )
+    {
+        sendMsg( POSITION_MSG, (uint16_t) ( position_vec.size() * sizeof(PositionNED) ), position_vec.data() );
+        position_vec.clear();
+    }
+    return;
+}
+
+void sendVelocity()
+{
+    vector<VelocityNED> velocity_vec;
+    velocity_vec_mutex.lock();
+    velocity_vec = velocity_vec_topic;
+    velocity_vec_topic.clear();
+    velocity_vec_mutex.unlock();
+    if( ! velocity_vec.empty() )
+    {
+        sendMsg( VELOCITY_MSG, (uint16_t) ( velocity_vec.size() * sizeof(VelocityNED) ), velocity_vec.data() );
+        velocity_vec.clear();
+    }
+    return;
+}
+
+void sendAttitude()
+{
+    vector<EulerAngle> euler_angle_vec;
+    euler_angle_vec_mutex.lock();
+    euler_angle_vec = euler_angle_vec_topic;
+    euler_angle_vec_topic.clear();
+    euler_angle_vec_mutex.unlock();
+    if( ! euler_angle_vec.empty() )
+    {
+        sendMsg( ATTITUDE_MSG, (uint16_t) ( euler_angle_vec.size() * sizeof(EulerAngle) ), euler_angle_vec.data() );
+        euler_angle_vec.clear();
+    }
+    return;
 }

@@ -40,12 +40,7 @@ void controlLoop( FileNode control_config )
     /*Takeoff*/
     //takeoff( telemetry, action, takeoff_altitude );
     //this_thread::sleep_for(seconds(10));
-    waitForArmed( telemetry );
-    waitForOffboard( offboard );
-    //bool ret = offb_ctrl_attitude(offboard);
-    //if (ret == false) {
-    //    cout << "attitude fail" << endl;
-    //}
+    //waitForArmed( telemetry );
     test(telemetry, action, offboard);
     cout << "[LOGGING]: land success" << endl;
     cout << "[WARNING]: control node shut down" << endl;
@@ -209,9 +204,13 @@ void land( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action )
     }
 }
 
-void clearOffboardCommand()
+bool readControlCommand( GCCommand &command )
 {
     command_mutex.lock();
+    command = command_topic;
+    command_topic.arm = false;
+    command_topic.takeoff = false;
+    command_topic.land = false;
     command_topic.up = false;
     command_topic.down = false;
     command_topic.left = false;
@@ -220,8 +219,13 @@ void clearOffboardCommand()
     command_topic.backward = false;
     command_topic.yaw_pos = false;
     command_topic.yaw_neg = false;
-    command_topic.thrust = false;
     command_mutex.unlock();
+    if( command.arm || command.takeoff || command.land || command.up || command.down || command.left || command.right || command.forward || command.backward || command.yaw_pos || command.yaw_neg == true ){
+        return true;
+    }
+    else{
+        return false;
+    }
 }
 
 void waitForArmed( shared_ptr<Telemetry> telemetry )
@@ -234,28 +238,17 @@ void waitForArmed( shared_ptr<Telemetry> telemetry )
     return;
 }
 
-void waitForOffboard( shared_ptr<Offboard> offboard ){
-    
-    
-    while( true )
-    {
-        offboard->set_velocity_body({0.0f, 0.0f, 0.0f, 0.0f});
-        Offboard::Result offboard_result = offboard->start();
-        if ( offboard_result != Offboard::Result::SUCCESS ){
-            cout << string("[ERROR]: ") + Offboard::result_str(offboard_result) << endl;
-            cout << "[ERROR]: unable to start offboard" << endl;
-        }
-        else{
-            break;
-        }
-        this_thread::sleep_for(seconds(1));
-    }
-    cout << "[LOGGING]: offboard mode start" << endl;
-    return;
-}
-
-void pushInput( Input input )
+void pushInput( Offboard::VelocityBodyYawspeed velocity, Offboard::Attitude attitude )
 {
+    Input input;
+    input.forward_m_s = velocity.forward_m_s;
+    input.right_m_s = velocity.right_m_s;
+    input.down_m_s = velocity.down_m_s;
+    input.yawspeed_deg_s = velocity.yawspeed_deg_s;
+    input.roll_deg = attitude.roll_deg;
+    input.pitch_deg = attitude.pitch_deg;
+    input.yaw_deg = attitude.yaw_deg;
+    input.time_ms = intervalMs(high_resolution_clock::now(), init_timepoint);
     input_vec_mutex.lock();
     if( input_vec_topic.size() > MAX_VEC_SIZE )
     {
@@ -272,172 +265,112 @@ void pushInput( Input input )
     input_vec_log_topic.push_back( input );
     input_vec_log_mutex.unlock();
 }
+
 void test( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, shared_ptr<Offboard> offboard )
 {
     GCCommand command;
-    Offboard::VelocityBodyYawspeed u;
+    Offboard::VelocityBodyYawspeed velocity;
+    Offboard::Attitude attitude;
     Input input;
-    const std::string offb_mode = "ATTITUDE";
-    cout << "thrust" << endl;
-    offboard->set_attitude({0.0f, 0.0f, 0.0f, 0.6f});
-    this_thread::sleep_for(seconds(5));
-   
-    offboard_log(offb_mode, "ROLL 30");
-    offboard->set_attitude({30.0f, 0.0f, 0.0f, 0.6f});
-    this_thread::sleep_for(seconds(5)); // rolling
 
-    
-
-    
-    cout << "enter while" << endl;
-    // Now, stop offboard mode.
+    cout << "enter test" << endl;
     while( true )
     {
-        offboard_log(offb_mode, "ROLL -30");
-        offboard->set_attitude({-30.0f, 0.0f, 0.0f, 0.6f});
-        this_thread::sleep_for(seconds(5)); // Let yaw settle.
-        command_mutex.lock();
-        command = command_topic;
-        command_mutex.unlock();
+        if( ! readControlCommand( command ) ){
+            cout << "no command arrive" << endl;
+            this_thread::sleep_for(milliseconds(30));
+            continue;
+        }
         if( command.land )
         {
+            cout << "LAND" << endl;
             land( telemetry, action );
             break;
         }
-        else{
-            clearOffboardCommand();
-            offboard_log(offb_mode, "ROLL 0");
-            offboard->set_attitude({0.0f, 0.0f, 0.0f, 0.4f});
-            this_thread::sleep_for(seconds(5)); // Let yaw settle.
-            
-            //switch()
-            if( command.up )
-            {
-                /*
-                cout << "UP" << endl;
-                u = {0.0f, 0.0f, -0.5f, 0.0f};
-                offboard->set_velocity_body( u );
-                cout << "UP success" << endl;
-                */
-                offboard_log(offb_mode, "PITCH 30");
-                offboard->set_attitude({0.0f, 30.0f, 0.0f, 0.6f});
-                this_thread::sleep_for(seconds(5)); // Let yaw settle.
-            }
-            if( !command.up) cout << "stop up" << endl;
-            if( command.down )
-            {
-                cout << "DOWN" << endl;
-                u = {0.0f, 0.0f, 0.5f, 0.0f};
-                offboard->set_velocity_body( u );
-                this_thread::sleep_for(seconds(5));
-            }
-            if( command.forward )
-            {
-                cout << "FORWARD" << endl;
-                u = {0.5f, 0.0f, 0.0f, 0.0f};
-                offboard->set_velocity_body( u );
-                this_thread::sleep_for(seconds(5));
-            }
-            if( !command.up) cout << "stop forward" << endl;
-            if( command.backward )
-            {
-                cout << "BACKWARD" << endl;
-                u = {-0.5f, 0.0f, 0.0f, 0.0f};
-                offboard->set_velocity_body( u );
-            }
-            if( command.left )
-            {
-                cout << "LEFT" << endl;
-                u = {0.0f, 0.0f, -0.5f, 0.0f};
-                offboard->set_velocity_body( u );
-            }
-            if( command.right )
-            {
-                cout << "RIGHT" << endl;
-                u = {0.0f, 0.0f, 0.5f, 0.0f};
-                offboard->set_velocity_body( u );
-            }
-            if( command.yaw_pos )
-            {
-                cout << "YAW+" << endl;
-                u = {0.0f, 0.0f, 0.0f, 10.0f};
-                offboard->set_velocity_body( u );
-            }
-            if( command.yaw_neg )
-            {
-                cout << "YAW-" << endl;
-                u = {0.0f, 0.0f, 0.0f, -10.0f};
-                offboard->set_velocity_body( u );
-            }
-            if( command.thrust )
-            {
-                cout << "thrust" << endl;
-                Offboard::Attitude att = {0.0f, 0.0f, 0.0f, 0.4f};
-                offboard->set_attitude( att );
-            }
-            /*else{
-                u = {0.0f, 0.0f, 0.0f, 0.0f};
-                offboard->set_velocity_body( {0.0f, 0.0f, 0.0f, 0.0f} );
-                cout << "set to 0" << endl;
-                this_thread::sleep_for(seconds(5));
-            }*/
-            
-
-            input.forward_m_s = u.forward_m_s;
-            input.right_m_s = u.right_m_s;
-            input.down_m_s = u.down_m_s;
-            input.yawspeed_deg_s = u.yawspeed_deg_s;
-            input.time_ms = intervalMs(high_resolution_clock::now(), init_timepoint);
-            pushInput( input );
-            this_thread::sleep_for(milliseconds(300));
+        if( command.up )
+        {
+            cout << "UP" << endl;
+            attitude = {0.0f, 0.0f, 0.0f, 0.7f};
+            offbCtrlAttitude(offboard, attitude);
         }
+        if( command.down )
+        {
+            cout << "DOWN" << endl;
+            attitude = {0.0f, 0.0f, 0.0f, 0.3f};
+            offbCtrlAttitude(offboard, attitude);
+        }
+        if( command.forward )
+        {
+            cout << "FORWARD" << endl;
+            attitude = {0.0f, -10.0f, 0.0f, 0.5f};
+            offbCtrlAttitude(offboard, attitude);
+        }
+        if( command.backward )
+        {
+            cout << "BACKWARD" << endl;
+            attitude = {0.0f, 10.0f, 0.0f, 0.5f};
+            offbCtrlAttitude(offboard, attitude);
+        }
+        if( command.left )
+        {
+            cout << "LEFT" << endl;
+            attitude = {-10.0f, 0.0f, 0.0f, 0.5f};
+            offbCtrlAttitude(offboard, attitude);
+        }
+        if( command.right )
+        {
+            cout << "RIGHT" << endl;
+            attitude = {10.0f, 0.0f, 0.0f, 0.5f};
+            offbCtrlAttitude(offboard, attitude);
+        }
+        if( command.yaw_pos )
+        {
+            cout << "YAW+" << endl;
+            velocity = {0.0f, 0.0f, 0.0f, 10.0f};
+            offbCtrlVelocityBody(offboard, velocity);
+        }
+        if( command.yaw_neg )
+        {
+            cout << "YAW-" << endl;
+            velocity = {0.0f, 0.0f, 0.0f, -10.0f};
+            offbCtrlVelocityBody(offboard, velocity);
+        }
+        pushInput( velocity, attitude );
+        this_thread::sleep_for(milliseconds(30));    
     }
     return;
 }
 
-bool offb_ctrl_attitude(std::shared_ptr<mavsdk::Offboard> offboard)
+void offbCtrlAttitude(shared_ptr<Offboard> offboard, Offboard::Attitude attitude)
 {
-    const std::string offb_mode = "ATTITUDE";
     Offboard::Result offboard_result;
-    // Send it once before starting offboard, otherwise it will be rejected.
-    //offboard->set_attitude({30.0f, 0.0f, 0.0f, 0.6f});
-
-    //Offboard::Result offboard_result = offboard->start();
-    //offboard_error_exit(offboard_result, "Offboard start failed");
-    //offboard_log(offb_mode, "Offboard started");
-
-    offboard_log(offb_mode, "ROLL 30");
-    offboard->set_attitude({30.0f, 0.0f, 0.0f, 0.6f});
-    this_thread::sleep_for(seconds(2)); // rolling
-
-    offboard_log(offb_mode, "ROLL -30");
-    offboard->set_attitude({-30.0f, 0.0f, 0.0f, 0.6f});
-    this_thread::sleep_for(seconds(2)); // Let yaw settle.
-
-    offboard_log(offb_mode, "ROLL 0");
-    offboard->set_attitude({0.0f, 0.0f, 0.0f, 0.6f});
-    this_thread::sleep_for(seconds(2)); // Let yaw settle.
-
-    // Now, stop offboard mode.
-    offboard_result = offboard->stop();
-    offboard_error_exit(offboard_result, "Offboard stop failed: ");
-    offboard_log(offb_mode, "Offboard stopped");
-
-    return true;
-}
-
-// Logs during Offboard control
-inline void offboard_log(const std::string& offb_mode, const std::string msg)
-{
-    std::cout << "[" << offb_mode << "] " << msg << std::endl;
-}
-
-// Handles Offboard's result
-inline void offboard_error_exit(Offboard::Result result, const std::string& message)
-{
-    if (result != Offboard::Result::SUCCESS) {
-        std::cerr << ERROR_CONSOLE_TEXT << message << Offboard::result_str(result)
-                  << NORMAL_CONSOLE_TEXT << std::endl;
-        exit(EXIT_FAILURE);
+    if( ! offboard->is_active() ){
+        offboard->set_attitude(attitude);
+        offboard_result = offboard->start();
+        if ( offboard_result != Offboard::Result::SUCCESS ){
+            cout << string("[ERROR]: ") + Offboard::result_str(offboard_result) << endl;
+            cout << "[ERROR]: unable to start offboard" << endl;
+            return;
+        }
     }
+    // Send it once before starting offboard, otherwise it will be rejected.
+    offboard->set_attitude(attitude);
+    return;
+}
+
+void offbCtrlVelocityBody( std::shared_ptr<mavsdk::Offboard> offboard, Offboard::VelocityBodyYawspeed velocity )
+{
+    Offboard::Result offboard_result;
+    if( ! offboard->is_active() ){
+        offboard->set_velocity_body(velocity);
+        offboard_result = offboard->start();
+        if ( offboard_result != Offboard::Result::SUCCESS ){
+            cout << string("[ERROR]: ") + Offboard::result_str(offboard_result) << endl;
+            cout << "[ERROR]: unable to start offboard" << endl;
+            return;
+        }
+    }
+    // Send it once before starting offboard, otherwise it will be rejected.
+    offboard->set_velocity_body(velocity);
+    return;
 }

@@ -57,15 +57,12 @@ void arm( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action );
 void takeoff( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, float altitude );
 void land( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action );
 
-void ctrlVelocityBody( std::shared_ptr<mavsdk::Offboard> offboard, Offboard::VelocityBodyYawspeed u );
-void clearCommand();
+bool readControlCommand( GCCommand &command );
 
 void waitForArmed( shared_ptr<Telemetry> telemetry );
-void waitForOffboard( shared_ptr<Offboard> offboard );
-void pushInput( Input input );
+void pushInput( Offboard::VelocityBodyYawspeed velocity, Offboard::Attitude attitude );
 void test( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, shared_ptr<Offboard> offboard );
 
-inline void offboard_log(const std::string& offb_mode, const std::string msg);
-inline void offboard_error_exit(Offboard::Result result, const std::string& message);
-bool offb_ctrl_attitude(std::shared_ptr<mavsdk::Offboard> offboard);
+void offbCtrlAttitude(shared_ptr<Offboard> offboard, Offboard::Attitude attitude);
+void offbCtrlVelocityBody( std::shared_ptr<mavsdk::Offboard> offboard, Offboard::VelocityBodyYawspeed velocity );
 #endif

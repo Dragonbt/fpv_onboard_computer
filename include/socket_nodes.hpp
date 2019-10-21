@@ -40,6 +40,18 @@ extern mutex camera_status_mutex;
 extern int socket_exception_topic;
 extern mutex socket_exception_mutex;
 
+extern vector<PositionNED> position_vec_topic;
+extern mutex position_vec_mutex;
+
+extern vector<VelocityNED> velocity_vec_topic;
+extern mutex velocity_vec_mutex;
+
+extern vector<EulerAngle> euler_angle_vec_topic;
+extern mutex euler_angle_vec_mutex;
+
+extern vector<Input> input_vec_topic;
+extern mutex input_vec_mutex;
+
 extern GCCommand command_topic;
 extern mutex command_mutex;
 
@@ -51,5 +63,12 @@ bool socketInit();
 void sendMsg( uint8_t msg_type, uint16_t length, void* buffer );
 void recvMsg( char* msg, int msg_length, sockaddr_in address );
 bool compress( Mat image, double resize_k, int quality, vector<uchar>& img_buffer );
+
+void sendHeartBeat( void );
+void sendImg( double img_msg_resize, int img_msg_quality );
+void sendPosition( void );
+void sendVelocity( void );
+void sendAttitude( void );
+void sendStatus( void );
 
 #endif
