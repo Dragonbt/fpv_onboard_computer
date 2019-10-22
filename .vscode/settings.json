@@ -43,6 +43,9 @@
         "thread": "cpp",
         "utility": "cpp",
         "typeinfo": "cpp",
-        "string": "cpp"
+        "string": "cpp",
+        "atomic": "cpp",
+        "list": "cpp",
+        "iomanip": "cpp"
     }
 }

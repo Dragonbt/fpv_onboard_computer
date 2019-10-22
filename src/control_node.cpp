@@ -364,6 +364,7 @@ void test( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, shared_pt
     GCCommand command;
     Offboard::VelocityBodyYawspeed velocity;
     Offboard::Attitude attitude;
+    Offboard::PositionNEDYaw position;
     InputVelocityBody input_velocity;
     InputAttitude input_attitude;
     remotePrint(string("Enter test loop"));
@@ -391,58 +392,74 @@ void test( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, shared_pt
         if( command.up )
         {
             cout << "UP" << endl;
-            attitude = {0.0f, 0.0f, 0.0f, 0.7f};
-            offbCtrlAttitude(offboard, attitude);
-            pushInputAttitude(attitude);
+            position = {0.0f, 0.0f, -10.0f, 0.0f};
+            offbCtrlPositionNED( offboard, position );
+            //attitude = {0.0f, 0.0f, 0.0f, 0.7f};
+            //offbCtrlAttitude(offboard, attitude);
+            //pushInputAttitude(attitude);
         }
         if( command.down )
         {
-            cout << "DOWN" << endl;
+            //cout << "DOWN" << endl;
+            //position = {0.0f, 0.0f, -10.0f, 0.0f};
+            //offbCtrlPositionNED( offboard, position );
             attitude = {0.0f, 0.0f, 0.0f, 0.3f};
             offbCtrlAttitude(offboard, attitude);
-            pushInputAttitude(attitude);
+            //pushInputAttitude(attitude);
         }
         if( command.forward )
         {
             cout << "FORWARD" << endl;
-            attitude = {0.0f, -10.0f, 0.0f, 0.5f};
-            offbCtrlAttitude(offboard, attitude);
-            pushInputAttitude(attitude);
+            position = {10.0f, 0.0f, 0.0f, 0.0f};
+            offbCtrlPositionNED( offboard, position );
+            //attitude = {0.0f, -10.0f, 0.0f, 0.5f};
+            //offbCtrlAttitude(offboard, attitude);
+            //pushInputAttitude(attitude);
         }
         if( command.backward )
         {
             cout << "BACKWARD" << endl;
-            attitude = {0.0f, 10.0f, 0.0f, 0.5f};
-            offbCtrlAttitude(offboard, attitude);
-            pushInputAttitude(attitude);
+            position = {-10.0f, 0.0f, 0.0f, 0.0f};
+            offbCtrlPositionNED( offboard, position );
+            //attitude = {0.0f, 10.0f, 0.0f, 0.5f};
+            //offbCtrlAttitude(offboard, attitude);
+            //pushInputAttitude(attitude);
         }
         if( command.left )
         {
             cout << "LEFT" << endl;
-            attitude = {-10.0f, 0.0f, 0.0f, 0.5f};
-            offbCtrlAttitude(offboard, attitude);
-            pushInputAttitude(attitude);
+            velocity = {0.0f, -10.0f, 0.0f, 0.0f};
+            offbCtrlVelocityBody(offboard, velocity);
+            //attitude = {-10.0f, 0.0f, 0.0f, 0.5f};
+            //offbCtrlAttitude(offboard, attitude);
+            //pushInputAttitude(attitude);
         }
         if( command.right )
         {
             cout << "RIGHT" << endl;
-            attitude = {10.0f, 0.0f, 0.0f, 0.5f};
-            offbCtrlAttitude(offboard, attitude);
-            pushInputAttitude(attitude);
+            velocity = {0.0f, 10.0f, 0.0f, 0.0f};
+            offbCtrlVelocityBody(offboard, velocity);
+            //attitude = {10.0f, 0.0f, 0.0f, 0.5f};
+            //offbCtrlAttitude(offboard, attitude);
+            //pushInputAttitude(attitude);
         }
         if( command.yaw_pos )
         {
             cout << "YAW+" << endl;
-            velocity = {0.0f, 0.0f, 0.0f, 10.0f};
-            offbCtrlVelocityBody(offboard, velocity);
-            pushInputVelocityBody(velocity);
+            position = {0.0f, 0.0f, 0.0f, 10.0f};
+            offbCtrlPositionNED(offboard, position);
+            //velocity = {0.0f, 0.0f, 0.0f, 10.0f};
+            //offbCtrlVelocityBody(offboard, velocity);
+            //pushInputVelocityBody(velocity);
         }
         if( command.yaw_neg )
         {
             cout << "YAW-" << endl;
-            velocity = {0.0f, 0.0f, 0.0f, -10.0f};
-            offbCtrlVelocityBody(offboard, velocity);
-            pushInputVelocityBody(velocity);
+            position = {0.0f, 0.0f, 0.0f, -10.0f};
+            offbCtrlPositionNED(offboard, position);
+            //velocity = {0.0f, 0.0f, 0.0f, -10.0f};
+            //offbCtrlVelocityBody(offboard, velocity);
+            //pushInputVelocityBody(velocity);
         }
         this_thread::sleep_for(milliseconds(30));    
     }
@@ -481,6 +498,22 @@ void offbCtrlVelocityBody( std::shared_ptr<mavsdk::Offboard> offboard, Offboard:
     // Send it once before starting offboard, otherwise it will be rejected.
     offboard->set_velocity_body(velocity);
     return;
+}
+
+void offbCtrlPositionNED( std::shared_ptr<mavsdk::Offboard> offboard, Offboard::PositionNEDYaw position )
+{
+    Offboard::Result offboard_result;
+    if( ! offboard->is_active() ){
+        offboard->set_position_ned( position );
+        offboard_result = offboard->start();
+        if ( offboard_result != Offboard::Result::SUCCESS ){
+            cout << string("[ERROR]: ") + Offboard::result_str(offboard_result) << endl;
+            cout << "[ERROR]: unable to start offboard" << endl;
+            return;
+        }
+    }
+    // Send it once before starting offboard, otherwise it will be rejected.
+    offboard->set_position_ned( position );
 }
 
 void quitOffboard( shared_ptr<Offboard> offboard )

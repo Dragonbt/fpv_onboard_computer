@@ -27,6 +27,8 @@
 
 
 struct GCCommand{
+    bool log = false;
+    bool video = false;
     bool arm = false;
     bool takeoff = false;
     bool land = false;
@@ -38,8 +40,6 @@ struct GCCommand{
     bool right = false;
     bool yaw_pos = false;
     bool yaw_neg = false;
-    bool log = false;
-    bool video = false;
     bool quit = false;
     bool operator==(GCCommand &command){
         if( arm == command.arm && 

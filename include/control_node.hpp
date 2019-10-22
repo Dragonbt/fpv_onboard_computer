@@ -77,4 +77,5 @@ void test( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, shared_pt
 
 void offbCtrlAttitude(shared_ptr<Offboard> offboard, Offboard::Attitude attitude);
 void offbCtrlVelocityBody( std::shared_ptr<mavsdk::Offboard> offboard, Offboard::VelocityBodyYawspeed velocity );
+void offbCtrlPositionNED( std::shared_ptr<mavsdk::Offboard> offboard, Offboard::PositionNEDYaw position );
 #endif
