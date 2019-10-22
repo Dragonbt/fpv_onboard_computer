@@ -55,6 +55,9 @@ extern mutex input_vec_mutex;
 extern GCCommand command_topic;
 extern mutex command_mutex;
 
+extern Status status_topic;
+extern mutex status_mutex;
+
 void sendLoop( FileNode send_config );
 void recvLoop( FileNode recv_config );
 

@@ -134,6 +134,42 @@ void setTelemetry( shared_ptr<Telemetry> telemetry )
         euler_angle_vec_log_mutex.unlock();
         //cout << string("[LOGGING]: yaw ") << euler_angle.yaw_deg << endl;
     });
+
+    telemetry->armed_async([](bool armed){
+        status_mutex.lock();
+        status_topic.armed = armed;
+        status_mutex.unlock();
+    });
+
+    telemetry->in_air_async([](bool in_air){
+        status_mutex.lock();
+        status_topic.in_air = in_air;
+        status_mutex.unlock();
+    });
+
+    telemetry->rc_status_async([](Telemetry::RCStatus rc_status){
+        status_mutex.lock();
+        status_topic.rc_available_once = rc_status.available_once;
+        status_topic.rc_available = rc_status.available;
+        status_topic.rc_signal_strength_percent = rc_status.signal_strength_percent;
+        status_mutex.unlock();
+    });
+
+    telemetry->battery_async([](Telemetry::Battery battery){
+        status_mutex.lock();
+        status_topic.battery_voltage_v = battery.voltage_v;
+        status_topic.battery_remaining_percent = battery.remaining_percent;
+        status_mutex.unlock();
+    });
+
+    telemetry->flight_mode_async([](Telemetry::FlightMode flight_mode){
+        string mode = Telemetry::flight_mode_str(flight_mode);
+        status_mutex.lock();
+        strncpy(status_topic.flight_mode, mode.c_str(), sizeof(status_topic.flight_mode));
+        status_topic.flight_mode[sizeof(status_topic.flight_mode) - 1] = 0;
+        status_mutex.unlock();
+    });
+
     return;
 }
 
@@ -219,8 +255,9 @@ bool readControlCommand( GCCommand &command )
     command_topic.backward = false;
     command_topic.yaw_pos = false;
     command_topic.yaw_neg = false;
+    command_topic.quit = false;
     command_mutex.unlock();
-    if( command.arm || command.takeoff || command.land || command.up || command.down || command.left || command.right || command.forward || command.backward || command.yaw_pos || command.yaw_neg == true ){
+    if( command.quit || command.arm || command.takeoff || command.land || command.up || command.down || command.left || command.right || command.forward || command.backward || command.yaw_pos || command.yaw_neg == true ){
         return true;
     }
     else{
@@ -277,8 +314,16 @@ void test( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, shared_pt
     while( true )
     {
         if( ! readControlCommand( command ) ){
-            cout << "no command arrive" << endl;
+            //cout << "no command arrive" << endl;
+            //attitude = {0.0f, 0.0f, 0.0f, 0.5f};
+            //offbCtrlAttitude(offboard, attitude);
+            //pushInput( velocity, attitude );
             this_thread::sleep_for(milliseconds(30));
+            continue;
+        }
+        if( command.quit )
+        {
+            quitOffboard( offboard );
             continue;
         }
         if( command.land )
@@ -372,5 +417,19 @@ void offbCtrlVelocityBody( std::shared_ptr<mavsdk::Offboard> offboard, Offboard:
     }
     // Send it once before starting offboard, otherwise it will be rejected.
     offboard->set_velocity_body(velocity);
+    return;
+}
+
+void quitOffboard( shared_ptr<Offboard> offboard )
+{
+    Offboard::Result offboard_result;
+    if( offboard->is_active() ){
+        offboard_result = offboard->stop();
+        if ( offboard_result != Offboard::Result::SUCCESS ){
+            cout << string("[ERROR]: ") + Offboard::result_str(offboard_result) << endl;
+            cout << "[ERROR]: stop offboard error" << endl;
+            return;
+        }
+    }
     return;
 }

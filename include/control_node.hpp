@@ -49,6 +49,9 @@ extern mutex input_vec_log_mutex;
 extern GCCommand command_topic;
 extern mutex command_mutex;
 
+extern Status status_topic;
+extern mutex status_mutex;
+
 void controlLoop( FileNode control_config );
 void setTelemetry( shared_ptr<Telemetry> telemetry );
 
@@ -60,6 +63,7 @@ void land( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action );
 bool readControlCommand( GCCommand &command );
 
 void waitForArmed( shared_ptr<Telemetry> telemetry );
+void quitOffboard( shared_ptr<Offboard> offboard );
 void pushInput( Offboard::VelocityBodyYawspeed velocity, Offboard::Attitude attitude );
 void test( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, shared_ptr<Offboard> offboard );
 

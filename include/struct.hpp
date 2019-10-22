@@ -39,6 +39,7 @@ typedef struct{
     bool yaw_neg = false;
     bool log = false;
     bool video = false;
+    bool quit = false;
 }GCCommand;
 
 //sizeof PositionNED = 8*3 + 64/8 = 32bytes
@@ -66,16 +67,27 @@ typedef struct{
 }EulerAngle;
 
 typedef struct{
-    float forward_m_s = 0;
-    float right_m_s = 0;
-    float down_m_s = 0;
-    float yawspeed_deg_s = 0;
-    float roll_deg = 0;
-    float pitch_deg = 0;
-    float yaw_deg = 0;
-    float thrust = 0;
+    double forward_m_s = 0;
+    double right_m_s = 0;
+    double down_m_s = 0;
+    double yawspeed_deg_s = 0;
+    double roll_deg = 0;
+    double pitch_deg = 0;
+    double yaw_deg = 0;
+    double thrust = 0;
     int64_t time_ms = 0;
 }Input;
 
+//sizeof Status = 8 + 8*3 + 56 = 88bytes
+typedef struct{
+    bool armed = false;
+    bool in_air = false;
+    bool rc_available_once = false;
+    bool rc_available = false;
+    double rc_signal_strength_percent = 0;
+    double battery_voltage_v = 0;
+    double battery_remaining_percent = 0;
+    char flight_mode[50] = "1234";
+}Status;
 
 #endif

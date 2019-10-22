@@ -41,6 +41,7 @@ void sendLoop( FileNode send_config )
         sendPosition();
         sendVelocity();
         sendAttitude();
+        sendStatus();
         this_thread::sleep_for( milliseconds( 50 ) );
     }
     cout << "[WARNING]: send node shutdown" << endl;
@@ -252,6 +253,12 @@ void recvMsg( char* msg, int msg_length, sockaddr_in addr )
             command_topic.yaw_neg = flag;
             command_mutex.unlock();
             break;
+        case 13:
+            memcpy( &flag, buffer, sizeof flag );
+            command_mutex.lock();
+            command_topic.quit = flag;
+            command_mutex.unlock();
+            break;
         default:
             break;
     }
@@ -274,10 +281,11 @@ void sendHeartBeat()
 
 void sendImg( double img_msg_resize, int img_msg_quality )
 {
-    Mat image;
+    Mat image, empty;
     vector< uchar > img_buffer;
     image_mutex.lock();
     image = image_topic.clone();
+    image_topic = empty;
     image_mutex.unlock();
     if( ! image.empty() && compress( image, img_msg_resize, img_msg_quality, img_buffer ) ){
         //cout << img_buffer.size() << endl;
@@ -329,5 +337,15 @@ void sendAttitude()
         sendMsg( ATTITUDE_MSG, (uint16_t) ( euler_angle_vec.size() * sizeof(EulerAngle) ), euler_angle_vec.data() );
         euler_angle_vec.clear();
     }
+    return;
+}
+
+void sendStatus()
+{
+    Status status;
+    status_mutex.lock();
+    status = status_topic;
+    status_mutex.unlock();
+    sendMsg( STATUS_MSG, sizeof(status), &status );
     return;
 }

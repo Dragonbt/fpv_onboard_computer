@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <linux/in.h>
 #include <mutex>
+#include <iostream>
 
 using namespace std;
 using namespace cv;
@@ -61,3 +62,6 @@ mutex input_vec_mutex;
 /*control_node*/
 GCCommand command_topic;
 mutex command_mutex;
+
+Status status_topic;
+mutex status_mutex;
