@@ -1,3 +1,0 @@
-/home/tao/Desktop/onboard/build/CMakeFiles/edit_cache.dir
-/home/tao/Desktop/onboard/build/CMakeFiles/rebuild_cache.dir
-/home/tao/Desktop/onboard/build/CMakeFiles/onboard.dir
