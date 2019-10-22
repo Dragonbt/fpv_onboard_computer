@@ -19,7 +19,7 @@
 #include <thread>
 #include <mutex>
 
-#include "clock.hpp"
+#include "utils.hpp"
 #include "struct.hpp"
 
 using namespace std;
@@ -49,13 +49,16 @@ extern mutex velocity_vec_mutex;
 extern vector<EulerAngle> euler_angle_vec_topic;
 extern mutex euler_angle_vec_mutex;
 
-extern vector<Input> input_vec_topic;
-extern mutex input_vec_mutex;
+extern vector<InputVelocityBody> input_velocity_body_vec_topic;
+extern mutex input_velocity_body_vec_mutex;
+
+extern vector<InputAttitude> input_attitude_vec_topic;
+extern mutex input_attitude_vec_mutex;
 
 extern GCCommand command_topic;
 extern mutex command_mutex;
 
-extern Status status_topic;
+extern vector<Status> status_topic;
 extern mutex status_mutex;
 
 void sendLoop( FileNode send_config );
@@ -68,10 +71,10 @@ void recvMsg( char* msg, int msg_length, sockaddr_in address );
 bool compress( Mat image, double resize_k, int quality, vector<uchar>& img_buffer );
 
 void sendHeartBeat( void );
-void sendImg( double img_msg_resize, int img_msg_quality );
+void sendImg( bool gray, double img_msg_resize, int img_msg_quality );
 void sendPosition( void );
 void sendVelocity( void );
 void sendAttitude( void );
 void sendStatus( void );
-
+void sendString( void );
 #endif

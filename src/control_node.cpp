@@ -137,39 +137,85 @@ void setTelemetry( shared_ptr<Telemetry> telemetry )
 
     telemetry->armed_async([](bool armed){
         status_mutex.lock();
-        status_topic.armed = armed;
+        status.armed = armed;
+        if( status_topic.size() > MAX_VEC_SIZE )
+        {
+            status_topic.clear();
+        }
+        status_topic.push_back(status);
         status_mutex.unlock();
     });
 
     telemetry->in_air_async([](bool in_air){
         status_mutex.lock();
-        status_topic.in_air = in_air;
+        status.in_air = in_air;
+        if( status_topic.size() > MAX_VEC_SIZE )
+        {
+            status_topic.clear();
+        }
+        status_topic.push_back(status);
         status_mutex.unlock();
     });
 
     telemetry->rc_status_async([](Telemetry::RCStatus rc_status){
         status_mutex.lock();
-        status_topic.rc_available_once = rc_status.available_once;
-        status_topic.rc_available = rc_status.available;
-        status_topic.rc_signal_strength_percent = rc_status.signal_strength_percent;
+        status.rc_available_once = rc_status.available_once;
+        status.rc_available = rc_status.available;
+        status.rc_signal_strength_percent = rc_status.signal_strength_percent;
+        if( status_topic.size() > MAX_VEC_SIZE )
+        {
+            status_topic.clear();
+        }
+        status_topic.push_back(status);
         status_mutex.unlock();
     });
 
     telemetry->battery_async([](Telemetry::Battery battery){
         status_mutex.lock();
-        status_topic.battery_voltage_v = battery.voltage_v;
-        status_topic.battery_remaining_percent = battery.remaining_percent;
+        status.battery_voltage_v = battery.voltage_v;
+        status.battery_remaining_percent = battery.remaining_percent;
+        if( status_topic.size() > MAX_VEC_SIZE )
+        {
+            status_topic.clear();
+        }
+        status_topic.push_back(status);
         status_mutex.unlock();
     });
 
     telemetry->flight_mode_async([](Telemetry::FlightMode flight_mode){
         string mode = Telemetry::flight_mode_str(flight_mode);
         status_mutex.lock();
-        strncpy(status_topic.flight_mode, mode.c_str(), sizeof(status_topic.flight_mode));
-        status_topic.flight_mode[sizeof(status_topic.flight_mode) - 1] = 0;
+        strncpy(status.flight_mode, mode.c_str(), sizeof(status.flight_mode));
+        status.flight_mode[sizeof(status.flight_mode) - 1] = 0;
+        if( status_topic.size() > MAX_VEC_SIZE )
+        {
+            status_topic.clear();
+        }
+        status_topic.push_back(status);
         status_mutex.unlock();
     });
 
+    telemetry->status_text_async([](Telemetry::StatusText status_text){
+        string prefix;
+        switch (status_text.type){
+            case Telemetry::StatusText::StatusType::CRITICAL:
+                prefix = "[CRITICAL]: ";
+                break;
+            case Telemetry::StatusText::StatusType::INFO:
+                prefix = "[INFO]: ";
+                break;
+            case Telemetry::StatusText::StatusType::WARNING:
+                prefix = "[WARNING]: ";
+                break;
+            default:
+                prefix = "[UNKNOWN]: ";
+                break;
+        }
+        string msg = prefix + status_text.text;
+        string_vec_mutex.lock();
+        string_vec_topic.push_back(msg);
+        string_vec_mutex.unlock();
+    });
     return;
 }
 
@@ -242,26 +288,16 @@ void land( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action )
 
 bool readControlCommand( GCCommand &command )
 {
+    GCCommand empty_command;
     command_mutex.lock();
     command = command_topic;
-    command_topic.arm = false;
-    command_topic.takeoff = false;
-    command_topic.land = false;
-    command_topic.up = false;
-    command_topic.down = false;
-    command_topic.left = false;
-    command_topic.right = false;
-    command_topic.forward = false;
-    command_topic.backward = false;
-    command_topic.yaw_pos = false;
-    command_topic.yaw_neg = false;
-    command_topic.quit = false;
+    command_topic = empty_command;
     command_mutex.unlock();
-    if( command.quit || command.arm || command.takeoff || command.land || command.up || command.down || command.left || command.right || command.forward || command.backward || command.yaw_pos || command.yaw_neg == true ){
-        return true;
+    if( command == empty_command ){
+        return false;
     }
     else{
-        return false;
+        return true;
     }
 }
 
@@ -275,32 +311,52 @@ void waitForArmed( shared_ptr<Telemetry> telemetry )
     return;
 }
 
-void pushInput( Offboard::VelocityBodyYawspeed velocity, Offboard::Attitude attitude )
+void pushInputVelocityBody( Offboard::VelocityBodyYawspeed velocity )
 {
-    Input input;
+    InputVelocityBody input;
     input.forward_m_s = velocity.forward_m_s;
     input.right_m_s = velocity.right_m_s;
     input.down_m_s = velocity.down_m_s;
     input.yawspeed_deg_s = velocity.yawspeed_deg_s;
+    input.time_ms = intervalMs(high_resolution_clock::now(), init_timepoint);
+    input_velocity_body_vec_mutex.lock();
+    if( input_velocity_body_vec_topic.size() > MAX_VEC_SIZE )
+    {
+        input_velocity_body_vec_topic.clear();
+    }
+    input_velocity_body_vec_topic.push_back( input );
+    input_velocity_body_vec_mutex.unlock();
+
+    input_velocity_body_vec_log_mutex.lock();
+    if( input_velocity_body_vec_log_topic.size() > MAX_VEC_SIZE )
+    {
+        input_velocity_body_vec_log_topic.clear();
+    }
+    input_velocity_body_vec_log_topic.push_back( input );
+    input_velocity_body_vec_log_mutex.unlock();
+}
+void pushInputAttitude( Offboard::Attitude attitude )
+{
+    InputAttitude input;
     input.roll_deg = attitude.roll_deg;
     input.pitch_deg = attitude.pitch_deg;
     input.yaw_deg = attitude.yaw_deg;
     input.time_ms = intervalMs(high_resolution_clock::now(), init_timepoint);
-    input_vec_mutex.lock();
-    if( input_vec_topic.size() > MAX_VEC_SIZE )
+    input_attitude_vec_mutex.lock();
+    if( input_attitude_vec_topic.size() > MAX_VEC_SIZE )
     {
-        input_vec_topic.clear();
+        input_attitude_vec_topic.clear();
     }
-    input_vec_topic.push_back( input );
-    input_vec_mutex.unlock();
+    input_attitude_vec_topic.push_back( input );
+    input_attitude_vec_mutex.unlock();
 
-    input_vec_log_mutex.lock();
-    if( input_vec_log_topic.size() > MAX_VEC_SIZE )
+    input_attitude_vec_log_mutex.lock();
+    if( input_attitude_vec_log_topic.size() > MAX_VEC_SIZE )
     {
-        input_vec_log_topic.clear();
+        input_attitude_vec_log_topic.clear();
     }
-    input_vec_log_topic.push_back( input );
-    input_vec_log_mutex.unlock();
+    input_attitude_vec_log_topic.push_back( input );
+    input_attitude_vec_log_mutex.unlock();
 }
 
 void test( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, shared_ptr<Offboard> offboard )
@@ -308,9 +364,9 @@ void test( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, shared_pt
     GCCommand command;
     Offboard::VelocityBodyYawspeed velocity;
     Offboard::Attitude attitude;
-    Input input;
-
-    cout << "enter test" << endl;
+    InputVelocityBody input_velocity;
+    InputAttitude input_attitude;
+    remotePrint(string("Enter test loop"));
     while( true )
     {
         if( ! readControlCommand( command ) ){
@@ -337,50 +393,57 @@ void test( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, shared_pt
             cout << "UP" << endl;
             attitude = {0.0f, 0.0f, 0.0f, 0.7f};
             offbCtrlAttitude(offboard, attitude);
+            pushInputAttitude(attitude);
         }
         if( command.down )
         {
             cout << "DOWN" << endl;
             attitude = {0.0f, 0.0f, 0.0f, 0.3f};
             offbCtrlAttitude(offboard, attitude);
+            pushInputAttitude(attitude);
         }
         if( command.forward )
         {
             cout << "FORWARD" << endl;
             attitude = {0.0f, -10.0f, 0.0f, 0.5f};
             offbCtrlAttitude(offboard, attitude);
+            pushInputAttitude(attitude);
         }
         if( command.backward )
         {
             cout << "BACKWARD" << endl;
             attitude = {0.0f, 10.0f, 0.0f, 0.5f};
             offbCtrlAttitude(offboard, attitude);
+            pushInputAttitude(attitude);
         }
         if( command.left )
         {
             cout << "LEFT" << endl;
             attitude = {-10.0f, 0.0f, 0.0f, 0.5f};
             offbCtrlAttitude(offboard, attitude);
+            pushInputAttitude(attitude);
         }
         if( command.right )
         {
             cout << "RIGHT" << endl;
             attitude = {10.0f, 0.0f, 0.0f, 0.5f};
             offbCtrlAttitude(offboard, attitude);
+            pushInputAttitude(attitude);
         }
         if( command.yaw_pos )
         {
             cout << "YAW+" << endl;
             velocity = {0.0f, 0.0f, 0.0f, 10.0f};
             offbCtrlVelocityBody(offboard, velocity);
+            pushInputVelocityBody(velocity);
         }
         if( command.yaw_neg )
         {
             cout << "YAW-" << endl;
             velocity = {0.0f, 0.0f, 0.0f, -10.0f};
             offbCtrlVelocityBody(offboard, velocity);
+            pushInputVelocityBody(velocity);
         }
-        pushInput( velocity, attitude );
         this_thread::sleep_for(milliseconds(30));    
     }
     return;

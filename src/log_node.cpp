@@ -122,19 +122,35 @@ void Log::writeAttitudeVec()
 
 void Log::writeInputVec()
 {
-    vector<Input> input_vec;
-    input_vec_log_mutex.lock();
-    input_vec = input_vec_log_topic;
-    input_vec_log_topic.clear();
-    input_vec_log_mutex.unlock();
-    for( unsigned int i=0; i < input_vec.size(); i++)
+    vector<InputVelocityBody> input_velocity_body;
+    vector<InputAttitude> input_attitude;
+
+    input_velocity_body_vec_log_mutex.lock();
+    input_velocity_body = input_velocity_body_vec_log_topic;
+    input_velocity_body_vec_log_topic.clear();
+    input_velocity_body_vec_log_mutex.unlock();
+    for( size_t i=0; i < input_velocity_body.size(); i++)
     {
-        log_file << "Input" << ", "
-            << input_vec[i].forward_m_s << ", "
-            << input_vec[i].right_m_s << ", "
-            << input_vec[i].down_m_s << ", "
-            << input_vec[i].yawspeed_deg_s << ", "
-            << input_vec[i].time_ms << endl;
+        log_file << "InputVelocityBody" << ", "
+            << input_velocity_body[i].forward_m_s << ", "
+            << input_velocity_body[i].right_m_s << ", "
+            << input_velocity_body[i].down_m_s << ", "
+            << input_velocity_body[i].yawspeed_deg_s << ", "
+            << input_velocity_body[i].time_ms << endl;
+    }
+
+    input_attitude_vec_log_mutex.lock();
+    input_attitude = input_attitude_vec_log_topic;
+    input_attitude_vec_log_topic.clear();
+    input_attitude_vec_log_mutex.unlock();
+    for( size_t i=0; i < input_attitude.size(); i++)
+    {
+        log_file << "InputAttitude" << ", "
+            << input_attitude[i].roll_deg << ", "
+            << input_attitude[i].pitch_deg << ", "
+            << input_attitude[i].yaw_deg << ", "
+            << input_attitude[i].thrust << ", "
+            << input_attitude[i].time_ms << endl;
     }
 }
 

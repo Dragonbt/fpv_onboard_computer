@@ -37,8 +37,11 @@ mutex velocity_vec_log_mutex;
 vector<EulerAngle> euler_angle_vec_log_topic;
 mutex euler_angle_vec_log_mutex;
 
-vector<Input> input_vec_log_topic;
-mutex input_vec_log_mutex;
+vector<InputVelocityBody> input_velocity_body_vec_log_topic;
+mutex input_velocity_body_vec_log_mutex;
+
+vector<InputAttitude> input_attitude_vec_log_topic;
+mutex input_attitude_vec_log_mutex;
 
 /*sockets_node*/
 int socket_exception_topic = 0;
@@ -56,12 +59,18 @@ mutex velocity_vec_mutex;
 vector<EulerAngle> euler_angle_vec_topic;
 mutex euler_angle_vec_mutex;
 
-vector<Input> input_vec_topic;
-mutex input_vec_mutex;
+vector<InputVelocityBody> input_velocity_body_vec_topic;
+mutex input_velocity_body_vec_mutex;
+
+vector<InputAttitude> input_attitude_vec_topic;
+mutex input_attitude_vec_mutex;
+
+vector<string> string_vec_topic;
+mutex string_vec_mutex;
 
 /*control_node*/
 GCCommand command_topic;
 mutex command_mutex;
 
-Status status_topic;
+vector<Status> status_topic;
 mutex status_mutex;

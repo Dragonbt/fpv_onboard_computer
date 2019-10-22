@@ -5,13 +5,13 @@ void sendLoop( FileNode send_config )
     int enable;
     string host;
     int port;
-    double img_msg_freq;
     double img_msg_resize;
     int img_msg_quality;
+    bool gray;
     send_config["ENABLE"] >> enable;
     send_config["HOST"] >> host;
     send_config["PORT"] >> port;
-    send_config["IMG_MSG_FREQ"] >> img_msg_freq;
+    send_config["GRAY_IMG"] >> gray;
     send_config["IMG_MSG_RESIZE"] >> img_msg_resize;
     send_config["IMG_MSG_QUALITY"] >> img_msg_quality;
     if( enable == 0 )
@@ -37,11 +37,12 @@ void sendLoop( FileNode send_config )
     while( true )
     {
         sendHeartBeat();
-        sendImg(img_msg_resize, img_msg_quality);
+        sendImg(gray, img_msg_resize, img_msg_quality);
         sendPosition();
         sendVelocity();
         sendAttitude();
         sendStatus();
+        sendString();
         this_thread::sleep_for( milliseconds( 50 ) );
     }
     cout << "[WARNING]: send node shutdown" << endl;
@@ -264,11 +265,14 @@ void recvMsg( char* msg, int msg_length, sockaddr_in addr )
     }
 }
 
-bool compress( Mat image, double resize_k, int quality, vector<uchar>& img_buffer)
+bool compress( Mat image, bool gray, double resize_k, int quality, vector<uchar>& img_buffer)
 {
     vector< int > jpeg_quality{ IMWRITE_JPEG_QUALITY, quality };
+    if( gray )
+    {
+        cvtColor( image, image, COLOR_BGR2GRAY );
+    }
     resize( image, image, Size(), resize_k, resize_k );
-    //cvtColor( frame, gray_frame, COLOR_BGR2GRAY );
     return imencode(".jpeg", image, img_buffer, jpeg_quality);
 }
 
@@ -279,7 +283,7 @@ void sendHeartBeat()
     return;
 }
 
-void sendImg( double img_msg_resize, int img_msg_quality )
+void sendImg( bool gray, double img_msg_resize, int img_msg_quality )
 {
     Mat image, empty;
     vector< uchar > img_buffer;
@@ -287,7 +291,7 @@ void sendImg( double img_msg_resize, int img_msg_quality )
     image = image_topic.clone();
     image_topic = empty;
     image_mutex.unlock();
-    if( ! image.empty() && compress( image, img_msg_resize, img_msg_quality, img_buffer ) ){
+    if( ! image.empty() && compress( image, gray, img_msg_resize, img_msg_quality, img_buffer ) ) {
         //cout << img_buffer.size() << endl;
         sendMsg( IMG_MSG, (uint16_t) img_buffer.size(), img_buffer.data() );
         img_buffer.clear();
@@ -342,10 +346,32 @@ void sendAttitude()
 
 void sendStatus()
 {
-    Status status;
+    vector<Status> status;
     status_mutex.lock();
     status = status_topic;
+    status_topic.clear();
     status_mutex.unlock();
-    sendMsg( STATUS_MSG, sizeof(status), &status );
+    if( ! status.empty() )
+    {
+        sendMsg( STATUS_MSG, (uint16_t) sizeof(Status), &status.back() );
+    }
+    status_mutex.unlock();
+    return;
+}
+
+void sendString()
+{
+    vector<string> string_vec;
+    string_vec_mutex.lock();
+    string_vec = string_vec_topic;
+    string_vec_topic.clear();
+    string_vec_mutex.unlock();
+    if( ! string_vec.empty() )
+    {
+        for( size_t i=0; i < string_vec.size(); i++)
+        {
+            sendMsg( LOG_MSG, (uint16_t) string_vec[i].size(), const_cast<char*>(string_vec[i].data()) );
+        }
+    }
     return;
 }

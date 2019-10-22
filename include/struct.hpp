@@ -23,9 +23,10 @@
 #define ATTITUDE_MSG 4
 #define INPUT_MSG 5
 #define STATUS_MSG 6
+#define LOG_MSG 7
 
 
-typedef struct{
+struct GCCommand{
     bool arm = false;
     bool takeoff = false;
     bool land = false;
@@ -40,7 +41,30 @@ typedef struct{
     bool log = false;
     bool video = false;
     bool quit = false;
-}GCCommand;
+    bool operator==(GCCommand &command){
+        if( arm == command.arm && 
+            takeoff == command.takeoff &&
+            land == command.land &&
+            up == command.up &&
+            down == command.down &&
+            forward == command.forward &&
+            backward == command.backward &&
+            left == command.left &&
+            right == command.right &&
+            yaw_pos == command.yaw_pos &&
+            yaw_neg == command.yaw_neg &&
+            log == command.log &&
+            video == command.video &&
+            quit == command.quit){
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    };
+};
+
 
 //sizeof PositionNED = 8*3 + 64/8 = 32bytes
 typedef struct{
@@ -71,12 +95,16 @@ typedef struct{
     double right_m_s = 0;
     double down_m_s = 0;
     double yawspeed_deg_s = 0;
+    int64_t time_ms = 0;
+}InputVelocityBody;
+
+typedef struct{
     double roll_deg = 0;
     double pitch_deg = 0;
     double yaw_deg = 0;
     double thrust = 0;
     int64_t time_ms = 0;
-}Input;
+}InputAttitude;
 
 //sizeof Status = 8 + 8*3 + 56 = 88bytes
 typedef struct{
@@ -87,7 +115,7 @@ typedef struct{
     double rc_signal_strength_percent = 0;
     double battery_voltage_v = 0;
     double battery_remaining_percent = 0;
-    char flight_mode[50] = "1234";
+    char flight_mode[50] = " ";
 }Status;
 
 #endif

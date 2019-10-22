@@ -10,7 +10,7 @@
 #include <mutex>
 #include <atomic>
 
-#include "clock.hpp"
+#include "utils.hpp"
 #include "struct.hpp"
 
 using namespace std;
@@ -28,8 +28,12 @@ extern mutex velocity_vec_log_mutex;
 extern vector<EulerAngle> euler_angle_vec_log_topic;
 extern mutex euler_angle_vec_log_mutex;
 
-extern vector<Input> input_vec_log_topic;
-extern mutex input_vec_log_mutex;
+extern vector<InputVelocityBody> input_velocity_body_vec_log_topic;
+extern mutex input_velocity_body_vec_log_mutex;
+
+extern vector<InputAttitude> input_attitude_vec_log_topic;
+extern mutex input_attitude_vec_log_mutex;
+
 
 extern Mat image_topic;
 extern mutex image_mutex;
