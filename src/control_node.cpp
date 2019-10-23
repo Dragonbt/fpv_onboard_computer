@@ -41,9 +41,10 @@ void controlLoop( FileNode control_config )
     //takeoff( telemetry, action, takeoff_altitude );
     //this_thread::sleep_for(seconds(10));
     //waitForArmed( telemetry );
-    test(telemetry, action, offboard);
-    cout << "[LOGGING]: land success" << endl;
-    cout << "[WARNING]: control node shut down" << endl;
+    //attitudeTest(telemetry, action, offboard);
+    //cout << "[LOGGING]: land success" << endl;
+    //cout << "[WARNING]: control node shut down" << endl;
+    altitudeTest( telemetry, offboard );
     return;
 }
 
@@ -227,6 +228,7 @@ void healthCheck( shared_ptr<Telemetry> telemetry )
     }
 }
 
+/*
 void arm( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action )
 {
     GCCommand command;
@@ -248,7 +250,8 @@ void arm( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action )
     }
     cout << "[LOGGING]: arm success, ready to takeoff" << endl;
 }
-
+*/
+/*
 void takeoff( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, float altitude )
 {
     GCCommand command;
@@ -272,7 +275,8 @@ void takeoff( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, float 
         this_thread::sleep_for( seconds(1) );
     }
 }
-
+*/
+/*
 void land( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action )
 {
     Action::Result land_result;
@@ -285,7 +289,8 @@ void land( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action )
         this_thread::sleep_for( seconds(1) );
     }
 }
-
+*/
+/*
 bool readControlCommand( GCCommand &command )
 {
     GCCommand empty_command;
@@ -300,6 +305,7 @@ bool readControlCommand( GCCommand &command )
         return true;
     }
 }
+*/
 
 void waitForArmed( shared_ptr<Telemetry> telemetry )
 {
@@ -357,113 +363,6 @@ void pushInputAttitude( Offboard::Attitude attitude )
     }
     input_attitude_vec_log_topic.push_back( input );
     input_attitude_vec_log_mutex.unlock();
-}
-
-void test( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, shared_ptr<Offboard> offboard )
-{
-    GCCommand command;
-    Offboard::VelocityBodyYawspeed velocity;
-    Offboard::Attitude attitude;
-    Offboard::PositionNEDYaw position;
-    InputVelocityBody input_velocity;
-    InputAttitude input_attitude;
-    remotePrint(string("Enter test loop"));
-    while( true )
-    {
-        if( ! readControlCommand( command ) ){
-            //cout << "no command arrive" << endl;
-            //attitude = {0.0f, 0.0f, 0.0f, 0.5f};
-            //offbCtrlAttitude(offboard, attitude);
-            //pushInput( velocity, attitude );
-            this_thread::sleep_for(milliseconds(30));
-            continue;
-        }
-        if( command.quit )
-        {
-            quitOffboard( offboard );
-            continue;
-        }
-        if( command.land )
-        {
-            cout << "LAND" << endl;
-            land( telemetry, action );
-            break;
-        }
-        if( command.up )
-        {
-            cout << "UP" << endl;
-            position = {0.0f, 0.0f, -10.0f, 0.0f};
-            offbCtrlPositionNED( offboard, position );
-            //attitude = {0.0f, 0.0f, 0.0f, 0.7f};
-            //offbCtrlAttitude(offboard, attitude);
-            //pushInputAttitude(attitude);
-        }
-        if( command.down )
-        {
-            //cout << "DOWN" << endl;
-            //position = {0.0f, 0.0f, -10.0f, 0.0f};
-            //offbCtrlPositionNED( offboard, position );
-            attitude = {0.0f, 0.0f, 0.0f, 0.3f};
-            offbCtrlAttitude(offboard, attitude);
-            //pushInputAttitude(attitude);
-        }
-        if( command.forward )
-        {
-            cout << "FORWARD" << endl;
-            position = {10.0f, 0.0f, 0.0f, 0.0f};
-            offbCtrlPositionNED( offboard, position );
-            //attitude = {0.0f, -10.0f, 0.0f, 0.5f};
-            //offbCtrlAttitude(offboard, attitude);
-            //pushInputAttitude(attitude);
-        }
-        if( command.backward )
-        {
-            cout << "BACKWARD" << endl;
-            position = {-10.0f, 0.0f, 0.0f, 0.0f};
-            offbCtrlPositionNED( offboard, position );
-            //attitude = {0.0f, 10.0f, 0.0f, 0.5f};
-            //offbCtrlAttitude(offboard, attitude);
-            //pushInputAttitude(attitude);
-        }
-        if( command.left )
-        {
-            cout << "LEFT" << endl;
-            velocity = {0.0f, -10.0f, 0.0f, 0.0f};
-            offbCtrlVelocityBody(offboard, velocity);
-            //attitude = {-10.0f, 0.0f, 0.0f, 0.5f};
-            //offbCtrlAttitude(offboard, attitude);
-            //pushInputAttitude(attitude);
-        }
-        if( command.right )
-        {
-            cout << "RIGHT" << endl;
-            velocity = {0.0f, 10.0f, 0.0f, 0.0f};
-            offbCtrlVelocityBody(offboard, velocity);
-            //attitude = {10.0f, 0.0f, 0.0f, 0.5f};
-            //offbCtrlAttitude(offboard, attitude);
-            //pushInputAttitude(attitude);
-        }
-        if( command.yaw_pos )
-        {
-            cout << "YAW+" << endl;
-            position = {0.0f, 0.0f, 0.0f, 10.0f};
-            offbCtrlPositionNED(offboard, position);
-            //velocity = {0.0f, 0.0f, 0.0f, 10.0f};
-            //offbCtrlVelocityBody(offboard, velocity);
-            //pushInputVelocityBody(velocity);
-        }
-        if( command.yaw_neg )
-        {
-            cout << "YAW-" << endl;
-            position = {0.0f, 0.0f, 0.0f, -10.0f};
-            offbCtrlPositionNED(offboard, position);
-            //velocity = {0.0f, 0.0f, 0.0f, -10.0f};
-            //offbCtrlVelocityBody(offboard, velocity);
-            //pushInputVelocityBody(velocity);
-        }
-        this_thread::sleep_for(milliseconds(30));    
-    }
-    return;
 }
 
 void offbCtrlAttitude(shared_ptr<Offboard> offboard, Offboard::Attitude attitude)

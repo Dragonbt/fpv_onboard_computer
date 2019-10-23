@@ -55,8 +55,11 @@ extern mutex input_velocity_body_vec_mutex;
 extern vector<InputAttitude> input_attitude_vec_topic;
 extern mutex input_attitude_vec_mutex;
 
-extern GCCommand command_topic;
-extern mutex command_mutex;
+extern MissionCommand mission_command_topic;
+extern mutex mission_command_mutex;
+
+extern LogCommand log_command_topic;
+extern mutex log_command_mutex;
 
 extern vector<Status> status_topic;
 extern mutex status_mutex;

@@ -176,6 +176,30 @@ void recvMsg( char* msg, int msg_length, sockaddr_in addr )
     bool flag;
     switch(msg_type)
     {
+        case 5:
+            memcpy( &flag, buffer, sizeof flag );
+            log_command_mutex.lock();
+            log_command_topic.video = flag;
+            log_command_mutex.unlock();
+            break;
+        case 6:
+            memcpy( &flag, buffer, sizeof flag );
+            log_command_mutex.lock();
+            log_command_topic.log = flag;
+            log_command_mutex.unlock();
+            break;
+        case 15:
+            memcpy( &flag, buffer, sizeof flag );
+            mission_command_mutex.lock();
+            mission_command_topic.start = flag;
+            mission_command_mutex.unlock();
+            break;
+        default:
+            break;
+    }
+    /*
+    switch(msg_type)
+    {
         case 0:
             memcpy( &flag, buffer, sizeof flag );
             command_mutex.lock();
@@ -260,9 +284,16 @@ void recvMsg( char* msg, int msg_length, sockaddr_in addr )
             command_topic.quit = flag;
             command_mutex.unlock();
             break;
+        case 14:
+            memcpy( &flag, buffer, sizeof flag );
+            command_mutex.lock();
+            command_topic.start = flag;
+            command_mutex.unlock();
+            break;
         default:
             break;
     }
+    */
 }
 
 bool compress( Mat image, bool gray, double resize_k, int quality, vector<uchar>& img_buffer)

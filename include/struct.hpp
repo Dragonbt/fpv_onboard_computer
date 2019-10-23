@@ -25,46 +25,19 @@
 #define STATUS_MSG 6
 #define LOG_MSG 7
 
-
-struct GCCommand{
+struct LogCommand{
     bool log = false;
     bool video = false;
-    bool arm = false;
-    bool takeoff = false;
-    bool land = false;
-    bool up = false;
-    bool down = false;
-    bool forward = false;
-    bool backward = false;
-    bool left = false;
-    bool right = false;
-    bool yaw_pos = false;
-    bool yaw_neg = false;
-    bool quit = false;
-    bool operator==(GCCommand &command){
-        if( arm == command.arm && 
-            takeoff == command.takeoff &&
-            land == command.land &&
-            up == command.up &&
-            down == command.down &&
-            forward == command.forward &&
-            backward == command.backward &&
-            left == command.left &&
-            right == command.right &&
-            yaw_pos == command.yaw_pos &&
-            yaw_neg == command.yaw_neg &&
-            log == command.log &&
-            video == command.video &&
-            quit == command.quit){
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    };
 };
 
+struct MissionCommand{
+    bool start = false;
+};
+
+struct ControlCommand{
+    int index;
+    double strength;
+};
 
 //sizeof PositionNED = 8*3 + 64/8 = 32bytes
 typedef struct{

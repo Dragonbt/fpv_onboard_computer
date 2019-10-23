@@ -52,8 +52,11 @@ extern mutex input_velocity_body_vec_log_mutex;
 extern vector<InputAttitude> input_attitude_vec_log_topic;
 extern mutex input_attitude_vec_log_mutex;
 
-extern GCCommand command_topic;
-extern mutex command_mutex;
+extern ControlCommand control_command_topic;
+extern mutex control_command_mutex;
+
+extern MissionCommand mission_command_topic;
+extern mutex mission_command_mutex;
 
 static Status status;
 extern vector<Status> status_topic;
@@ -63,17 +66,20 @@ void controlLoop( FileNode control_config );
 void setTelemetry( shared_ptr<Telemetry> telemetry );
 
 void healthCheck( shared_ptr<Telemetry> telemetry );
-void arm( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action );
-void takeoff( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, float altitude );
-void land( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action );
+//void arm( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action );
+//void takeoff( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, float altitude );
+//void land( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action );
 
-bool readControlCommand( GCCommand &command );
+//bool readControlCommand( GCCommand &command );
 
 void waitForArmed( shared_ptr<Telemetry> telemetry );
 void quitOffboard( shared_ptr<Offboard> offboard );
 void pushInputVelocityBody( Offboard::VelocityBodyYawspeed velocity );
 void pushInputAttitude( Offboard::Attitude attitude );
-void test( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, shared_ptr<Offboard> offboard );
+//void attitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, shared_ptr<Offboard> offboard );
+
+void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard );
+void altitude(shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, double SampleTime);
 
 void offbCtrlAttitude(shared_ptr<Offboard> offboard, Offboard::Attitude attitude);
 void offbCtrlVelocityBody( std::shared_ptr<mavsdk::Offboard> offboard, Offboard::VelocityBodyYawspeed velocity );

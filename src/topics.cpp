@@ -69,8 +69,14 @@ vector<string> string_vec_topic;
 mutex string_vec_mutex;
 
 /*control_node*/
-GCCommand command_topic;
-mutex command_mutex;
-
 vector<Status> status_topic;
 mutex status_mutex;
+
+LogCommand log_command_topic;
+mutex log_command_mutex;
+
+MissionCommand mission_command_topic;
+mutex mission_command_mutex;
+
+ControlCommand control_command_topic;
+mutex control_command_mutex;

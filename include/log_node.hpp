@@ -16,8 +16,8 @@
 using namespace std;
 using namespace cv;
 
-extern GCCommand command_topic;
-extern mutex command_mutex;
+extern LogCommand log_command_topic;
+extern mutex log_command_mutex;
 
 extern vector<PositionNED> position_vec_log_topic;
 extern mutex position_vec_log_mutex;

@@ -15,14 +15,14 @@ void logLoop( FileNode log_config )
         return;
     }
 
-    GCCommand command;
+    LogCommand command;
     Log log(path);
     Video video(path, width, height);
     while( true )
     {
-        command_mutex.lock();
-        command = command_topic;
-        command_mutex.unlock();
+        log_command_mutex.lock();
+        command = log_command_topic;
+        log_command_mutex.unlock();
         if( command.log )
         {           
             log.open();
