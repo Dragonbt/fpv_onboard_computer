@@ -347,6 +347,7 @@ void pushInputAttitude( Offboard::Attitude attitude )
     input.roll_deg = attitude.roll_deg;
     input.pitch_deg = attitude.pitch_deg;
     input.yaw_deg = attitude.yaw_deg;
+    input.thrust = attitude.thrust_value;
     input.time_ms = intervalMs(high_resolution_clock::now(), init_timepoint);
     input_attitude_vec_mutex.lock();
     if( input_attitude_vec_topic.size() > MAX_VEC_SIZE )
