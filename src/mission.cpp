@@ -16,9 +16,6 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
     //Offboard::Attitude attitude;
     double time_change = 0;
     high_resolution_clock::time_point t0 = high_resolution_clock::now();
-    if (_pos_sp_z > -1.5) limit_pos_z = -2.0f;
-	else limit_pos_z = _pos_sp_z -0.5f;
-	//else limit_pos_z = -2.0f;
     while(true)
     {
         mission_command_mutex.lock();
@@ -30,6 +27,9 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
             _pos_sp_z = position.position.down_m;
             euler_angle = telemetry->attitude_euler_angle();
             yaw = euler_angle.yaw_deg;
+            if (_pos_sp_z > -1.5) limit_pos_z = -2.0f;
+            else limit_pos_z = _pos_sp_z -0.5f;
+            //else limit_pos_z = -2.0f;
             remotePrint(string("start mission"));
             remotePrint(string("enter offboard !"));
 			altitude(telemetry, offboard, SampleTime);
