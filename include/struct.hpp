@@ -3,36 +3,8 @@
 
 #include <chrono>
 
-#define ERROR_CONSOLE_TEXT "\033[31m" // Turn text on console red
-#define TELEMETRY_CONSOLE_TEXT "\033[34m" // Turn text on console blue
-#define NORMAL_CONSOLE_TEXT "\033[0m" // Restore normal console colour
-
-#define WRITE_VIDEO_WAIT_FOR_MS 50
-
-#define PEER_SHUTDOWN -1
-#define MAX_MSG_LENGTH 0x22FF
-#define HEAD 0xAAAA
-#define TAIL 0xDDDD
-
-#define MAX_VEC_SIZE 40
-
-//send msg type
-#define HEART_BEAT_MSG 0
-#define IMG_MSG 1
-#define POSITION_MSG 2
-#define VELOCITY_MSG 3
-#define ATTITUDE_MSG 4
-#define INPUT_ATTITUDE_MSG 5
-#define STATUS_MSG 6
-#define LOG_MSG 7
-
-//recv command type
-#define MISSION_COMMAND_MSG 15
-#define VIDEO_COMMAND_MSG 5
-#define LOG_COMMAND_MSG 6
-
 struct LogCommand{
-    bool log = false;
+    bool log = true;
     bool video = false;
 };
 

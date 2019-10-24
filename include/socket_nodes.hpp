@@ -22,8 +22,28 @@
 #include "utils.hpp"
 #include "struct.hpp"
 
+#define MAX_MSG_LENGTH 0x22FF
+#define HEAD 0xAAAA
+#define TAIL 0xDDDD
+
+//send msg type
+#define HEART_BEAT_MSG 0
+#define IMG_MSG 1
+#define POSITION_MSG 2
+#define VELOCITY_MSG 3
+#define ATTITUDE_MSG 4
+#define INPUT_ATTITUDE_MSG 5
+#define STATUS_MSG 6
+#define LOG_MSG 7
+
+//recv command type
+#define MISSION_COMMAND_MSG 15
+#define VIDEO_COMMAND_MSG 5
+#define LOG_COMMAND_MSG 6
+
 using namespace std;
 using namespace cv;
+using namespace chrono;
 
 extern int fd;
 extern mutex fd_mutex;
@@ -33,9 +53,6 @@ extern struct sockaddr_in recv_from_addr;
 extern high_resolution_clock::time_point init_timepoint;
 extern Mat image_topic;
 extern mutex image_mutex;
-
-extern int camera_status_topic;
-extern mutex camera_status_mutex;
 
 extern int socket_exception_topic;
 extern mutex socket_exception_mutex;

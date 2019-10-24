@@ -11,18 +11,20 @@
 #include <mavsdk/plugins/offboard/offboard.h>
 #include <mavsdk/plugins/telemetry/telemetry.h>
 
-#include <opencv2/core/core.hpp>
 #include "utils.hpp"
 #include "struct.hpp"
 
-#include "telem.hpp"
+#include "flight_control_sync.hpp"
+#include "telemetry_async.hpp"
+
+#define ERROR_CONSOLE_TEXT "\033[31m" // Turn text on console red
+#define TELEMETRY_CONSOLE_TEXT "\033[34m" // Turn text on console blue
+#define NORMAL_CONSOLE_TEXT "\033[0m" // Restore normal console colour
 
 using namespace std;
 using namespace mavsdk;
 using namespace cv;
 using namespace std::chrono;
-
-extern high_resolution_clock::time_point init_timepoint;
 
 //command
 extern MissionCommand mission_command_topic;
@@ -31,21 +33,7 @@ extern mutex mission_command_mutex;
 
 void controlLoop( FileNode control_config );
 
-void healthCheck( shared_ptr<Telemetry> telemetry );
-//void arm( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action );
-//void takeoff( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action, float altitude );
-//void land( shared_ptr<Telemetry> telemetry, shared_ptr<Action> action );
-
-void waitForArmed( shared_ptr<Telemetry> telemetry );
-void quitOffboard( shared_ptr<Offboard> offboard );
-
-void pushInputVelocityBody( Offboard::VelocityBodyYawspeed velocity );
-void pushInputAttitude( Offboard::Attitude attitude );
-
-void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard );
+void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, double P, double D );
 void altitude(shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, double SampleTime);
 
-void offbCtrlAttitude(shared_ptr<Offboard> offboard, Offboard::Attitude attitude);
-void offbCtrlVelocityBody( std::shared_ptr<mavsdk::Offboard> offboard, Offboard::VelocityBodyYawspeed velocity );
-void offbCtrlPositionNED( std::shared_ptr<mavsdk::Offboard> offboard, Offboard::PositionNEDYaw position );
 #endif

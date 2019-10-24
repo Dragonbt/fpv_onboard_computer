@@ -25,4 +25,6 @@ SOCKET_RECV_NODE:{
 CONTROL_NODE:{
     ENABLE: 1,
     URL: "serial:///dev/ttyS0:115200",
+    P: 0.05,
+    D: 0,
     TAKEOFF_ALTITUDE: 4.0}

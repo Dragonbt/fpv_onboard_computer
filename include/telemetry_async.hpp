@@ -12,6 +12,8 @@
 #include "utils.hpp"
 #include "struct.hpp"
 
+#define MAX_VEC_SIZE 40
+
 using namespace std;
 using namespace mavsdk;
 using namespace std::chrono;
@@ -27,12 +29,6 @@ extern mutex velocity_vec_mutex;
 
 extern vector<EulerAngle> euler_angle_vec_topic;
 extern mutex euler_angle_vec_mutex;
-
-extern vector<InputVelocityBody> input_velocity_body_vec_topic;
-extern mutex input_velocity_body_vec_mutex;
-
-extern vector<InputAttitude> input_attitude_vec_topic;
-extern mutex input_attitude_vec_mutex;
 
 static Status status;
 extern vector<Status> status_topic;

@@ -8,7 +8,6 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <thread>
 #include <mutex>
-#include <atomic>
 
 #include "utils.hpp"
 #include "struct.hpp"

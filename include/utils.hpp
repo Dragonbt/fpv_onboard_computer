@@ -6,6 +6,8 @@
 #include <mutex>
 #include <vector>
 #include "struct.hpp"
+#include "socket_nodes.hpp"
+#include "control_node.hpp"
 
 using namespace std::chrono;
 using namespace std;
