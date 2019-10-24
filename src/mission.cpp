@@ -13,7 +13,7 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 {
     MissionCommand command;
     Telemetry::EulerAngle euler_angle;
-    Offboard::Attitude attitude;
+    //Offboard::Attitude attitude;
     double time_change = 0;
     high_resolution_clock::time_point t0 = high_resolution_clock::now();
     while(true)
@@ -29,9 +29,7 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
             yaw = euler_angle.yaw_deg;
             remotePrint(string("start mission"));
             remotePrint(string("enter offboard !"));
-			attitude = { 0.0f, 0.0f, yaw, mid_thrust };
-			offbCtrlAttitude(offboard, attitude);
-			pushInputAttitude(attitude);
+			altitude(telemetry, offboard, SampleTime);
             break;
         }
         this_thread::sleep_for(milliseconds(100));
@@ -45,10 +43,14 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
         mission_command_mutex.lock();
         command = mission_command_topic;
         mission_command_mutex.unlock();
-        if( command.index == -1 || command.index == -2 ){
+        if( command.index == -1 ){
             quitOffboard( offboard );
             remotePrint(string("quit mission"));
             break;
+        }
+        if( command.index == -2 ){
+            flag_project = 1;
+            remotePrint(string("auto landing"));
         }
         time_change = intervalMs( high_resolution_clock::now(), t0);
         if( time_change < SampleTime ){
@@ -63,26 +65,27 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 
 void altitude(shared_ptr<Telemetry> telemetry,shared_ptr<Offboard> offboard, double dt) {
 	Offboard::Attitude attitude;
-	float Kp_z = 0.5f, Ki_z = 0.0f, Kd_z = 0.0f;
+	float Kp_z = 0.3f, Ki_z = 0.0f, Kd_z = 0.0f;
     position = telemetry->position_velocity_ned();
 	float _pos_z = position.position.down_m;
 	float _vel_z = position.velocity.down_m_s;
 	float thrust ;
-    flag_project = 1;
+    //flag_project = 1;
 	//protect while height = 2m
 	if (_pos_z < limit_pos_z || flag_project) {
 		cout << "---Reject PID control,Start land---" << endl;
 		if (Times < 2000 / SampleTime){// first 2 second
-			attitude = { 0.0f, 0.0f, yaw, mid_thrust - 0.05f };
+			attitude = { 0.0f, 0.0f, yaw, mid_thrust - 0.02f };
 		}
 		else if (Times < 4000 / SampleTime) {
-			attitude = { 0.0f, 0.0f, yaw, mid_thrust - 0.1f };
+			attitude = { 0.0f, 0.0f, yaw, mid_thrust - 0.08f };
 		}
 		else {
 			attitude = { 0.0f, 0.0f, yaw, mid_thrust - 0.2f };
 		}
 		Times++;
 		flag_project = 1;
+        cout << "pos_z: " << _pos_z << endl;
 	}
 
 	//single-loop PID
