@@ -68,6 +68,7 @@ void altitude(shared_ptr<Telemetry> telemetry,shared_ptr<Offboard> offboard, dou
 	float _pos_z = position.position.down_m;
 	float _vel_z = position.velocity.down_m_s;
 	float thrust ;
+    flag_project = 1;
 	//protect while height = 2m
 	if (_pos_z < limit_pos_z || flag_project) {
 		cout << "---Reject PID control,Start land---" << endl;
