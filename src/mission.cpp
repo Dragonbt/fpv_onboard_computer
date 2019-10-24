@@ -16,6 +16,9 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
     //Offboard::Attitude attitude;
     double time_change = 0;
     high_resolution_clock::time_point t0 = high_resolution_clock::now();
+    if (_pos_sp_z > -1.5) limit_pos_z = -2.0f;
+	else limit_pos_z = _pos_sp_z -0.5f;
+	//else limit_pos_z = -2.0f;
     while(true)
     {
         mission_command_mutex.lock();
@@ -34,9 +37,7 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
         }
         this_thread::sleep_for(milliseconds(100));
     }
-	if (_pos_sp_z > -1.5) limit_pos_z = -2.0f;
-	else limit_pos_z = _pos_sp_z -0.5f;
-	//else limit_pos_z = -2.0f;
+	
     while(true)
     {
         position = telemetry->position_velocity_ned();
@@ -72,6 +73,7 @@ void altitude(shared_ptr<Telemetry> telemetry,shared_ptr<Offboard> offboard, dou
 	float thrust ;
     //flag_project = 1;
 	//protect while height = 2m
+    cout << _pos_z << " " << limit_pos_z << " " << flag_project << endl;
 	if (_pos_z < limit_pos_z || flag_project) {
 		cout << "---Reject PID control,Start land---" << endl;
 		if (Times < 2000 / SampleTime){// first 2 second
