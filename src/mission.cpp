@@ -35,8 +35,8 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
         this_thread::sleep_for(milliseconds(100));
     }
 	if (_pos_sp_z > -1.5) limit_pos_z = -2.0f;
-	else if(_pos_sp_z > -2) limit_pos_z = _pos_sp_z -0.5f;
-	else limit_pos_z = -2.0f;
+	else limit_pos_z = _pos_sp_z -0.5f;
+	//else limit_pos_z = -2.0f;
     while(true)
     {
         position = telemetry->position_velocity_ned();
@@ -65,7 +65,7 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 
 void altitude(shared_ptr<Telemetry> telemetry,shared_ptr<Offboard> offboard, double dt) {
 	Offboard::Attitude attitude;
-	float Kp_z = 1.0f, Ki_z = 0.0f, Kd_z = 0.0f;
+	float Kp_z = 0.5f, Ki_z = 0.0f, Kd_z = 0.0f;
     position = telemetry->position_velocity_ned();
 	float _pos_z = position.position.down_m;
 	float _vel_z = position.velocity.down_m_s;
