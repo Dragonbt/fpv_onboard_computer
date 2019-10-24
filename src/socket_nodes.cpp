@@ -43,6 +43,7 @@ void sendLoop( FileNode send_config )
         sendAttitude();
         sendStatus();
         sendString();
+        sendInputAttitude();
         this_thread::sleep_for( milliseconds( 50 ) );
     }
     cout << "[WARNING]: send node shutdown" << endl;
@@ -174,126 +175,35 @@ void recvMsg( char* msg, int msg_length, sockaddr_in addr )
     if( tail != TAIL )
         return;
     bool flag;
+    int16_t index;
+    double strength;
     switch(msg_type)
     {
-        case 5:
+        case VIDEO_COMMAND_MSG:
             memcpy( &flag, buffer, sizeof flag );
             log_command_mutex.lock();
             log_command_topic.video = flag;
             log_command_mutex.unlock();
             break;
-        case 6:
+        case LOG_COMMAND_MSG:
             memcpy( &flag, buffer, sizeof flag );
             log_command_mutex.lock();
             log_command_topic.log = flag;
             log_command_mutex.unlock();
             break;
-        case 15:
-            memcpy( &flag, buffer, sizeof flag );
+        case MISSION_COMMAND_MSG:
+            if( len != 10 )
+                break;
+            memcpy( &index, buffer, sizeof index );
+            memcpy( &strength, buffer + 2, sizeof strength );
             mission_command_mutex.lock();
-            mission_command_topic.start = flag;
+            mission_command_topic.index = index;
+            mission_command_topic.strength = strength;
             mission_command_mutex.unlock();
             break;
         default:
             break;
     }
-    /*
-    switch(msg_type)
-    {
-        case 0:
-            memcpy( &flag, buffer, sizeof flag );
-            command_mutex.lock();
-            command_topic.arm = flag;
-            command_mutex.unlock();
-            break;
-        case 1:
-            memcpy( &flag, buffer, sizeof flag );
-            command_mutex.lock();
-            command_topic.takeoff = flag;
-            command_mutex.unlock();
-            break;
-        case 2:
-            memcpy( &flag, buffer, sizeof flag );
-            command_mutex.lock();
-            command_topic.land = flag;
-            command_mutex.unlock();
-            break;
-        case 3:
-            memcpy( &flag, buffer, sizeof flag );
-            command_mutex.lock();
-            command_topic.up = flag;
-            command_mutex.unlock();
-            break;
-        case 4:
-            memcpy( &flag, buffer, sizeof flag );
-            command_mutex.lock();
-            command_topic.down = flag;
-            command_mutex.unlock();
-            break;
-        case 5:
-            memcpy( &flag, buffer, sizeof flag );
-            command_mutex.lock();
-            command_topic.video = flag;
-            command_mutex.unlock();
-            break;
-        case 6:
-            memcpy( &flag, buffer, sizeof flag );
-            command_mutex.lock();
-            command_topic.log = flag;
-            command_mutex.unlock();
-            break;
-        case 7:
-            memcpy( &flag, buffer, sizeof flag );
-            command_mutex.lock();
-            command_topic.forward = flag;
-            command_mutex.unlock();
-            break;
-        case 8:
-            memcpy( &flag, buffer, sizeof flag );
-            command_mutex.lock();
-            command_topic.backward = flag;
-            command_mutex.unlock();
-            break;
-        case 9:
-            memcpy( &flag, buffer, sizeof flag );
-            command_mutex.lock();
-            command_topic.left = flag;
-            command_mutex.unlock();
-            break;
-        case 10:
-            memcpy( &flag, buffer, sizeof flag );
-            command_mutex.lock();
-            command_topic.right = flag;
-            command_mutex.unlock();
-            break;
-        case 11:
-            memcpy( &flag, buffer, sizeof flag );
-            command_mutex.lock();
-            command_topic.yaw_pos = flag;
-            command_mutex.unlock();
-            break;
-        case 12:
-            memcpy( &flag, buffer, sizeof flag );
-            command_mutex.lock();
-            command_topic.yaw_neg = flag;
-            command_mutex.unlock();
-            break;
-        case 13:
-            memcpy( &flag, buffer, sizeof flag );
-            command_mutex.lock();
-            command_topic.quit = flag;
-            command_mutex.unlock();
-            break;
-        case 14:
-            memcpy( &flag, buffer, sizeof flag );
-            command_mutex.lock();
-            command_topic.start = flag;
-            command_mutex.unlock();
-            break;
-        default:
-            break;
-    }
-    */
 }
 
 bool compress( Mat image, bool gray, double resize_k, int quality, vector<uchar>& img_buffer)
@@ -386,7 +296,6 @@ void sendStatus()
     {
         sendMsg( STATUS_MSG, (uint16_t) sizeof(Status), &status.back() );
     }
-    status_mutex.unlock();
     return;
 }
 
@@ -403,6 +312,20 @@ void sendString()
         {
             sendMsg( LOG_MSG, (uint16_t) string_vec[i].size(), const_cast<char*>(string_vec[i].data()) );
         }
+    }
+    return;
+}
+
+void sendInputAttitude()
+{
+    vector<InputAttitude> input_attitude_vec;
+    input_attitude_vec_mutex.lock();
+    input_attitude_vec = input_attitude_vec_topic;
+    input_attitude_vec_topic.clear();
+    input_attitude_vec_mutex.unlock();
+    if( ! input_attitude_vec.empty() )
+    {
+        sendMsg( INPUT_ATTITUDE_MSG, (uint16_t) ( input_attitude_vec.size() * sizeof(InputAttitude) ), input_attitude_vec.data() );
     }
     return;
 }

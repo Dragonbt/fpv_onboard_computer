@@ -77,6 +77,3 @@ mutex log_command_mutex;
 
 MissionCommand mission_command_topic;
 mutex mission_command_mutex;
-
-ControlCommand control_command_topic;
-mutex control_command_mutex;

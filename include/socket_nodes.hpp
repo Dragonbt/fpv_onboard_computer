@@ -80,4 +80,5 @@ void sendVelocity( void );
 void sendAttitude( void );
 void sendStatus( void );
 void sendString( void );
+void sendInputAttitude( void );
 #endif

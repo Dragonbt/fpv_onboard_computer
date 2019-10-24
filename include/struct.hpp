@@ -16,14 +16,20 @@
 
 #define MAX_VEC_SIZE 40
 
+//send msg type
 #define HEART_BEAT_MSG 0
 #define IMG_MSG 1
 #define POSITION_MSG 2
 #define VELOCITY_MSG 3
 #define ATTITUDE_MSG 4
-#define INPUT_MSG 5
+#define INPUT_ATTITUDE_MSG 5
 #define STATUS_MSG 6
 #define LOG_MSG 7
+
+//recv command type
+#define MISSION_COMMAND_MSG 15
+#define VIDEO_COMMAND_MSG 5
+#define LOG_COMMAND_MSG 6
 
 struct LogCommand{
     bool log = false;
@@ -31,56 +37,52 @@ struct LogCommand{
 };
 
 struct MissionCommand{
-    bool start = false;
-};
-
-struct ControlCommand{
-    int index;
-    double strength;
+    int16_t index = -1;
+    double strength = 0;
 };
 
 //sizeof PositionNED = 8*3 + 64/8 = 32bytes
-typedef struct{
+struct PositionNED{
     double north_m = 0;
     double east_m = 0;
     double down_m = 0;
     int64_t time_ms = 0;
-}PositionNED;
+};
 
 //sizeof VelocityNED = 8*3 + 64/8 = 32bytes
-typedef struct{
+struct VelocityNED{
     double north_m_s = 0;
     double east_m_s = 0;
     double down_m_s = 0;
     int64_t time_ms = 0;
-}VelocityNED;
+};
 
 //sizeof EulerAngle = 8*3 + 64/8 = 32bytes
-typedef struct{
+struct EulerAngle{
     double roll_deg = 0;
     double pitch_deg = 0;
     double yaw_deg = 0;
     int64_t time_ms = 0;
-}EulerAngle;
+};
 
-typedef struct{
+struct InputVelocityBody{
     double forward_m_s = 0;
     double right_m_s = 0;
     double down_m_s = 0;
     double yawspeed_deg_s = 0;
     int64_t time_ms = 0;
-}InputVelocityBody;
+};
 
-typedef struct{
+struct InputAttitude{
     double roll_deg = 0;
     double pitch_deg = 0;
     double yaw_deg = 0;
     double thrust = 0;
     int64_t time_ms = 0;
-}InputAttitude;
+};
 
 //sizeof Status = 8 + 8*3 + 56 = 88bytes
-typedef struct{
+struct Status{
     bool armed = false;
     bool in_air = false;
     bool rc_available_once = false;
@@ -89,6 +91,10 @@ typedef struct{
     double battery_voltage_v = 0;
     double battery_remaining_percent = 0;
     char flight_mode[50] = " ";
-}Status;
+};
 
+struct Reference{
+    double down_m;
+    int64_t time_ms;
+};
 #endif

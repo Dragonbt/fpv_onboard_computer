@@ -3,7 +3,8 @@ project(onboard)
 
 SET(CMAKE_CXX_FLAGS "-std=c++0x")
 set (PLATFORM_LIBS pthread ${CMAKE_DL_LIBS})
-add_definitions("-std=c++11 -Wall -Wextra -Werror -Wno-psabi")
+#add_definitions("-std=c++11 -Wall -Wextra -Werror -Wno-psabi")
+add_definitions("-std=c++11 -Wall -Wextra -Wno-psabi")
 find_package(OpenCV REQUIRED)
 find_package(MAVSDK REQUIRED)
 
