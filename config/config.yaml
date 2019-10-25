@@ -6,11 +6,6 @@ CAMERA_NODE:{
     WIDTH: 1280,
     HEIGHT: 800,
     CAMERA_INTRINSIC_XML: "camera_intrinsic.xml"}
-LOG_NODE:{
-    ENABLE: 1,
-    LOG_FILE_PATH: "../log/",
-    HEIGHT: 640,
-    WIDTH: 400}
 SOCKET_SEND_NODE:{
     ENABLE: 1,
     HOST: "192.168.11.27",

@@ -14,8 +14,8 @@
 #include "utils.hpp"
 #include "struct.hpp"
 
-#include "flight_control_sync.hpp"
-#include "telemetry_async.hpp"
+#include "control_sync.hpp"
+#include "telem_async.hpp"
 
 #define ERROR_CONSOLE_TEXT "\033[31m" // Turn text on console red
 #define TELEMETRY_CONSOLE_TEXT "\033[34m" // Turn text on console blue

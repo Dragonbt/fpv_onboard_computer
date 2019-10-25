@@ -32,9 +32,10 @@
 #define POSITION_MSG 2
 #define VELOCITY_MSG 3
 #define ATTITUDE_MSG 4
-#define INPUT_ATTITUDE_MSG 5
+#define INPUT_MSG 5
 #define STATUS_MSG 6
 #define LOG_MSG 7
+#define REFERENCE_MSG 8
 
 //recv command type
 #define MISSION_COMMAND_MSG 15
@@ -75,11 +76,11 @@ extern mutex input_attitude_vec_mutex;
 extern MissionCommand mission_command_topic;
 extern mutex mission_command_mutex;
 
-extern LogCommand log_command_topic;
-extern mutex log_command_mutex;
-
 extern vector<Status> status_topic;
 extern mutex status_mutex;
+
+extern vector<Reference> reference_topic;
+extern mutex reference_mutex;
 
 void sendLoop( FileNode send_config );
 void recvLoop( FileNode recv_config );
@@ -98,4 +99,5 @@ void sendAttitude( void );
 void sendStatus( void );
 void sendString( void );
 void sendInputAttitude( void );
+void sendReference(void);
 #endif

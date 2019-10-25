@@ -42,4 +42,16 @@ class Camera{
         void updating( void );
 };
 
+class Video{
+    public:
+        Video( string path, int width, int height );
+        void open();
+        void close();
+        void writeImage();
+    private:
+        string video_path;
+        int width, height;
+        VideoWriter writer;
+};
+
 #endif

@@ -68,6 +68,7 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 }
 
 void altitude(shared_ptr<Telemetry> telemetry,shared_ptr<Offboard> offboard, double dt) {
+    pushReference(_pos_sp_z);
 	Offboard::Attitude attitude;
     position = telemetry->position_velocity_ned();
 	float _pos_z = position.position.down_m;

@@ -3,11 +3,6 @@
 
 #include <chrono>
 
-struct LogCommand{
-    bool log = true;
-    bool video = false;
-};
-
 struct MissionCommand{
     int16_t index = -1;
     double strength = 0;
@@ -45,6 +40,7 @@ struct InputVelocityBody{
     int64_t time_ms = 0;
 };
 
+//sizeof InputAttitude = 8*4 + 8 = 40
 struct InputAttitude{
     double roll_deg = 0;
     double pitch_deg = 0;
@@ -69,4 +65,5 @@ struct Reference{
     double down_m;
     int64_t time_ms;
 };
+
 #endif

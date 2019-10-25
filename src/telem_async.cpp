@@ -1,4 +1,4 @@
-#include "telemetry_async.hpp"
+#include "telem_async.hpp"
 
 void setTelemetry( shared_ptr<Telemetry> telemetry )
 {
@@ -37,14 +37,6 @@ void setTelemetry( shared_ptr<Telemetry> telemetry )
         position_vec_topic.push_back(position);
         position_vec_mutex.unlock();
 
-        position_vec_log_mutex.lock();
-        if( position_vec_log_topic.size() > MAX_VEC_SIZE )
-        {
-            position_vec_log_topic.clear();
-        }
-        position_vec_log_topic.push_back(position);
-        position_vec_log_mutex.unlock();
-
         velocity_vec_mutex.lock();
         if( velocity_vec_topic.size() > MAX_VEC_SIZE )
         {
@@ -53,14 +45,8 @@ void setTelemetry( shared_ptr<Telemetry> telemetry )
         velocity_vec_topic.push_back(velocity);
         velocity_vec_mutex.unlock();
 
-        velocity_vec_log_mutex.lock();
-        if( velocity_vec_log_topic.size() > MAX_VEC_SIZE )
-        {
-            velocity_vec_log_topic.clear();
-        }
-        velocity_vec_log_topic.push_back(velocity);
-        velocity_vec_log_mutex.unlock();
-        //cout << string("[LOGGING]: altitude speed ") << position_velocity_ned.velocity.down_m_s << endl;
+        writePositionNED(position);
+        writeVelocityNED(velocity);
     });
 
     telemetry->attitude_euler_angle_async([](Telemetry::EulerAngle attitude_euler_angle){
@@ -77,15 +63,7 @@ void setTelemetry( shared_ptr<Telemetry> telemetry )
         }
         euler_angle_vec_topic.push_back(euler_angle);
         euler_angle_vec_mutex.unlock();
-
-        euler_angle_vec_log_mutex.lock();
-        if( euler_angle_vec_log_topic.size() > MAX_VEC_SIZE )
-        {
-            euler_angle_vec_log_topic.clear();
-        }
-        euler_angle_vec_log_topic.push_back(euler_angle);
-        euler_angle_vec_log_mutex.unlock();
-        //cout << string("[LOGGING]: yaw ") << euler_angle.yaw_deg << endl;
+        writeAttitude(euler_angle);
     });
 
     telemetry->armed_async([](bool armed){

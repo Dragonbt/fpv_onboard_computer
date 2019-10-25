@@ -144,3 +144,41 @@ void Camera::updating( void ){
     }
     return;
 }
+
+Video::Video( string path, int img_width, int img_height )
+{
+    video_path = path;
+    width = img_width;
+    height = img_height;
+}
+
+void Video::open()
+{
+    if( ! writer.isOpened() )
+    {
+        writer.open( video_path + getCurrentTime() + string(".avi"), VideoWriter::fourcc('D', 'I', 'V', 'X'), 30, Size(width, height) );
+    }
+}
+
+void Video::close()
+{
+    if( writer.isOpened() )
+    {
+        writer.release();
+    }
+}
+
+void Video::writeImage()
+{
+    Mat image;
+    if( writer.isOpened() )
+    {
+        image_mutex.lock();
+        image = image_topic.clone();
+        image_mutex.unlock();
+        if( image.empty() )
+            return;
+        resize(image, image, Size(width, height));
+        writer.write( image );
+    }
+}

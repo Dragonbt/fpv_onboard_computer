@@ -1,4 +1,4 @@
-#include "flight_control_sync.hpp"
+#include "control_sync.hpp"
 
 void healthCheck( shared_ptr<Telemetry> telemetry )
 {
@@ -99,14 +99,6 @@ void pushInputVelocityBody( Offboard::VelocityBodyYawspeed velocity )
     }
     input_velocity_body_vec_topic.push_back( input );
     input_velocity_body_vec_mutex.unlock();
-
-    input_velocity_body_vec_log_mutex.lock();
-    if( input_velocity_body_vec_log_topic.size() > MAX_VEC_SIZE )
-    {
-        input_velocity_body_vec_log_topic.clear();
-    }
-    input_velocity_body_vec_log_topic.push_back( input );
-    input_velocity_body_vec_log_mutex.unlock();
 }
 void pushInputAttitude( Offboard::Attitude attitude )
 {
@@ -123,12 +115,20 @@ void pushInputAttitude( Offboard::Attitude attitude )
     }
     input_attitude_vec_topic.push_back( input );
     input_attitude_vec_mutex.unlock();
+    writeInputAttitude(input);
+}
 
-    input_attitude_vec_log_mutex.lock();
-    if( input_attitude_vec_log_topic.size() > MAX_VEC_SIZE )
+void pushReference( float _pos_sp_z )
+{
+    Reference reference;
+    reference.down_m = _pos_sp_z;
+    reference.time_ms = intervalMs(high_resolution_clock::now(), init_timepoint);
+    reference_mutex.lock();
+    if( reference_topic.size() > MAX_VEC_SIZE )
     {
-        input_attitude_vec_log_topic.clear();
+        reference_topic.clear();
     }
-    input_attitude_vec_log_topic.push_back( input );
-    input_attitude_vec_log_mutex.unlock();
+    reference_topic.push_back(reference);
+    reference_mutex.unlock();
+    writeReference(reference);
 }

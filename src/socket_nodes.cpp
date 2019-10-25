@@ -44,6 +44,7 @@ void sendLoop( FileNode send_config )
         sendStatus();
         sendString();
         sendInputAttitude();
+        sendReference();
         this_thread::sleep_for( milliseconds( 50 ) );
     }
     cout << "[WARNING]: send node shutdown" << endl;
@@ -174,23 +175,10 @@ void recvMsg( char* msg, int msg_length, sockaddr_in addr )
     memcpy( &tail, p, sizeof tail );
     if( tail != TAIL )
         return;
-    bool flag;
     int16_t index;
     double strength;
     switch(msg_type)
     {
-        case VIDEO_COMMAND_MSG:
-            memcpy( &flag, buffer, sizeof flag );
-            log_command_mutex.lock();
-            log_command_topic.video = flag;
-            log_command_mutex.unlock();
-            break;
-        case LOG_COMMAND_MSG:
-            memcpy( &flag, buffer, sizeof flag );
-            log_command_mutex.lock();
-            log_command_topic.log = flag;
-            log_command_mutex.unlock();
-            break;
         case MISSION_COMMAND_MSG:
             if( len != 10 )
                 break;
@@ -325,7 +313,21 @@ void sendInputAttitude()
     input_attitude_vec_mutex.unlock();
     if( ! input_attitude_vec.empty() )
     {
-        sendMsg( INPUT_ATTITUDE_MSG, (uint16_t) ( input_attitude_vec.size() * sizeof(InputAttitude) ), input_attitude_vec.data() );
+        sendMsg( INPUT_MSG, (uint16_t) ( input_attitude_vec.size() * sizeof(InputAttitude) ), input_attitude_vec.data() );
+    }
+    return;
+}
+
+void sendReference()
+{
+    vector<Reference> reference_vec;
+    reference_mutex.lock();
+    reference_vec = reference_topic;
+    reference_topic.clear();
+    reference_mutex.unlock();
+    if( ! reference_vec.empty() )
+    {
+        sendMsg( REFERENCE_MSG, (uint16_t) (reference_vec.size() * sizeof(Reference) ), reference_vec.data() );
     }
     return;
 }

@@ -29,3 +29,4 @@ void healthCheck( shared_ptr<Telemetry> telemetry );
 
 void pushInputVelocityBody( Offboard::VelocityBodyYawspeed velocity );
 void pushInputAttitude( Offboard::Attitude attitude );
+void pushReference( float down_m );
