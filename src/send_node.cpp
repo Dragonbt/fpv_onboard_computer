@@ -1,4 +1,7 @@
-#include "socket_nodes.hpp"
+#include "send_node.hpp"
+
+struct sockaddr_in send_to_addr;
+int64_t sent_position_ms = 0, sent_velocity_ms = 0, sent_attitude_ms = 0;
 
 void sendLoop( FileNode send_config )
 {
@@ -19,7 +22,7 @@ void sendLoop( FileNode send_config )
         cout << "[WARNING]: send node disabled" << endl;
         return;
     }
-    if( ! socketInit() )
+    if( ! sendSocketInit() )
     {
         cout << "[WARNING]: send node shutdown" << endl;
         return;
@@ -34,75 +37,29 @@ void sendLoop( FileNode send_config )
     send_to_addr.sin_family = AF_INET; 
     send_to_addr.sin_port = htons( port );
     
+    high_resolution_clock::time_point t0 = high_resolution_clock::now();
     while( true )
     {
-        sendHeartBeat();
+        if( intervalMs(high_resolution_clock::now(), t0) > 200 )
+        {
+            sendHeartBeat();
+            sendPosition();
+            sendVelocity();
+            sendAttitude();
+            sendReference();
+            sendInputAttitude();
+            sendStatus();
+            sendString();
+            t0 = high_resolution_clock::now();
+        }
         sendImg(gray, img_msg_resize, img_msg_quality);
-        sendPosition();
-        sendVelocity();
-        sendAttitude();
-        sendStatus();
-        sendString();
-        sendInputAttitude();
-        sendReference();
         this_thread::sleep_for( milliseconds( 50 ) );
     }
     cout << "[WARNING]: send node shutdown" << endl;
     return;
 }
 
-void recvLoop( FileNode recv_config )
-{
-    int enable;
-    string host;
-    int port;
-    recv_config["ENABLE"] >> enable;
-    recv_config["HOST"] >> host;
-    recv_config["PORT"] >> port;
-    if( enable == 0 )
-    {
-        cout << "[WARNING]: recv node disabled" << endl;
-        return;
-    }
-    if( ! socketInit() )
-    {
-        cout << "[WARNING]: recv node shutdown" << endl;
-        return;
-    }
-
-    bzero(&recv_from_addr, sizeof(recv_from_addr));
-    if( inet_pton( AF_INET, host.c_str(), &recv_from_addr.sin_addr ) <= 0 )
-    {
-        cout << "[WARNING]: " + string(strerror(errno)) << endl;
-        return;
-    }
-    recv_from_addr.sin_family = AF_INET; 
-    recv_from_addr.sin_port = htons( port );
-
-    char msg[MAX_MSG_LENGTH];
-    int msg_length;
-    struct sockaddr_in addr;
-    socklen_t addr_len  = sizeof recv_from_addr;
-    while (true)
-    {
-        msg_length = (int)recvfrom( fd, msg, sizeof msg, 0, (struct sockaddr *)&addr, &addr_len );
-        if( msg_length < 0 && errno == EAGAIN)
-        {
-            this_thread::sleep_for( milliseconds( 30 ) );
-            continue;
-        }
-        else if( msg_length < 0 )
-        {
-            cout << "[WARNING]: " + string(strerror(errno)) << endl;
-            continue;
-        }
-        recvMsg( msg, msg_length, addr );
-    }
-    cout << "[WARNING]: recv node shutdown" << endl;
-    return;
-}
-
-bool socketInit()
+bool sendSocketInit()
 {
     fd_mutex.lock();
     if( fd < 0 )
@@ -150,50 +107,6 @@ void sendMsg( uint8_t msg_type, uint16_t length, void* buffer )
     return;
 }
 
-void recvMsg( char* msg, int msg_length, sockaddr_in addr )
-{
-    uint8_t msg_type;
-    uint16_t head, tail, len;
-    if ( addr.sin_addr.s_addr != recv_from_addr.sin_addr.s_addr || addr.sin_port != recv_from_addr.sin_port )
-        return;
-    if( msg_length < 8 || msg_length > MAX_MSG_LENGTH )
-        return;
-    char *p = msg;
-    memcpy( &head, p, sizeof head );
-    p = p + sizeof head;
-    if( head != HEAD )
-        return;
-    memcpy( &msg_type, p, sizeof msg_type );
-    p = p + sizeof msg_type;
-    memcpy( &len, p, sizeof len );
-    p = p + sizeof len;
-    if( msg_length != 7 + (int)len )
-        return;
-    char buffer[len];
-    memcpy( buffer, p, len );
-    p = p + len;
-    memcpy( &tail, p, sizeof tail );
-    if( tail != TAIL )
-        return;
-    int16_t index;
-    double strength;
-    switch(msg_type)
-    {
-        case MISSION_COMMAND_MSG:
-            if( len != 10 )
-                break;
-            memcpy( &index, buffer, sizeof index );
-            memcpy( &strength, buffer + 2, sizeof strength );
-            mission_command_mutex.lock();
-            mission_command_topic.index = index;
-            mission_command_topic.strength = strength;
-            mission_command_mutex.unlock();
-            break;
-        default:
-            break;
-    }
-}
-
 bool compress( Mat image, bool gray, double resize_k, int quality, vector<uchar>& img_buffer)
 {
     vector< int > jpeg_quality{ IMWRITE_JPEG_QUALITY, quality };
@@ -231,13 +144,21 @@ void sendImg( bool gray, double img_msg_resize, int img_msg_quality )
 void sendPosition()
 {
     vector<PositionNED> position;
+    PositionNED pos;
     position_mutex.lock();
-    position = position_topic;
-    position_topic.clear();
+    for( size_t i=0; i < position_topic.size(); i++ )
+    {
+        pos = position_topic[i];
+        if( pos.time_ms > sent_position_ms )
+        {
+            position.push_back( pos );
+        }
+    }
     position_mutex.unlock();
     if( ! position.empty() )
     {
         sendMsg( POSITION_MSG, (uint16_t) ( position.size() * sizeof(PositionNED) ), position.data() );
+        sent_position_ms = position.back().time_ms;
         position.clear();
     }
     return;
@@ -246,13 +167,21 @@ void sendPosition()
 void sendVelocity()
 {
     vector<VelocityNED> velocity;
+    VelocityNED vel;
     velocity_mutex.lock();
-    velocity = velocity_topic;
-    velocity_topic.clear();
+    for( size_t i=0; i < velocity_topic.size(); i++ )
+    {
+        vel = velocity_topic[i];
+        if( vel.time_ms > sent_velocity_ms )
+        {
+            velocity.push_back( vel );
+        }
+    }
     velocity_mutex.unlock();
     if( ! velocity.empty() )
     {
         sendMsg( VELOCITY_MSG, (uint16_t) ( velocity.size() * sizeof(VelocityNED) ), velocity.data() );
+        sent_velocity_ms = velocity.back().time_ms;
         velocity.clear();
     }
     return;
@@ -261,13 +190,21 @@ void sendVelocity()
 void sendAttitude()
 {
     vector<EulerAngle> attitude;
+    EulerAngle att;
     attitude_mutex.lock();
-    attitude = attitude_topic;
-    attitude_topic.clear();
+    for( size_t i=0; i < attitude_topic.size(); i++ )
+    {
+        att = attitude_topic[i];
+        if( att.time_ms > sent_attitude_ms )
+        {
+            attitude.push_back( att );
+        }
+    }
     attitude_mutex.unlock();
     if( ! attitude.empty() )
     {
         sendMsg( ATTITUDE_MSG, (uint16_t) ( attitude.size() * sizeof(EulerAngle) ), attitude.data() );
+        sent_attitude_ms = attitude.back().time_ms;
         attitude.clear();
     }
     return;

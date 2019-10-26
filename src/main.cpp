@@ -3,7 +3,8 @@
 #include <mutex>
 
 #include "camera_node.hpp"
-#include "socket_nodes.hpp"
+#include "send_node.hpp"
+#include "recv_node.hpp"
 #include "control_node.hpp"
 
 using namespace std;

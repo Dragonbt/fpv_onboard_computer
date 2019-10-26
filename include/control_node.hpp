@@ -10,6 +10,7 @@
 #include <mavsdk/plugins/action/action.h>
 #include <mavsdk/plugins/offboard/offboard.h>
 #include <mavsdk/plugins/telemetry/telemetry.h>
+#include <opencv2/core/core.hpp>
 
 #include "utils.hpp"
 #include "struct.hpp"
@@ -35,5 +36,6 @@ void controlLoop( FileNode control_config );
 
 void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, float P, float I, float D );
 void altitude(shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, double SampleTime);
+void altitudeDouble(shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, double dt);
 
 #endif

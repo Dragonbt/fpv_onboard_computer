@@ -1,5 +1,7 @@
 #include "telem_async.hpp"
 
+Status status;
+
 void setTelemetry( shared_ptr<Telemetry> telemetry )
 {
     Telemetry::Result set_rate_result;
@@ -30,17 +32,17 @@ void setTelemetry( shared_ptr<Telemetry> telemetry )
         velocity.time_ms = intervalMs( high_resolution_clock::now(), init_timepoint );
         
         position_mutex.lock();
-        if( position_topic.size() > MAX_VEC_SIZE )
+        while( position_topic.size() >= MAX_VEC_SIZE )
         {
-            position_topic.clear();
+            position_topic.pop_front();
         }
         position_topic.push_back(position);
         position_mutex.unlock();
 
         velocity_mutex.lock();
-        if( velocity_topic.size() > MAX_VEC_SIZE )
+        while( velocity_topic.size() >= MAX_VEC_SIZE )
         {
-            velocity_topic.clear();
+            velocity_topic.pop_front();
         }
         velocity_topic.push_back(velocity);
         velocity_mutex.unlock();
@@ -57,9 +59,9 @@ void setTelemetry( shared_ptr<Telemetry> telemetry )
         euler_angle.time_ms = intervalMs( high_resolution_clock::now(), init_timepoint );
         
         attitude_mutex.lock();
-        if( attitude_topic.size() > MAX_VEC_SIZE )
+        while( attitude_topic.size() >= MAX_VEC_SIZE )
         {
-            attitude_topic.clear();
+            attitude_topic.pop_front();
         }
         attitude_topic.push_back(euler_angle);
         attitude_mutex.unlock();
@@ -69,7 +71,7 @@ void setTelemetry( shared_ptr<Telemetry> telemetry )
     telemetry->armed_async([](bool armed){
         status_mutex.lock();
         status.armed = armed;
-        if( status_topic.size() > MAX_VEC_SIZE )
+        if( status_topic.size() >= MAX_VEC_SIZE )
         {
             status_topic.clear();
         }
@@ -80,7 +82,7 @@ void setTelemetry( shared_ptr<Telemetry> telemetry )
     telemetry->in_air_async([](bool in_air){
         status_mutex.lock();
         status.in_air = in_air;
-        if( status_topic.size() > MAX_VEC_SIZE )
+        if( status_topic.size() >= MAX_VEC_SIZE )
         {
             status_topic.clear();
         }
@@ -93,7 +95,7 @@ void setTelemetry( shared_ptr<Telemetry> telemetry )
         status.rc_available_once = rc_status.available_once;
         status.rc_available = rc_status.available;
         status.rc_signal_strength_percent = rc_status.signal_strength_percent;
-        if( status_topic.size() > MAX_VEC_SIZE )
+        if( status_topic.size() >= MAX_VEC_SIZE )
         {
             status_topic.clear();
         }
@@ -105,7 +107,7 @@ void setTelemetry( shared_ptr<Telemetry> telemetry )
         status_mutex.lock();
         status.battery_voltage_v = battery.voltage_v;
         status.battery_remaining_percent = battery.remaining_percent;
-        if( status_topic.size() > MAX_VEC_SIZE )
+        if( status_topic.size() >= MAX_VEC_SIZE )
         {
             status_topic.clear();
         }
@@ -118,7 +120,7 @@ void setTelemetry( shared_ptr<Telemetry> telemetry )
         status_mutex.lock();
         strncpy(status.flight_mode, mode.c_str(), sizeof(status.flight_mode));
         status.flight_mode[sizeof(status.flight_mode) - 1] = 0;
-        if( status_topic.size() > MAX_VEC_SIZE )
+        if( status_topic.size() >= MAX_VEC_SIZE )
         {
             status_topic.clear();
         }
@@ -144,6 +146,10 @@ void setTelemetry( shared_ptr<Telemetry> telemetry )
         }
         string msg = prefix + status_text.text;
         string_mutex.lock();
+        if( string_topic.size() >= MAX_VEC_SIZE )
+        {
+            string_topic.clear();
+        }
         string_topic.push_back(msg);
         string_mutex.unlock();
     });

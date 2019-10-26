@@ -18,6 +18,9 @@ extern mutex input_velocity_body_mutex;
 extern vector<InputAttitude> input_attitude_topic;
 extern mutex input_attitude_mutex;
 
+extern vector<Reference> reference_topic;
+extern mutex reference_mutex;
+
 void healthCheck( shared_ptr<Telemetry> telemetry );
 void waitForArmed( shared_ptr<Telemetry> telemetry );
 void quitOffboard( shared_ptr<Offboard> offboard );
