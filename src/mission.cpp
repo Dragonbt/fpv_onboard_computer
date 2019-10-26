@@ -63,8 +63,8 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
         t0 = high_resolution_clock::now();
         //control code
         //altitude(telemetry, offboard, time_change, P, I, D);
-        //altitudeDouble(telemetry, offboard, time_change);
-        offbCtrlAttitude(offboard, {0, 10.0f, yaw, 0.2f});
+        altitudeDouble(telemetry, offboard, time_change);
+        //offbCtrlAttitude(offboard, {0, 10.0f, yaw, 0.2f});
     }
     return;
 }
