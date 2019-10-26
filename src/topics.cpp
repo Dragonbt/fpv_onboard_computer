@@ -35,23 +35,23 @@ mutex socket_exception_mutex;
 int fd = -1;
 mutex fd_mutex;
 
-vector<PositionNED> position_vec_topic;
-mutex position_vec_mutex;
+vector<PositionNED> position_topic;
+mutex position_mutex;
 
-vector<VelocityNED> velocity_vec_topic;
-mutex velocity_vec_mutex;
+vector<VelocityNED> velocity_topic;
+mutex velocity_mutex;
 
-vector<EulerAngle> euler_angle_vec_topic;
-mutex euler_angle_vec_mutex;
+vector<EulerAngle> attitude_topic;
+mutex attitude_mutex;
 
-vector<InputVelocityBody> input_velocity_body_vec_topic;
-mutex input_velocity_body_vec_mutex;
+vector<InputVelocityBody> input_velocity_body_topic;
+mutex input_velocity_body_mutex;
 
-vector<InputAttitude> input_attitude_vec_topic;
-mutex input_attitude_vec_mutex;
+vector<InputAttitude> input_attitude_topic;
+mutex input_attitude_mutex;
 
-vector<string> string_vec_topic;
-mutex string_vec_mutex;
+vector<string> string_topic;
+mutex string_mutex;
 
 vector<Reference> reference_topic;
 mutex reference_mutex;

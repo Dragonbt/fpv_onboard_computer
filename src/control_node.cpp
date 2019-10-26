@@ -6,12 +6,13 @@ void controlLoop( FileNode control_config )
     string url;
     float takeoff_altitude;
 
-    double P, D;
+    float P, I, D;
 
     control_config["ENABLE"] >> enable;
     control_config["URL"] >> url;
     control_config["TAKEOFF_ALTITUDE"] >> takeoff_altitude;
     control_config["P"] >> P;
+    control_config["I"] >> I;
     control_config["D"] >> D;
     if( enable == 0 )
     {
@@ -39,6 +40,6 @@ void controlLoop( FileNode control_config )
     /*Health Check*/
     //healthCheck( telemetry );
     setTelemetry( telemetry );
-    altitudeTest( telemetry, offboard, P, D );
+    altitudeTest( telemetry, offboard, P, I, D );
     return;
 }

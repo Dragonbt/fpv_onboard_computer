@@ -33,7 +33,7 @@ extern mutex mission_command_mutex;
 
 void controlLoop( FileNode control_config );
 
-void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, double P, double D );
+void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, float P, float I, float D );
 void altitude(shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, double SampleTime);
 
 #endif

@@ -21,14 +21,14 @@ using namespace std::chrono;
 extern high_resolution_clock::time_point init_timepoint;
 
 //telem to send
-extern vector<PositionNED> position_vec_topic;
-extern mutex position_vec_mutex;
+extern vector<PositionNED> position_topic;
+extern mutex position_mutex;
 
-extern vector<VelocityNED> velocity_vec_topic;
-extern mutex velocity_vec_mutex;
+extern vector<VelocityNED> velocity_topic;
+extern mutex velocity_mutex;
 
-extern vector<EulerAngle> euler_angle_vec_topic;
-extern mutex euler_angle_vec_mutex;
+extern vector<EulerAngle> attitude_topic;
+extern mutex attitude_mutex;
 
 static Status status;
 extern vector<Status> status_topic;

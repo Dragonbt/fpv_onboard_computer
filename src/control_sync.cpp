@@ -92,13 +92,13 @@ void pushInputVelocityBody( Offboard::VelocityBodyYawspeed velocity )
     input.down_m_s = velocity.down_m_s;
     input.yawspeed_deg_s = velocity.yawspeed_deg_s;
     input.time_ms = intervalMs(high_resolution_clock::now(), init_timepoint);
-    input_velocity_body_vec_mutex.lock();
-    if( input_velocity_body_vec_topic.size() > MAX_VEC_SIZE )
+    input_velocity_body_mutex.lock();
+    if( input_velocity_body_topic.size() > MAX_VEC_SIZE )
     {
-        input_velocity_body_vec_topic.clear();
+        input_velocity_body_topic.clear();
     }
-    input_velocity_body_vec_topic.push_back( input );
-    input_velocity_body_vec_mutex.unlock();
+    input_velocity_body_topic.push_back( input );
+    input_velocity_body_mutex.unlock();
 }
 void pushInputAttitude( Offboard::Attitude attitude )
 {
@@ -108,13 +108,13 @@ void pushInputAttitude( Offboard::Attitude attitude )
     input.yaw_deg = attitude.yaw_deg;
     input.thrust = attitude.thrust_value;
     input.time_ms = intervalMs(high_resolution_clock::now(), init_timepoint);
-    input_attitude_vec_mutex.lock();
-    if( input_attitude_vec_topic.size() > MAX_VEC_SIZE )
+    input_attitude_mutex.lock();
+    if( input_attitude_topic.size() > MAX_VEC_SIZE )
     {
-        input_attitude_vec_topic.clear();
+        input_attitude_topic.clear();
     }
-    input_attitude_vec_topic.push_back( input );
-    input_attitude_vec_mutex.unlock();
+    input_attitude_topic.push_back( input );
+    input_attitude_mutex.unlock();
     writeInputAttitude(input);
 }
 

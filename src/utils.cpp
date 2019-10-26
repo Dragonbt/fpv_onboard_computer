@@ -26,13 +26,13 @@ void remotePrint( string msg )
         cout << "[ERROR]: remote print overflow" << endl;
         return;
     }
-    string_vec_mutex.lock();
-    if( string_vec_topic.size() > MAX_VEC_SIZE )
+    string_mutex.lock();
+    if( string_topic.size() > MAX_VEC_SIZE )
     {
-        string_vec_topic.clear();
+        string_topic.clear();
     }
-    string_vec_topic.push_back(msg);
-    string_vec_mutex.unlock();
+    string_topic.push_back(msg);
+    string_mutex.unlock();
     return;
 }
 

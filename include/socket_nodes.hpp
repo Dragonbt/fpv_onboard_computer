@@ -32,15 +32,13 @@
 #define POSITION_MSG 2
 #define VELOCITY_MSG 3
 #define ATTITUDE_MSG 4
-#define INPUT_MSG 5
+#define INPUT_ATTITUDE_MSG 5
 #define STATUS_MSG 6
 #define LOG_MSG 7
 #define REFERENCE_MSG 8
 
 //recv command type
 #define MISSION_COMMAND_MSG 15
-#define VIDEO_COMMAND_MSG 5
-#define LOG_COMMAND_MSG 6
 
 using namespace std;
 using namespace cv;
@@ -58,20 +56,20 @@ extern mutex image_mutex;
 extern int socket_exception_topic;
 extern mutex socket_exception_mutex;
 
-extern vector<PositionNED> position_vec_topic;
-extern mutex position_vec_mutex;
+extern vector<PositionNED> position_topic;
+extern mutex position_mutex;
 
-extern vector<VelocityNED> velocity_vec_topic;
-extern mutex velocity_vec_mutex;
+extern vector<VelocityNED> velocity_topic;
+extern mutex velocity_mutex;
 
-extern vector<EulerAngle> euler_angle_vec_topic;
-extern mutex euler_angle_vec_mutex;
+extern vector<EulerAngle> attitude_topic;
+extern mutex attitude_mutex;
 
-extern vector<InputVelocityBody> input_velocity_body_vec_topic;
-extern mutex input_velocity_body_vec_mutex;
+extern vector<InputVelocityBody> input_velocity_body_topic;
+extern mutex input_velocity_body_mutex;
 
-extern vector<InputAttitude> input_attitude_vec_topic;
-extern mutex input_attitude_vec_mutex;
+extern vector<InputAttitude> input_attitude_topic;
+extern mutex input_attitude_mutex;
 
 extern MissionCommand mission_command_topic;
 extern mutex mission_command_mutex;

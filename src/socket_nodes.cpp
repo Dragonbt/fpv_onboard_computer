@@ -230,45 +230,45 @@ void sendImg( bool gray, double img_msg_resize, int img_msg_quality )
 
 void sendPosition()
 {
-    vector<PositionNED> position_vec;
-    position_vec_mutex.lock();
-    position_vec = position_vec_topic;
-    position_vec_topic.clear();
-    position_vec_mutex.unlock();
-    if( ! position_vec.empty() )
+    vector<PositionNED> position;
+    position_mutex.lock();
+    position = position_topic;
+    position_topic.clear();
+    position_mutex.unlock();
+    if( ! position.empty() )
     {
-        sendMsg( POSITION_MSG, (uint16_t) ( position_vec.size() * sizeof(PositionNED) ), position_vec.data() );
-        position_vec.clear();
+        sendMsg( POSITION_MSG, (uint16_t) ( position.size() * sizeof(PositionNED) ), position.data() );
+        position.clear();
     }
     return;
 }
 
 void sendVelocity()
 {
-    vector<VelocityNED> velocity_vec;
-    velocity_vec_mutex.lock();
-    velocity_vec = velocity_vec_topic;
-    velocity_vec_topic.clear();
-    velocity_vec_mutex.unlock();
-    if( ! velocity_vec.empty() )
+    vector<VelocityNED> velocity;
+    velocity_mutex.lock();
+    velocity = velocity_topic;
+    velocity_topic.clear();
+    velocity_mutex.unlock();
+    if( ! velocity.empty() )
     {
-        sendMsg( VELOCITY_MSG, (uint16_t) ( velocity_vec.size() * sizeof(VelocityNED) ), velocity_vec.data() );
-        velocity_vec.clear();
+        sendMsg( VELOCITY_MSG, (uint16_t) ( velocity.size() * sizeof(VelocityNED) ), velocity.data() );
+        velocity.clear();
     }
     return;
 }
 
 void sendAttitude()
 {
-    vector<EulerAngle> euler_angle_vec;
-    euler_angle_vec_mutex.lock();
-    euler_angle_vec = euler_angle_vec_topic;
-    euler_angle_vec_topic.clear();
-    euler_angle_vec_mutex.unlock();
-    if( ! euler_angle_vec.empty() )
+    vector<EulerAngle> attitude;
+    attitude_mutex.lock();
+    attitude = attitude_topic;
+    attitude_topic.clear();
+    attitude_mutex.unlock();
+    if( ! attitude.empty() )
     {
-        sendMsg( ATTITUDE_MSG, (uint16_t) ( euler_angle_vec.size() * sizeof(EulerAngle) ), euler_angle_vec.data() );
-        euler_angle_vec.clear();
+        sendMsg( ATTITUDE_MSG, (uint16_t) ( attitude.size() * sizeof(EulerAngle) ), attitude.data() );
+        attitude.clear();
     }
     return;
 }
@@ -289,16 +289,16 @@ void sendStatus()
 
 void sendString()
 {
-    vector<string> string_vec;
-    string_vec_mutex.lock();
-    string_vec = string_vec_topic;
-    string_vec_topic.clear();
-    string_vec_mutex.unlock();
-    if( ! string_vec.empty() )
+    vector<string> string;
+    string_mutex.lock();
+    string = string_topic;
+    string_topic.clear();
+    string_mutex.unlock();
+    if( ! string.empty() )
     {
-        for( size_t i=0; i < string_vec.size(); i++)
+        for( size_t i=0; i < string.size(); i++)
         {
-            sendMsg( LOG_MSG, (uint16_t) string_vec[i].size(), const_cast<char*>(string_vec[i].data()) );
+            sendMsg( LOG_MSG, (uint16_t) string[i].size(), const_cast<char*>(string[i].data()) );
         }
     }
     return;
@@ -306,28 +306,28 @@ void sendString()
 
 void sendInputAttitude()
 {
-    vector<InputAttitude> input_attitude_vec;
-    input_attitude_vec_mutex.lock();
-    input_attitude_vec = input_attitude_vec_topic;
-    input_attitude_vec_topic.clear();
-    input_attitude_vec_mutex.unlock();
-    if( ! input_attitude_vec.empty() )
+    vector<InputAttitude> input_attitude;
+    input_attitude_mutex.lock();
+    input_attitude = input_attitude_topic;
+    input_attitude_topic.clear();
+    input_attitude_mutex.unlock();
+    if( ! input_attitude.empty() )
     {
-        sendMsg( INPUT_MSG, (uint16_t) ( input_attitude_vec.size() * sizeof(InputAttitude) ), input_attitude_vec.data() );
+        sendMsg( INPUT_ATTITUDE_MSG, (uint16_t) ( input_attitude.size() * sizeof(InputAttitude) ), input_attitude.data() );
     }
     return;
 }
 
 void sendReference()
 {
-    vector<Reference> reference_vec;
+    vector<Reference> reference;
     reference_mutex.lock();
-    reference_vec = reference_topic;
+    reference = reference_topic;
     reference_topic.clear();
     reference_mutex.unlock();
-    if( ! reference_vec.empty() )
+    if( ! reference.empty() )
     {
-        sendMsg( REFERENCE_MSG, (uint16_t) (reference_vec.size() * sizeof(Reference) ), reference_vec.data() );
+        sendMsg( REFERENCE_MSG, (uint16_t) (reference.size() * sizeof(Reference) ), reference.data() );
     }
     return;
 }

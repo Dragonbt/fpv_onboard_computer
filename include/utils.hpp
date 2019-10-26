@@ -13,8 +13,8 @@
 using namespace std::chrono;
 using namespace std;
 
-extern vector<string> string_vec_topic;
-extern mutex string_vec_mutex;
+extern vector<string> string_topic;
+extern mutex string_mutex;
 
 extern ofstream log_file_topic;
 extern mutex log_file_mutex;
@@ -27,7 +27,7 @@ void remotePrint( string msg );
 
 void writePositionNED(PositionNED position);
 void writeVelocityNED(VelocityNED velocity);
-void writeAttitude(EulerAngle euler_angle);
+void writeAttitude(EulerAngle attitude);
 void writeInputAttitude(InputAttitude input_attitude);
 void writeReference( Reference reference);
 #endif

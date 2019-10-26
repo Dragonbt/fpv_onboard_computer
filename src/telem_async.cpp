@@ -29,21 +29,21 @@ void setTelemetry( shared_ptr<Telemetry> telemetry )
         velocity.down_m_s = position_velocity_ned.velocity.down_m_s;
         velocity.time_ms = intervalMs( high_resolution_clock::now(), init_timepoint );
         
-        position_vec_mutex.lock();
-        if( position_vec_topic.size() > MAX_VEC_SIZE )
+        position_mutex.lock();
+        if( position_topic.size() > MAX_VEC_SIZE )
         {
-            position_vec_topic.clear();
+            position_topic.clear();
         }
-        position_vec_topic.push_back(position);
-        position_vec_mutex.unlock();
+        position_topic.push_back(position);
+        position_mutex.unlock();
 
-        velocity_vec_mutex.lock();
-        if( velocity_vec_topic.size() > MAX_VEC_SIZE )
+        velocity_mutex.lock();
+        if( velocity_topic.size() > MAX_VEC_SIZE )
         {
-            velocity_vec_topic.clear();
+            velocity_topic.clear();
         }
-        velocity_vec_topic.push_back(velocity);
-        velocity_vec_mutex.unlock();
+        velocity_topic.push_back(velocity);
+        velocity_mutex.unlock();
 
         writePositionNED(position);
         writeVelocityNED(velocity);
@@ -56,13 +56,13 @@ void setTelemetry( shared_ptr<Telemetry> telemetry )
         euler_angle.yaw_deg = attitude_euler_angle.yaw_deg;
         euler_angle.time_ms = intervalMs( high_resolution_clock::now(), init_timepoint );
         
-        euler_angle_vec_mutex.lock();
-        if( euler_angle_vec_topic.size() > MAX_VEC_SIZE )
+        attitude_mutex.lock();
+        if( attitude_topic.size() > MAX_VEC_SIZE )
         {
-            euler_angle_vec_topic.clear();
+            attitude_topic.clear();
         }
-        euler_angle_vec_topic.push_back(euler_angle);
-        euler_angle_vec_mutex.unlock();
+        attitude_topic.push_back(euler_angle);
+        attitude_mutex.unlock();
         writeAttitude(euler_angle);
     });
 
@@ -143,9 +143,9 @@ void setTelemetry( shared_ptr<Telemetry> telemetry )
                 break;
         }
         string msg = prefix + status_text.text;
-        string_vec_mutex.lock();
-        string_vec_topic.push_back(msg);
-        string_vec_mutex.unlock();
+        string_mutex.lock();
+        string_topic.push_back(msg);
+        string_mutex.unlock();
     });
     return;
 }

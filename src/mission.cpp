@@ -10,9 +10,10 @@ float mid_thrust = 0.55f;
 float Kp_z = 0.05f, Ki_z = 0.0f, Kd_z = 0.0f;
 Telemetry::PositionVelocityNED position;
 
-void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, double P, double D )
+void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, float P, float I, float D )
 {
     Kp_z = P;
+    Ki_z = I;
     Kd_z = D;
     MissionCommand command;
     Telemetry::EulerAngle euler_angle;
@@ -62,8 +63,8 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
         }
         t0 = high_resolution_clock::now();
         //control code
-        //altitude(telemetry, offboard, time_change);
-        offbCtrlAttitude(offboard, {0, 0, yaw, 0.2});
+        altitude(telemetry, offboard, time_change);
+        //offbCtrlAttitude(offboard, {0, 0, yaw, 0.2});
     }
     return;
 }
