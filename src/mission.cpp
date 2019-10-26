@@ -7,14 +7,10 @@ int SampleTime = 20;
 int Times = 0;
 bool flag_project = 0;
 float mid_thrust = 0.55f;
-//float Kp_z = 0.05f, Ki_z = 0.0f, Kd_z = 0.0f;
 Telemetry::PositionVelocityNED position;
 
 void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, float P, float I, float D )
 {
-    //Kp_z = P;
-    //Ki_z = I;
-    //Kd_z = D;
     MissionCommand command;
     Telemetry::EulerAngle euler_angle;
     //Offboard::Attitude attitude;
@@ -37,6 +33,7 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
             //else limit_pos_z = -2.0f;
             remotePrint(string("start mission"));
             remotePrint(string("enter offboard !"));
+            cout << P << " " << I << " "<< D << endl;
             altitudeDouble(telemetry, offboard, SampleTime);
 			//altitude(telemetry, offboard, SampleTime);
             break;
@@ -65,15 +62,16 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
         }
         t0 = high_resolution_clock::now();
         //control code
-        //altitude(telemetry, offboard, time_change);
+        //altitude(telemetry, offboard, time_change, P, I, D);
         altitudeDouble(telemetry, offboard, time_change);
         //offbCtrlAttitude(offboard, {0, 0, yaw, 0.2});
     }
     return;
 }
-/*
-void altitude(shared_ptr<Telemetry> telemetry,shared_ptr<Offboard> offboard, double dt) {
+
+void altitude(shared_ptr<Telemetry> telemetry,shared_ptr<Offboard> offboard, double dt, float P, float I, float D) {
     pushReference(_pos_sp_z);
+    float Kp_z = P, Ki_z = I, Kd_z = D;
 	Offboard::Attitude attitude;
     position = telemetry->position_velocity_ned();
 	float _pos_z = position.position.down_m;
@@ -132,7 +130,6 @@ void altitude(shared_ptr<Telemetry> telemetry,shared_ptr<Offboard> offboard, dou
 	offbCtrlAttitude(offboard, attitude);
 	//pushInputAttitude(attitude);
 }
-*/
 
 void altitudeDouble(shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, double dt)
 {
