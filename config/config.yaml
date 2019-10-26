@@ -22,5 +22,5 @@ CONTROL_NODE:{
     URL: "serial:///dev/ttyS0:115200",
     P: 0.05,
     I: 0,
-    D: 0,
+    D: 0.01,
     TAKEOFF_ALTITUDE: 4.0}

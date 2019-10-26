@@ -34,8 +34,8 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
             remotePrint(string("start mission"));
             remotePrint(string("enter offboard !"));
             cout << P << " " << I << " "<< D << endl;
-            altitudeDouble(telemetry, offboard, SampleTime);
-			//altitude(telemetry, offboard, SampleTime);
+            //altitudeDouble(telemetry, offboard, SampleTime);
+			altitude(telemetry, offboard, SampleTime, P, I, D);
             break;
         }
         this_thread::sleep_for(milliseconds(100));
@@ -62,8 +62,8 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
         }
         t0 = high_resolution_clock::now();
         //control code
-        //altitude(telemetry, offboard, time_change, P, I, D);
-        altitudeDouble(telemetry, offboard, time_change);
+        altitude(telemetry, offboard, time_change, P, I, D);
+        //altitudeDouble(telemetry, offboard, time_change);
         //offbCtrlAttitude(offboard, {0, 10.0f, yaw, 0.2f});
     }
     return;
