@@ -103,7 +103,7 @@ void altitude(shared_ptr<Telemetry> telemetry,shared_ptr<Offboard> offboard, dou
 		cout << "---START PID control---" << endl;
 		float err_pos_z = _pos_sp_z - _pos_z;
 		float dif_pos_z = _vel_z;
-		float thrust_desired_D = Kp_z * err_pos_z + Kd_z * dif_pos_z + _int_pos_z
+		float thrust_desired_D = Kp_z * err_pos_z + Kd_z * (-dif_pos_z) + _int_pos_z
 			- mid_thrust;
 		// The Thrust limits are negated and swapped due to NED-frame.
 		//float uMax = -0.06f;
