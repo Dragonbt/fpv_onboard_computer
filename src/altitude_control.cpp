@@ -38,8 +38,8 @@ float altitudeThrustControl( float _pos_sp_z, shared_ptr<Telemetry> telemetry, f
 		//float uMax = -0.06f;
 		//float uMin = -1.0f;
 		// New limits for the experimental period
-		float uMax = -mid_thrust + 0.1f;
-		float uMin = -mid_thrust - 0.1f;
+		float uMax = -mid_thrust + 0.2f;
+		float uMin = -mid_thrust - 0.2f;
 		bool stop_integral_D = (thrust_desired_D >= uMax && err_pos_z >= 0.0f) ||
 			(thrust_desired_D <= uMin && err_pos_z <= 0.0f);
 
