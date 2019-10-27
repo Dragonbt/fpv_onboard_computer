@@ -18,4 +18,8 @@
 
 #define MISSION_COMMAND_MSG 15
 
+#define SAFE_QUIT_COMMAND -2
+#define FORCE_QUIT_COMMAND -1
+#define STEP_COMMAND 0
+
 #endif

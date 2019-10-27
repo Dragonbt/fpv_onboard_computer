@@ -4,9 +4,11 @@
 #include <chrono>
 #include <deque>
 
+//sizeof MissionCommand
 struct MissionCommand{
-    int16_t index = -1;
-    double strength = 0;
+    int16_t index = -3;
+    uint16_t argc = 0;
+    double argv[5] = {0};
 };
 
 //sizeof PositionNED = 8*3 + 64/8 = 32bytes

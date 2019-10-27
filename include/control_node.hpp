@@ -28,14 +28,13 @@ using namespace cv;
 using namespace std::chrono;
 
 //command
-extern MissionCommand mission_command_topic;
+extern vector<MissionCommand> mission_command_topic;
 extern mutex mission_command_mutex;
 
 
 void controlLoop( FileNode control_config );
 
-void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, float P, float I, float D );
-void altitude(shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, double SampleTime, float P, float I, float D );
-void altitudeDouble(shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, double dt);
+void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, float Kp_z, float Ki_z, float Kd_z );
+float altitudeThrustControl( float altitude, shared_ptr<Telemetry> telemetry, float dt );
 
 #endif

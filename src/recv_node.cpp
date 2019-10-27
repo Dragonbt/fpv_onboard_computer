@@ -100,18 +100,19 @@ void recvMsg( char* msg, int msg_length, sockaddr_in addr )
     memcpy( &tail, p, sizeof tail );
     if( tail != TAIL )
         return;
-    int16_t index;
-    double strength;
+    MissionCommand mission_command;
+    //int index;
+    //double param_1;
     switch(msg_type)
     {
         case MISSION_COMMAND_MSG:
-            if( len != 10 )
-                break;
-            memcpy( &index, buffer, sizeof index );
-            memcpy( &strength, buffer + 2, sizeof strength );
+            memcpy( &mission_command, buffer, sizeof mission_command );
             mission_command_mutex.lock();
-            mission_command_topic.index = index;
-            mission_command_topic.strength = strength;
+            if( mission_command_topic.size() > MAX_VEC_SIZE )
+            {
+                mission_command_topic.clear();
+            }
+            mission_command_topic.push_back(mission_command);
             mission_command_mutex.unlock();
             break;
         default:

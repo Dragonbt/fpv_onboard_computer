@@ -55,7 +55,7 @@ mutex string_mutex;
 vector<Status> status_topic;
 mutex status_mutex;
 
-MissionCommand mission_command_topic;
+vector<MissionCommand> mission_command_topic;
 mutex mission_command_mutex;
 
 ofstream log_file_topic;
