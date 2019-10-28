@@ -21,8 +21,8 @@ float altitudeThrustControl( float _pos_sp_z, shared_ptr<Telemetry> telemetry, f
     float _vel_z = position_velocity_ned.velocity.down_m_s;
 	float _pitch = euler_angle.pitch_deg;
 	float _roll = euler_angle.roll_deg;
-	//offset_thrust = mid_thrust / (cos(_pitch * P_I / 180)*cos(_roll*P_I / 180));
-	cout << "pitch=" << _pitch << "roll=" << _roll << endl;
+	offset_thrust = mid_thrust / (cos(_pitch * P_I / 180)*cos(_roll*P_I / 180));
+	//cout << "pitch=" << _pitch << "roll=" << _roll << endl;
     if (_pos_z < limit_pos_z || landing_flag) {
 		cout << "---Reject PID control,Start land---" << endl;
 		if (Times < 2000 / SampleTime){// first 2 second
@@ -43,7 +43,7 @@ float altitudeThrustControl( float _pos_sp_z, shared_ptr<Telemetry> telemetry, f
         float err_pos_z = _pos_sp_z - _pos_z;
 		float dif_pos_z = _vel_z;
 		float thrust_desired_D = Kp_z * err_pos_z + Kd_z * (-dif_pos_z) + _int_pos_z
-			- mid_thrust;
+			- offset_thrust;
 		// The Thrust limits are negated and swapped due to NED-frame.
 		//float uMax = -0.06f;
 		//float uMin = -1.0f;
@@ -134,9 +134,12 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 				//cout << "Kp_z: " << Kp_z << " Ki_z: "  << Ki_z << " Kd_z: " << Kd_z << endl; 
 				thrust = altitudeThrustControl(_pos_sp_z, telemetry, time_change );
 				time_loop++;
-				if(time_loop < 50) attitude = { 0.0f, 0.0f, yaw, thrust };
-				else if(time_loop < 100) attitude = { 0.0f, 2*offset_pitch*180/P_I, yaw, thrust };
-				else time_loop = 0;
+				if(time_loop < 5) attitude = { 0.0f, 0.0f, yaw, thrust };
+				else if(time_loop < 10) attitude = { 2*offset_roll*180/P_I, 3*offset_pitch*180/P_I, yaw, thrust };
+				else {
+					time_loop = 0;
+					attitude = { 0.0f, 0.0f, yaw, thrust };
+				}
 				offbCtrlAttitude(offboard, attitude);
 				//attitude = {0.0, 10.0, 0.0, 0.2};
 				//offbCtrlAttitude(offboard, attitude);
