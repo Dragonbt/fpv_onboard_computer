@@ -6,13 +6,23 @@ int SampleTime = 20;
 int Times = 0;
 bool landing_flag = 0;
 float limit_pos_z = -4.0, mid_thrust = 0.55, _int_pos_z = 0.0f;
+const float P_I = 3.14159265f;
+const float offset_pitch = 0.033f;//only use when x&y is open-loop
+const float offset_roll = -0.02f;//only use when x&y is open-loop
+int time_loop = 0;
+float offset_thrust;//offset lift attenuation due to tilting
 
 float altitudeThrustControl( float _pos_sp_z, shared_ptr<Telemetry> telemetry, float dt )
 {
     float thrust = 0.0;
     Telemetry::PositionVelocityNED position_velocity_ned = telemetry->position_velocity_ned();
+	Telemetry::EulerAngle euler_angle = telemetry->attitude_euler_angle();;
     float _pos_z = position_velocity_ned.position.down_m;
     float _vel_z = position_velocity_ned.velocity.down_m_s;
+	float _pitch = euler_angle.pitch_deg;
+	float _roll = euler_angle.roll_deg;
+	//offset_thrust = mid_thrust / (cos(_pitch * P_I / 180)*cos(_roll*P_I / 180));
+	cout << "pitch=" << _pitch << "roll=" << _roll << endl;
     if (_pos_z < limit_pos_z || landing_flag) {
 		cout << "---Reject PID control,Start land---" << endl;
 		if (Times < 2000 / SampleTime){// first 2 second
@@ -38,13 +48,13 @@ float altitudeThrustControl( float _pos_sp_z, shared_ptr<Telemetry> telemetry, f
 		//float uMax = -0.06f;
 		//float uMin = -1.0f;
 		// New limits for the experimental period
-		float uMax = -mid_thrust + 0.2f;
-		float uMin = -mid_thrust - 0.2f;
+		float uMax = -mid_thrust + 0.25f;
+		float uMin = -mid_thrust - 0.25f;
 		bool stop_integral_D = (thrust_desired_D >= uMax && err_pos_z >= 0.0f) ||
 			(thrust_desired_D <= uMin && err_pos_z <= 0.0f);
 
 		if (!stop_integral_D) {
-			_int_pos_z += _int_pos_z * Ki_z * dt;
+			_int_pos_z += err_pos_z * Ki_z * dt;
 
 			// limit thrust integral
 			int sign_thr_int_z = _int_pos_z > 0 ? 1 : -1;
@@ -123,7 +133,10 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 				//control code
 				//cout << "Kp_z: " << Kp_z << " Ki_z: "  << Ki_z << " Kd_z: " << Kd_z << endl; 
 				thrust = altitudeThrustControl(_pos_sp_z, telemetry, time_change );
-				attitude = {0.0f, 0.0f, yaw, thrust};
+				time_loop++;
+				if(time_loop < 50) attitude = { 0.0f, 0.0f, yaw, thrust };
+				else if(time_loop < 100) attitude = { 0.0f, 2*offset_pitch*180/P_I, yaw, thrust };
+				else time_loop = 0;
 				offbCtrlAttitude(offboard, attitude);
 				//attitude = {0.0, 10.0, 0.0, 0.2};
 				//offbCtrlAttitude(offboard, attitude);
