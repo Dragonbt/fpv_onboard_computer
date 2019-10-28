@@ -133,13 +133,22 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 				//control code
 				//cout << "Kp_z: " << Kp_z << " Ki_z: "  << Ki_z << " Kd_z: " << Kd_z << endl; 
 				thrust = altitudeThrustControl(_pos_sp_z, telemetry, time_change );
+				attitude = { 2*offset_roll*180/P_I, 3*offset_pitch*180/P_I, yaw, thrust };
+				/*
 				time_loop++;
-				if(time_loop < 5) attitude = { 0.0f, 0.0f, yaw, thrust };
-				else if(time_loop < 10) attitude = { 2*offset_roll*180/P_I, 3*offset_pitch*180/P_I, yaw, thrust };
+				if(time_loop < 5) {
+					attitude = { 0.0f, 0.0f, yaw, thrust};
+					cout << "forward" << endl;
+				}
+				else if(time_loop < 10) {
+					attitude = { 2*offset_roll*180/P_I, 3*offset_pitch*180/P_I, yaw, thrust };
+					cout << "back" << endl;
+				}
 				else {
 					time_loop = 0;
 					attitude = { 0.0f, 0.0f, yaw, thrust };
 				}
+				*/
 				offbCtrlAttitude(offboard, attitude);
 				//attitude = {0.0, 10.0, 0.0, 0.2};
 				//offbCtrlAttitude(offboard, attitude);
