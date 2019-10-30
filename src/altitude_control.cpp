@@ -1,6 +1,7 @@
 #include "control_node.hpp"
 #include "protocol.hpp"
 
+vector<float> _int_pos_xy={0.0f, 0.0f};
 float Kp_z, Ki_z, Kd_z;
 int SampleTime = 20;
 int Times = 0;
@@ -11,7 +12,7 @@ const float offset_pitch = 0.033f;//only use when x&y is open-loop
 const float offset_roll = -0.02f;//only use when x&y is open-loop
 int time_loop = 0;
 float offset_thrust;//offset lift attenuation due to tilting
-
+bool flow_effective = true, vision_effective = false, position_hold_xy = true, through_ring = false;
 float altitudeThrustControl( float _pos_sp_z, shared_ptr<Telemetry> telemetry, float dt )
 {
     float thrust = 0.0;
@@ -68,6 +69,119 @@ float altitudeThrustControl( float _pos_sp_z, shared_ptr<Telemetry> telemetry, f
     return thrust;
 }
 
+float lengthofvector(vector<float> a) {
+	float sum = 0;
+	for (size_t i = 0; i < a.size(); i++) {
+		sum += a[i] * a[i];
+	}
+	return (float)sqrt(sum);
+}
+
+vector<float> operator+(vector<float>a, vector<float>b) {
+	vector<float> res;
+	for (size_t i = 0; i < a.size(); i++) {
+		res.push_back(a[i] + b[i]);
+	}
+	return res;
+}
+
+vector<float> operator-(vector<float>a, vector<float>b) {
+	vector<float> res;
+	for (size_t i = 0; i < a.size(); i++) {
+		res.push_back(a[i] - b[i]);
+	}
+	return res;
+}
+
+vector<float> operator*(vector<float>a, vector<float>b) {
+	vector<float> res;
+	for (size_t i = 0; i < a.size(); i++) {
+		res.push_back(a[i] * b[i]);
+	}
+	return res;
+}
+
+vector<float> operator*(vector<float>a, float b) {
+	vector<float> res;
+	for (size_t i = 0; i < a.size(); i++) {
+		res.push_back(a[i] * b);
+	}
+	return res;
+}
+
+vector<float> operator*(float a, vector<float> b) {
+	vector<float> res;
+	for (size_t i = 0; i < b.size(); i++) {
+		res.push_back(b[i] * a);
+	}
+	return res;
+}
+
+vector<float> positionThrustControl(vector<float> _pos_sp, shared_ptr<Telemetry> telemetry, float dt) {
+	float alt_thrust = altitudeThrustControl(_pos_sp[2], telemetry, dt);
+	vector<float> _pos_err = { 0.0f,0.0f };
+	vector<float> _thr_sp = { 0.0f,0.0f,alt_thrust };
+	vector<float> _pos = { 0.0f,0.0f };
+	vector<float> _vel = { 0.0f,0.0f };
+	vector<float> _vel_err = { 0.0f,0.0f };
+	vector<float> Kp_xy = { 1.0f,1.0f };
+	vector<float> Ki_xy = { 0.0f,0.0f };
+	vector<float> Kd_xy = { 0.0f,0.0f };
+	float tilt_max = P_I / 4;
+	float thrust_max = 1.0f;
+	Telemetry::PositionVelocityNED position_velocity_ned = telemetry->position_velocity_ned();
+	Telemetry::EulerAngle euler_angle = telemetry->attitude_euler_angle();
+	if (flow_effective) {
+		_pos[0] = position_velocity_ned.position.north_m;
+		_pos[1] = position_velocity_ned.position.east_m;
+		_pos_err[0] = _pos_sp[0] - _pos[0];
+		_pos_err[1] = _pos_sp[1] - _pos[0];
+	}
+	else if (vision_effective) {
+		_pos_err[0] = _pos_sp[0];
+		_pos_err[1] = _pos_sp[1];
+
+	}
+	if (position_hold_xy) {//state=take_off||state=landing
+		_vel[0] = position_velocity_ned.velocity.north_m_s;
+		_vel[1] = position_velocity_ned.velocity.east_m_s;
+		_vel_err[0] = -_vel[0];
+		_vel_err[1] = -_vel[1];
+		vector<float> thrust_desired_NE = {0.0f,0.0f};
+		thrust_desired_NE = Kp_xy * _pos_err + Kd_xy * _vel_err + _int_pos_xy;
+		float thrust_max_NE_tilt = fabsf(alt_thrust) * tanf(tilt_max);//while in take_off or landing state i think the "cos(_pitch) * cos(_roll) = 1" => alt_thrust = thrust_z 
+		float thrust_max_NE = sqrtf(thrust_max * thrust_max - _thr_sp[2] * _thr_sp[2]);
+		thrust_max_NE = thrust_max_NE_tilt < thrust_max_NE ? thrust_max_NE_tilt : thrust_max_NE;
+		// Saturate thrust in NE-direction.
+		_thr_sp[0] = thrust_desired_NE[0];
+		_thr_sp[1] = thrust_desired_NE[1];
+
+		if ((thrust_desired_NE[0] * thrust_desired_NE[0] + thrust_desired_NE[1] * thrust_desired_NE[1]) > thrust_max_NE * thrust_max_NE) {
+			float mag = lengthofvector(thrust_desired_NE);
+			_thr_sp[0] = thrust_desired_NE[0] / mag * thrust_max_NE;
+			_thr_sp[1] = thrust_desired_NE[1] / mag * thrust_max_NE;
+		}
+		// Use tracking Anti-Windup for NE-direction: during saturation, the integrator is used to unsaturate the output
+		// see Anti-Reset Windup for PID controllers, L.Rundqwist, 1990
+		float arw_gain = 2.f / Kp_xy[0];
+
+		vector<float> vel_err_lim = { 0.0f,0.0f };
+		vel_err_lim = _pos_err - (thrust_desired_NE - _thr_sp) * arw_gain;
+		
+
+		// Update integral
+		_int_pos_xy = _int_pos_xy + Ki_xy * vel_err_lim * dt;
+		//_thr_int(1) += _param_mpc_xy_vel_i.get() * vel_err_lim(1) * dt;
+	}
+	else if (through_ring) {//state = through
+		float _pitch = euler_angle.pitch_deg;
+		float _roll = euler_angle.roll_deg;
+		float thrust_z = alt_thrust * cos(_pitch) * cos(_roll);
+		//to be continued
+	}
+	return _thr_sp;
+}
+
 void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, float _Kp_z, float _Ki_z, float _Kd_z )
 {
 	int status = -3;
@@ -77,8 +191,10 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 	Telemetry::PositionVelocityNED position_velocity_ned;
     float time_change = 0;
 	float _pos_sp_z = 0;
+	vector<float> _pos_sp;
 	float yaw = 0;
 	float thrust = 0;
+	vector<float> _thr_sp={0.0f,0.0f,0.0f};
 	float step = 0;
 	Kp_z = _Kp_z;
 	Ki_z = _Ki_z;
@@ -153,6 +269,29 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 				offbCtrlAttitude(offboard, attitude);
 				//attitude = {0.0, 10.0, 0.0, 0.2};
 				//offbCtrlAttitude(offboard, attitude);
+				break;
+			case FLOW_HOLD_COMMAND:
+				position_velocity_ned = telemetry->position_velocity_ned();
+				_pos_sp[0] = position_velocity_ned.position.north_m;
+				_pos_sp[1] = position_velocity_ned.position.east_m;
+				_pos_sp[2] = position_velocity_ned.position.down_m;
+				euler_angle = telemetry->attitude_euler_angle();
+				yaw = euler_angle.yaw_deg;
+				t0 = high_resolution_clock::now();
+				_thr_sp = positionThrustControl(_pos_sp, telemetry, SampleTime );
+				cout << "_thr_sp[0] = " << _thr_sp[0] << " " << "_thr_sp[1] = " << _thr_sp[1] << " " << "_thr_sp[2] = " << _thr_sp[2] << endl;
+				//attitude = {0.0f, 0.0f, yaw, thrust};
+				//offbCtrlAttitude(offboard, attitude);
+				status = 3;
+				remotePrint(string("step response"));
+				break;
+			case 3:
+				time_change = intervalMs( high_resolution_clock::now(), t0);
+				if( time_change < SampleTime )
+					break;
+				t0 = high_resolution_clock::now();
+				_thr_sp = positionThrustControl(_pos_sp, telemetry, time_change );
+				cout << "_thr_sp[0] = " << _thr_sp[0] << " " << "_thr_sp[1] = " << _thr_sp[1] << " " << "_thr_sp[2] = " << _thr_sp[2] << endl;
 				break;
 		}
 	}

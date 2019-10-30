@@ -2,10 +2,10 @@
 #cautious: NO TABS!!!!!!!
 CAMERA_NODE:{
     ENABLE: 1,
-    ID: 0,
+    ID: 1,
     WIDTH: 1280,
     HEIGHT: 720,
-    CAMERA_INTRINSIC_XML: "camera_intrinsic.xml"}
+    CAMERA_INTRINSIC_XML: "../config/camera_intrinsic.xml"}
 LOG_NODE:{
     ENABLE: 1,
     LOG_FILE_PATH: "../log/",

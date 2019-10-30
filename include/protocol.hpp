@@ -15,11 +15,13 @@
 #define STATUS_MSG 6
 #define LOG_MSG 7
 #define REFERENCE_MSG 8
+#define TARGET_MSG 9
 
 #define MISSION_COMMAND_MSG 15
 
 #define SAFE_QUIT_COMMAND -2
 #define FORCE_QUIT_COMMAND -1
 #define STEP_COMMAND 0
+#define FLOW_HOLD_COMMAND 2
 
 #endif

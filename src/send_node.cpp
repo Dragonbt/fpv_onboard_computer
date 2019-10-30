@@ -1,7 +1,7 @@
 #include "send_node.hpp"
 
 struct sockaddr_in send_to_addr;
-int64_t sent_position_ms = 0, sent_velocity_ms = 0, sent_attitude_ms = 0;
+int64_t sent_position_ms = 0, sent_velocity_ms = 0, sent_attitude_ms = 0, sent_target_ms = 0;
 
 void sendLoop( FileNode send_config )
 {
@@ -40,7 +40,7 @@ void sendLoop( FileNode send_config )
     high_resolution_clock::time_point t0 = high_resolution_clock::now();
     while( true )
     {
-        if( intervalMs(high_resolution_clock::now(), t0) > 200 )
+        if( intervalMs(high_resolution_clock::now(), t0) > 300 )
         {
             sendHeartBeat();
             sendPosition();
@@ -50,10 +50,13 @@ void sendLoop( FileNode send_config )
             sendInputAttitude();
             sendStatus();
             sendString();
+            sendTarget();
             t0 = high_resolution_clock::now();
         }
-        sendImg(gray, img_msg_resize, img_msg_quality);
-        this_thread::sleep_for( milliseconds( 50 ) );
+        else{
+            sendImg(gray, img_msg_resize, img_msg_quality);
+        }
+        this_thread::sleep_for( milliseconds( 60 ) );
     }
     cout << "[WARNING]: send node shutdown" << endl;
     return;
@@ -265,6 +268,29 @@ void sendReference()
     if( ! reference.empty() )
     {
         sendMsg( REFERENCE_MSG, (uint16_t) (reference.size() * sizeof(Reference) ), reference.data() );
+    }
+    return;
+}
+
+void sendTarget()
+{
+    vector<DetectionResult> target;
+    DetectionResult tar;
+    target_mutex.lock();
+    for( size_t i=0; i < target_topic.size(); i++ )
+    {
+        tar = target_topic[i];
+        if( tar.time_ms > sent_target_ms )
+        {
+            target.push_back( tar );
+        }
+    }
+    target_mutex.unlock();
+    if( ! target.empty() )
+    {
+        sendMsg( TARGET_MSG, (uint16_t) ( target.size() * sizeof(DetectionResult) ), target.data() );
+        sent_target_ms = target.back().time_ms;
+        target.clear();
     }
     return;
 }

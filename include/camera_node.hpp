@@ -9,10 +9,13 @@
 #include <thread>
 #include <mutex>
 
+//#include "detector.hpp"
 #include "utils.hpp"
 
 using namespace std;
 using namespace cv;
+
+extern high_resolution_clock::time_point init_timepoint;
 
 extern Mat image_topic;
 extern mutex image_mutex;
@@ -22,6 +25,9 @@ extern mutex camera_status_mutex;
 
 extern int camera_exception_topic;
 extern mutex camera_exception_mutex;
+
+extern deque<DetectionResult> target_topic;
+extern mutex target_mutex;
 
 void cameraLoop( FileNode camera_config );
 
@@ -48,7 +54,7 @@ class Video{
         Video( string path, int width, int height );
         void open();
         void close();
-        void writeImage();
+        void writeImage(Mat image);
     private:
         string video_path;
         int width, height;

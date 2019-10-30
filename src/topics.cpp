@@ -20,8 +20,11 @@ CAUTIOUS: every topics must own a mutex*/
 Mat image_topic;
 mutex image_mutex;
 
-int camera_status_topic = 0;
+int camera_status_topic = 1;
 mutex camera_status_mutex;
+
+deque<DetectionResult> target_topic;
+mutex target_mutex;
 
 int camera_exception_topic = 0;
 mutex camera_exception_mutex;

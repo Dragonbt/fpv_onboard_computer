@@ -4,10 +4,16 @@ void cameraLoop( FileNode camera_config )
 {
     int enable;
     int id, width, height;
+    string calib_file;
     camera_config["ENABLE"] >> enable;
     camera_config["ID"] >> id;
     camera_config["WIDTH"] >> width;
     camera_config["HEIGHT"] >> height;
+    camera_config["CAMERA_INTRINSIC_XML"] >> calib_file;
+    FileStorage calib(calib_file, FileStorage::READ);
+    Mat camera_matrix, distort_coeff;
+    calib["camera_matrix"] >> camera_matrix;
+    calib["distortion_coefficients"] >> distort_coeff;
     if( enable == 0 )
     {
         cout << "[WARNING]: camera node disabled" << endl;
@@ -17,8 +23,16 @@ void cameraLoop( FileNode camera_config )
     Mat image;
     int camera_status;
 
-    //VideoCapture cap( id );
+    //VideoCapture cap("../testset/demo4.avi");
     Camera cap;
+    Video video("../log", width, height);
+    //CircleDetector circle_detector(NONE, 0, 5, 50);
+    //Rect2f rect;
+    //float confidence;
+    //float distance;
+    //Vec3f orientation;
+    //DetectionResult result;
+    
     if ( ! cap.init( id, width, height) ){
         cout << "[ERROR]: fail to init camera" << endl;
         camera_exception_mutex.lock();
@@ -27,6 +41,7 @@ void cameraLoop( FileNode camera_config )
         cout << "[WARNING]: camera node shut down" << endl;
         return;
     }
+    
     while( true )
     {
         camera_status_mutex.lock();
@@ -40,6 +55,58 @@ void cameraLoop( FileNode camera_config )
             image_mutex.lock();
             image_topic = image.clone();
             image_mutex.unlock();
+            break;
+        /*
+        case 1:
+            cap.read( image );
+            if(circle_detector.run(image, rect, confidence))
+            {
+                solvePosition(rect, distance, orientation, camera_matrix, distort_coeff, 1.0);
+                result.confidence = confidence;
+                result.distance_m = distance;
+                result.x_m = orientation[0];
+                result.y_m = orientation[1];
+                result.z_m = orientation[2];
+                result.time_ms = intervalMs(high_resolution_clock::now(), init_timepoint);
+                target_mutex.lock();
+                while( target_topic.size() >= MAX_VEC_SIZE )
+                {
+                    target_topic.pop_front();
+                }
+                target_topic.push_back(result);
+                target_mutex.unlock();
+                rectangle( image, rect, Scalar( 0, 255, 0 ), 2, 1 );
+            }
+            else{
+                result.confidence = -1;
+                result.distance_m = 0;
+                result.x_m = 0;
+                result.y_m = 0;
+                result.z_m = 0;
+                result.time_ms = intervalMs(high_resolution_clock::now(), init_timepoint);
+                target_mutex.lock();
+                while( target_topic.size() >= MAX_VEC_SIZE )
+                {
+                    target_topic.pop_front();
+                }
+                target_topic.push_back(result);
+                target_mutex.unlock();
+            }
+            image_mutex.lock();
+            image_topic = image.clone();
+            image_mutex.unlock();
+            imshow("result", image);
+            waitKey(5);
+            //this_thread::sleep_for(milliseconds(20));
+            break;
+        */
+        case 2:
+            cap.read( image );
+            image_mutex.lock();
+            image_topic = image.clone();
+            image_mutex.unlock();
+            video.open();
+            video.writeImage(image);
             break;
         default:
             break;
@@ -79,6 +146,9 @@ bool Camera::init( int id, int _width, int _height ){
     //cout << cap.get(CV_CAP_PROP_BUFFERSIZE) << endl;
     width = cap.get( CAP_PROP_FRAME_WIDTH );
     height = cap.get( CAP_PROP_FRAME_HEIGHT);
+    cap.set(CAP_PROP_CONTRAST, 100);
+    cap.set(CAP_PROP_BRIGHTNESS, -60);
+    cap.set(CAP_PROP_SHARPNESS, 10);
     fps = cap.get(CAP_PROP_FPS);
     if ( width != _width || height != _height ){
         cout << "[ERROR]: set camera resolution fail" << endl;
@@ -168,14 +238,10 @@ void Video::close()
     }
 }
 
-void Video::writeImage()
+void Video::writeImage(Mat image)
 {
-    Mat image;
     if( writer.isOpened() )
     {
-        image_mutex.lock();
-        image = image_topic.clone();
-        image_mutex.unlock();
         if( image.empty() )
             return;
         resize(image, image, Size(width, height));

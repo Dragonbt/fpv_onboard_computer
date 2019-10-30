@@ -4,6 +4,15 @@
 #include <chrono>
 #include <deque>
 
+struct DetectionResult{
+    int16_t index = 0;
+    double distance_m = 0;
+    double x_m = 0;
+    double y_m = 0;
+    double z_m = 0;
+    double confidence = -1;
+    int64_t time_ms = 0;
+};
 //sizeof MissionCommand
 struct MissionCommand{
     int16_t index = -3;
