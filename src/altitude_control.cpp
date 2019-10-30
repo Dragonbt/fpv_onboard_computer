@@ -131,11 +131,15 @@ vector<float> positionThrustControl(vector<float> _pos_sp, shared_ptr<Telemetry>
 	float thrust_max = 1.0f;
 	Telemetry::PositionVelocityNED position_velocity_ned = telemetry->position_velocity_ned();
 	Telemetry::EulerAngle euler_angle = telemetry->attitude_euler_angle();
+	float yaw = euler_angle.yaw_deg * P_I / 180;
+	float _pos_err_n, _pos_err_e;
 	if (flow_effective) {
 		_pos[0] = position_velocity_ned.position.north_m;
 		_pos[1] = position_velocity_ned.position.east_m;
-		_pos_err[0] = _pos_sp[0] - _pos[0];
-		_pos_err[1] = _pos_sp[1] - _pos[0];
+		_pos_err_n = _pos_sp[0] - _pos[0];
+		_pos_err_e = _pos_sp[1] - _pos[0];
+		_pos_err[0] = _pos_err_n * sin(yaw) + _pos_err_e * cos(yaw);
+		_pos_err[1] = _pos_err_n * cos(yaw) - _pos_err_e * sin(yaw);
 	}
 	else if (vision_effective) {
 		_pos_err[0] = _pos_sp[0];
