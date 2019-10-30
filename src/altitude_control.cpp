@@ -275,6 +275,7 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 				//offbCtrlAttitude(offboard, attitude);
 				break;
 			case FLOW_HOLD_COMMAND:
+				cout << "HOLD" << endl;
 				position_velocity_ned = telemetry->position_velocity_ned();
 				_pos_sp[0] = position_velocity_ned.position.north_m;
 				_pos_sp[1] = position_velocity_ned.position.east_m;
