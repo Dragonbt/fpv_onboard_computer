@@ -195,7 +195,7 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 	Telemetry::PositionVelocityNED position_velocity_ned;
     float time_change = 0;
 	float _pos_sp_z = 0;
-	vector<float> _pos_sp;
+	vector<float> _pos_sp = {0.0f, 0.0f, 0.0f};
 	float yaw = 0;
 	float thrust = 0;
 	vector<float> _thr_sp={0.0f,0.0f,0.0f};
