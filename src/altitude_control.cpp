@@ -76,7 +76,7 @@ float lengthofvector(vector<float> a) {
 		sum += a[i] * a[i];
 	}
 	return (float)sqrt(sum);
-}float tilt_max = P_I / 4;
+}
 
 vector<float> operator+(vector<float>a, vector<float>b) {
 	vector<float> res;
@@ -205,6 +205,9 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 	float thrust = 0;
 	vector<float> _thr_sp={0.0f,0.0f,0.0f};
 	float step = 0;
+	float _roll_sp, _pitch_sp;
+	float len;
+	vector<float> att_sp = {0.0f, 0.0f};
 	Kp_z = _Kp_z;
 	Ki_z = _Ki_z;
 	Kd_z = _Kd_z;
@@ -292,16 +295,22 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 				_thr_sp[1] = 0.707f * _thr_sp[2] > _thr_sp[1] ? (-0.707f * _thr_sp[2] < _thr_sp[1] ? _thr_sp[1] : -0.707f * _thr_sp[2]) : 0.707f * _thr_sp[2];
 				_thr_sp[0] = 0.707f * _thr_sp[2] > _thr_sp[0] ? (-0.707f * _thr_sp[2] < _thr_sp[0] ? _thr_sp[0] : -0.707f * _thr_sp[2]) : 0.707f * _thr_sp[2];
 				//cout << "_thr_sp[0] = " << _thr_sp[0] << " " << "_thr_sp[1] = " << _thr_sp[1] << " " << "_thr_sp[2] = " << _thr_sp[2] << endl;
-				float _roll_sp;
-				vector<float> att_sp = {asinf(_thr_sp[1] / _thr_sp[2]),-asinf(_thr_sp[0] / _thr_sp[2])};
-				float _pitch_sp;
-				float len = lengthofvector(att_sp);
-				_roll_sp = att_sp[0] / len * tilt_max;
-				_pitch_sp = att_sp[1] / len * tilt_max
+				_roll_sp = asinf(_thr_sp[1] / _thr_sp[2]);
+				
+				_pitch_sp = -asinf(_thr_sp[0] / _thr_sp[2]);
+				att_sp = {asinf(_thr_sp[1] / _thr_sp[2]),-asinf(_thr_sp[0] / _thr_sp[2])};
+				if((_roll_sp * _roll_sp + _pitch_sp * _pitch_sp) > tilt_max * tilt_max){
+					
+					len = lengthofvector(att_sp);
+					_roll_sp = att_sp[0] / len * tilt_max;
+					_pitch_sp = att_sp[1] / len * tilt_max;
+				}
+				
 
-				cout << "roll" << asinf(_thr_sp[1] / _thr_sp[2]) << endl;
-				cout << "pitch" << asinf(_thr_sp[0] / _thr_sp[2]) << endl;
-				//attitude = {0.0f, 0.0f, yaw, thrust};
+				//cout << "roll" << asinf(_thr_sp[1] / _thr_sp[2]) << endl;
+				//cout << "pitch" << asinf(_thr_sp[0] / _thr_sp[2]) << endl;
+				attitude = {_roll_sp, _pitch_sp, yaw, _thr_sp[2]};
+				cout << attitude << endl;
 				//offbCtrlAttitude(offboard, attitude);
 				status = 3;
 				remotePrint(string("step response"));
@@ -311,10 +320,26 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 				if( time_change < SampleTime )
 					break;
 				t0 = high_resolution_clock::now();
-				_thr_sp = positionThrustControl(_pos_sp, telemetry, time_change );
-				cout << "_thr_sp[0] = " << _thr_sp[0] << " " << "_thr_sp[1] = " << _thr_sp[1] << " " << "_thr_sp[2] = " << _thr_sp[2] << endl;
-				cout << "roll" << asinf(_thr_sp[1] / _thr_sp[2]) << endl;
-				cout << "pitch" << asinf(_thr_sp[0] / _thr_sp[2]) << endl;
+				_thr_sp = positionThrustControl(_pos_sp, telemetry, SampleTime );
+				_thr_sp[1] = 0.707f * _thr_sp[2] > _thr_sp[1] ? (-0.707f * _thr_sp[2] < _thr_sp[1] ? _thr_sp[1] : -0.707f * _thr_sp[2]) : 0.707f * _thr_sp[2];
+				_thr_sp[0] = 0.707f * _thr_sp[2] > _thr_sp[0] ? (-0.707f * _thr_sp[2] < _thr_sp[0] ? _thr_sp[0] : -0.707f * _thr_sp[2]) : 0.707f * _thr_sp[2];
+				//cout << "_thr_sp[0] = " << _thr_sp[0] << " " << "_thr_sp[1] = " << _thr_sp[1] << " " << "_thr_sp[2] = " << _thr_sp[2] << endl;
+				_roll_sp = asinf(_thr_sp[1] / _thr_sp[2]);
+				
+				_pitch_sp = -asinf(_thr_sp[0] / _thr_sp[2]);
+				att_sp = {asinf(_thr_sp[1] / _thr_sp[2]),-asinf(_thr_sp[0] / _thr_sp[2])};
+				if((_roll_sp * _roll_sp + _pitch_sp * _pitch_sp) > tilt_max * tilt_max){
+					
+					len = lengthofvector(att_sp);
+					_roll_sp = att_sp[0] / len * tilt_max;
+					_pitch_sp = att_sp[1] / len * tilt_max;
+				}
+				
+
+				//cout << "roll" << asinf(_thr_sp[1] / _thr_sp[2]) << endl;
+				//cout << "pitch" << asinf(_thr_sp[0] / _thr_sp[2]) << endl;
+				attitude = {_roll_sp, _pitch_sp, yaw, _thr_sp[2]};
+				cout << attitude << endl;
 				break;
 		}
 	}
