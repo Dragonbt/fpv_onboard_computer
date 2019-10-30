@@ -302,7 +302,7 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 					break;
 				t0 = high_resolution_clock::now();
 				_thr_sp = positionThrustControl(_pos_sp, telemetry, time_change );
-				//cout << "_thr_sp[0] = " << _thr_sp[0] << " " << "_thr_sp[1] = " << _thr_sp[1] << " " << "_thr_sp[2] = " << _thr_sp[2] << endl;
+				cout << "_thr_sp[0] = " << _thr_sp[0] << " " << "_thr_sp[1] = " << _thr_sp[1] << " " << "_thr_sp[2] = " << _thr_sp[2] << endl;
 				cout << "roll" << asinf(_thr_sp[1] / _thr_sp[2]) << endl;
 				cout << "pitch" << asinf(_thr_sp[0] / _thr_sp[2]) << endl;
 				break;
