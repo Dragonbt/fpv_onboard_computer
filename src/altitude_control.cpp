@@ -11,6 +11,7 @@ const float P_I = 3.14159265f;
 const float offset_pitch = 0.033f;//only use when x&y is open-loop
 const float offset_roll = -0.02f;//only use when x&y is open-loop
 int time_loop = 0;
+float tilt_max = P_I / 4;
 float offset_thrust;//offset lift attenuation due to tilting
 bool flow_effective = true, vision_effective = false, position_hold_xy = true, through_ring = false;
 float altitudeThrustControl( float _pos_sp_z, shared_ptr<Telemetry> telemetry, float dt )
@@ -75,7 +76,7 @@ float lengthofvector(vector<float> a) {
 		sum += a[i] * a[i];
 	}
 	return (float)sqrt(sum);
-}
+}float tilt_max = P_I / 4;
 
 vector<float> operator+(vector<float>a, vector<float>b) {
 	vector<float> res;
@@ -127,7 +128,7 @@ vector<float> positionThrustControl(vector<float> _pos_sp, shared_ptr<Telemetry>
 	vector<float> Kp_xy = { 1.0f,1.0f };
 	vector<float> Ki_xy = { 0.0f,0.0f };
 	vector<float> Kd_xy = { 0.0f,0.0f };
-	float tilt_max = P_I / 4;
+	
 	float thrust_max = 1.0f;
 	Telemetry::PositionVelocityNED position_velocity_ned = telemetry->position_velocity_ned();
 	Telemetry::EulerAngle euler_angle = telemetry->attitude_euler_angle();
@@ -288,7 +289,16 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 				yaw = euler_angle.yaw_deg;
 				t0 = high_resolution_clock::now();
 				_thr_sp = positionThrustControl(_pos_sp, telemetry, SampleTime );
+				_thr_sp[1] = 0.707f * _thr_sp[2] > _thr_sp[1] ? (-0.707f * _thr_sp[2] < _thr_sp[1] ? _thr_sp[1] : -0.707f * _thr_sp[2]) : 0.707f * _thr_sp[2];
+				_thr_sp[0] = 0.707f * _thr_sp[2] > _thr_sp[0] ? (-0.707f * _thr_sp[2] < _thr_sp[0] ? _thr_sp[0] : -0.707f * _thr_sp[2]) : 0.707f * _thr_sp[2];
 				//cout << "_thr_sp[0] = " << _thr_sp[0] << " " << "_thr_sp[1] = " << _thr_sp[1] << " " << "_thr_sp[2] = " << _thr_sp[2] << endl;
+				float _roll_sp;
+				vector<float> att_sp = {asinf(_thr_sp[1] / _thr_sp[2]),-asinf(_thr_sp[0] / _thr_sp[2])};
+				float _pitch_sp;
+				float len = lengthofvector(att_sp);
+				_roll_sp = att_sp[0] / len * tilt_max;
+				_pitch_sp = att_sp[1] / len * tilt_max
+
 				cout << "roll" << asinf(_thr_sp[1] / _thr_sp[2]) << endl;
 				cout << "pitch" << asinf(_thr_sp[0] / _thr_sp[2]) << endl;
 				//attitude = {0.0f, 0.0f, yaw, thrust};
