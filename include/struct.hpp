@@ -20,6 +20,13 @@ struct MissionCommand{
     double argv[5] = {0};
 };
 
+struct PositionBody{
+    double x_m = 0;
+    double y_m = 0;
+    double z_m = 0;
+    int64_t time_ms = 0;
+};
+
 //sizeof PositionNED = 8*3 + 64/8 = 32bytes
 struct PositionNED{
     double north_m = 0;
