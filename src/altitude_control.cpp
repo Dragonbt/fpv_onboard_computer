@@ -142,9 +142,10 @@ vector<float> positionThrustControl(vector<float> _pos_sp, shared_ptr<Telemetry>
 		_pos_err_e = _pos_sp[1] - _pos[0];
 		//_pos_err_n = 1.0f;
 		//_pos_err_e = 1.0f;
-		_pos_err[0] = _pos_err_n * sin(yaw) + _pos_err_e * cos(yaw);
-		_pos_err[1] = _pos_err_n * cos(yaw) - _pos_err_e * sin(yaw);
-		
+		_pos_err[1] = _pos_err_n * sin(yaw) + _pos_err_e * cos(yaw);
+		_pos_err[0] = _pos_err_n * cos(yaw) - _pos_err_e * sin(yaw);
+		cout << "_pos_err_x:" << _pos_err[0] << endl;
+		cout << "_pos_err_y:" << _pos_err[1] << endl;
 	}
 	else if (vision_effective) {
 		_pos_err[0] = _pos_sp[0];
@@ -284,8 +285,9 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 				break;
 			case FLOW_HOLD_COMMAND:
 				cout << "HOLD" << endl;
+				cout << param << endl;
 				position_velocity_ned = telemetry->position_velocity_ned();
-				_pos_sp[0] = position_velocity_ned.position.north_m + param;
+				_pos_sp[0] = position_velocity_ned.position.north_m;
 				_pos_sp[1] = position_velocity_ned.position.east_m;
 				_pos_sp[2] = position_velocity_ned.position.down_m;
 				euler_angle = telemetry->attitude_euler_angle();
