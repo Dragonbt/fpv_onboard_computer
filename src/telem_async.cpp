@@ -20,10 +20,18 @@ void setTelemetry( shared_ptr<Telemetry> telemetry )
     telemetry->position_velocity_ned_async([](Telemetry::PositionVelocityNED position_velocity_ned){
         PositionNED position;
         VelocityNED velocity;
-
+        float yaw;
+        attitude_mutex.lock();
+        yaw = 3.1415 * attitude_topic.back().yaw_deg / 180;
+        attitude_mutex.unlock();
+        /*
         position.north_m = position_velocity_ned.position.north_m;
         position.east_m = position_velocity_ned.position.east_m;
         position.down_m = position_velocity_ned.position.down_m;
+        */
+        position.north_m = position_velocity_ned.position.north_m * sin(yaw) + position_velocity_ned.position.east_m * cos(yaw);
+		position.east_m = position_velocity_ned.position.north_m * cos(yaw) - position_velocity_ned.position.east_m * sin(yaw);
+        
         position.time_ms = intervalMs( high_resolution_clock::now(), init_timepoint );
 
         velocity.north_m_s = position_velocity_ned.velocity.north_m_s;
