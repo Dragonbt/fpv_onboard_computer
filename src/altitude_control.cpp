@@ -289,8 +289,8 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 				_pos_sp[1] = position_velocity_ned.position.east_m;
 				_pos_sp[2] = position_velocity_ned.position.down_m;
 				euler_angle = telemetry->attitude_euler_angle();
-				//yaw = euler_angle.yaw_deg;
-				yaw = 0.0f;
+				yaw = euler_angle.yaw_deg;
+				//yaw = 0.0f;
 				t0 = high_resolution_clock::now();
 				_thr_sp = positionThrustControl(_pos_sp, telemetry, SampleTime );
 				_thr_sp[1] = 0.707f * _thr_sp[2] > _thr_sp[1] ? (-0.707f * _thr_sp[2] < _thr_sp[1] ? _thr_sp[1] : -0.707f * _thr_sp[2]) : 0.707f * _thr_sp[2];
