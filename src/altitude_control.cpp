@@ -125,9 +125,9 @@ vector<float> positionThrustControl(vector<float> _pos_sp, shared_ptr<Telemetry>
 	vector<float> _pos = { 0.0f,0.0f };
 	vector<float> _vel = { 0.0f,0.0f };
 	vector<float> _vel_err = { 0.0f,0.0f };
-	vector<float> Kp_xy = { 0.1f,0.3f };
+	vector<float> Kp_xy = { 0.1f,0.2f };
 	vector<float> Ki_xy = { 0.0f,0.0f };
-	vector<float> Kd_xy = { 0.0f,0.0f };
+	vector<float> Kd_xy = { 0.05f,0.1f };
 	
 	float thrust_max = 1.0f;
 	Telemetry::PositionVelocityNED position_velocity_ned = telemetry->position_velocity_ned();
