@@ -34,7 +34,7 @@ extern mutex mission_command_mutex;
 float rad2deg(float rad);
 void controlLoop( FileNode control_config );
 
-void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, float Kp_z, float Ki_z, float Kd_z );
+void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, float Kp_z, float Ki_z, float Kd_z,float Kp_x, float Ki_x, float Kd_x,float Kp_y, float Ki_y, float Kd_y );
 vector<float> positionThrustControl(vector<float> _pos_sp, shared_ptr<Telemetry> telemetry, float dt);
 float altitudeThrustControl( float altitude, shared_ptr<Telemetry> telemetry, float dt );
 

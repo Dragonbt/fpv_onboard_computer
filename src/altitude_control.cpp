@@ -2,7 +2,7 @@
 #include "protocol.hpp"
 
 vector<float> _int_pos_xy={0.0f, 0.0f};
-float Kp_z, Ki_z, Kd_z;
+float Kp_z, Ki_z, Kd_z,Kp_x, Ki_x, Kd_x,Kp_y, Ki_y, Kd_y;
 int SampleTime = 20;
 int Times = 0;
 bool landing_flag = 0;
@@ -125,9 +125,9 @@ vector<float> positionThrustControl(vector<float> _pos_sp, shared_ptr<Telemetry>
 	vector<float> _pos = { 0.0f,0.0f };
 	vector<float> _vel = { 0.0f,0.0f };
 	vector<float> _vel_err = { 0.0f,0.0f };
-	vector<float> Kp_xy = { 0.1f,0.2f };
-	vector<float> Ki_xy = { 0.0f,0.0f };
-	vector<float> Kd_xy = { 0.05f,0.1f };
+	vector<float> Kp_xy = { Kp_x,Kp_y };
+	vector<float> Ki_xy = { Ki_x,Ki_y };
+	vector<float> Kd_xy = { Kd_x,Kd_y };
 	
 	float thrust_max = 1.0f;
 	Telemetry::PositionVelocityNED position_velocity_ned = telemetry->position_velocity_ned();
@@ -192,7 +192,7 @@ vector<float> positionThrustControl(vector<float> _pos_sp, shared_ptr<Telemetry>
 	return _thr_sp;
 }
 
-void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, float _Kp_z, float _Ki_z, float _Kd_z )
+void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, float _Kp_z, float _Ki_z, float _Kd_z,float _Kp_x, float _Ki_x, float _Kd_x,float _Kp_y, float _Ki_y, float _Kd_y )
 {
 	int status = -3;
 	double param = 0;
@@ -212,9 +212,25 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 	Kp_z = _Kp_z;
 	Ki_z = _Ki_z;
 	Kd_z = _Kd_z;
+
+	Kp_x = _Kp_x;
+	Ki_x = _Ki_x;
+	Kd_x = _Kd_x;
+
+	Kp_y = _Kp_y;
+	Ki_y = _Ki_y;
+	Kd_y = _Kd_y;
 	cout << "Kp_z:" << Kp_z << endl;
 	cout << "Ki_z:" << Ki_z << endl;
 	cout << "Kd_z:" << Kd_z << endl;
+
+	cout << "Kp_x:" << Kp_x << endl;
+	cout << "Ki_x:" << Ki_x << endl;
+	cout << "Kd_x:" << Kd_x << endl;
+
+	cout << "Kp_y:" << Kp_y << endl;
+	cout << "Ki_y:" << Ki_y << endl;
+	cout << "Kd_y:" << Kd_y << endl;
     high_resolution_clock::time_point t0 = high_resolution_clock::now();
 
     while(true)

@@ -6,7 +6,7 @@ void controlLoop( FileNode control_config )
     string url;
     float takeoff_altitude;
 
-    float Kp_z, Ki_z, Kd_z;
+    float Kp_z, Ki_z, Kd_z, Kp_x, Ki_x, Kd_x, Kp_y, Ki_y, Kd_y;
 
     control_config["ENABLE"] >> enable;
     control_config["URL"] >> url;
@@ -14,6 +14,14 @@ void controlLoop( FileNode control_config )
     control_config["Kp_z"] >> Kp_z;
     control_config["Ki_z"] >> Ki_z;
     control_config["Kd_z"] >> Kd_z;
+
+    control_config["Kp_x"] >> Kp_x;
+    control_config["Ki_x"] >> Ki_x;
+    control_config["Kd_x"] >> Kd_x;
+
+    control_config["Kp_y"] >> Kp_y;
+    control_config["Ki_y"] >> Ki_y;
+    control_config["Kd_y"] >> Kd_y;
     if( enable == 0 )
     {
         cout << "[WARNING]: control node disabled" << endl;
@@ -40,7 +48,7 @@ void controlLoop( FileNode control_config )
     /*Health Check*/
     //healthCheck( telemetry );
     setTelemetry( telemetry );
-    altitudeTest( telemetry, offboard, Kp_z, Ki_z, Kd_z );
+    altitudeTest( telemetry, offboard, Kp_z, Ki_z, Kd_z, Kp_x, Ki_x, Kd_x, Kp_y, Ki_y, Kd_y );
     cout << "[WARNING]: control node shut down" << endl;
     return;
 }
