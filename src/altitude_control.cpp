@@ -142,8 +142,8 @@ vector<float> positionThrustControl(vector<float> _pos_sp, shared_ptr<Telemetry>
 		//_pos_err_e = _pos_sp[1] - _pos[1];
 		_pos_err_n = 1.0f;
 		_pos_err_e = 1.0f;
-		_pos_err[0] = _pos_err_n * cos(yaw) - _pos_err_e * sin(yaw);
-		_pos_err[1] = _pos_err_n * sin(yaw) + _pos_err_e * cos(yaw);
+		_pos_err[0] = _pos_err_n * cos(yaw) + _pos_err_e * sin(yaw);
+		_pos_err[1] = -1.0f * _pos_err_n * sin(yaw) + _pos_err_e * cos(yaw);
 		cout << "_pos_err_x:" << _pos_err[0] << endl;
 		cout << "_pos_err_y:" << _pos_err[1] << endl;
 	}
