@@ -25,8 +25,8 @@ CONTROL_NODE:{
     Kd_z: 0.3,
     Kp_x: 0.1,
     Ki_x: 0.0,
-    Kd_x: 0.05,
+    Kd_x: 0.03,
     Kp_y: 0.2,
     Ki_y: 0.0,
-    Kd_y: 0.1,
+    Kd_y: 0.08,
     TAKEOFF_ALTITUDE: 4.0}
