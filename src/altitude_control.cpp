@@ -262,7 +262,7 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 				//cout << "Kp_z: " << Kp_z << " Ki_z: "  << Ki_z << " Kd_z: " << Kd_z << endl; 
 				thrust = altitudeThrustControl(_pos_sp_z, telemetry, time_change );
 				//attitude = { 5*offset_roll*180/P_I, 5*offset_pitch*180/P_I, yaw, thrust };
-				attitude = { 0.0f, 5.0f, yaw, thrust };
+				attitude = { 0.0f, 0.0f, yaw, thrust };
 				/*
 				time_loop++;
 				if(time_loop < 5) {
@@ -310,7 +310,7 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 
 				//cout << "roll" << asinf(_thr_sp[1] / _thr_sp[2]) << endl;
 				//cout << "pitch" << asinf(_thr_sp[0] / _thr_sp[2]) << endl;
-				attitude = {_roll_sp, _pitch_sp, yaw, _thr_sp[2]};
+				attitude = {rad2deg(_roll_sp), rad2deg(_pitch_sp), rad2deg(yaw), _thr_sp[2]};
 				cout << attitude << endl;
 				offbCtrlAttitude(offboard, attitude);
 				status = 3;
@@ -339,7 +339,7 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 
 				//cout << "roll" << asinf(_thr_sp[1] / _thr_sp[2]) << endl;
 				//cout << "pitch" << asinf(_thr_sp[0] / _thr_sp[2]) << endl;
-				attitude = {_roll_sp, _pitch_sp, yaw, _thr_sp[2]};
+				attitude = {rad2deg(_roll_sp), rad2deg(_pitch_sp), rad2deg(yaw), _thr_sp[2]};
 				cout << attitude << endl;
 				offbCtrlAttitude(offboard, attitude);
 				break;
@@ -348,6 +348,10 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
     return;
 }
 
+float rad2deg(float rad)
+{
+	return rad * 180 / P_I;
+	}
 /*
 void altitude(shared_ptr<Telemetry> telemetry,shared_ptr<Offboard> offboard, double dt, float P, float I, float D) {
     pushReference(_pos_sp_z);

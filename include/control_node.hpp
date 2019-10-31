@@ -31,7 +31,7 @@ using namespace std::chrono;
 extern vector<MissionCommand> mission_command_topic;
 extern mutex mission_command_mutex;
 
-
+float rad2deg(float rad);
 void controlLoop( FileNode control_config );
 
 void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, float Kp_z, float Ki_z, float Kd_z );
