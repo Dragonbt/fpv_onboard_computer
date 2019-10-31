@@ -139,7 +139,7 @@ vector<float> positionThrustControl(vector<float> _pos_sp, shared_ptr<Telemetry>
 		_pos[0] = position_velocity_ned.position.north_m;
 		_pos[1] = position_velocity_ned.position.east_m;
 		_pos_err_n = _pos_sp[0] - _pos[0];
-		_pos_err_e = _pos_sp[1] - _pos[0];
+		_pos_err_e = _pos_sp[1] - _pos[1];
 		//_pos_err_n = 1.0f;
 		//_pos_err_e = 1.0f;
 		_pos_err[1] = _pos_err_n * sin(yaw) + _pos_err_e * cos(yaw);
