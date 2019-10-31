@@ -285,11 +285,12 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 			case FLOW_HOLD_COMMAND:
 				cout << "HOLD" << endl;
 				position_velocity_ned = telemetry->position_velocity_ned();
-				_pos_sp[0] = position_velocity_ned.position.north_m;
+				_pos_sp[0] = position_velocity_ned.position.north_m + param;
 				_pos_sp[1] = position_velocity_ned.position.east_m;
 				_pos_sp[2] = position_velocity_ned.position.down_m;
 				euler_angle = telemetry->attitude_euler_angle();
-				yaw = euler_angle.yaw_deg;
+				//yaw = euler_angle.yaw_deg;
+				yaw = 0.0f;
 				t0 = high_resolution_clock::now();
 				_thr_sp = positionThrustControl(_pos_sp, telemetry, SampleTime );
 				_thr_sp[1] = 0.707f * _thr_sp[2] > _thr_sp[1] ? (-0.707f * _thr_sp[2] < _thr_sp[1] ? _thr_sp[1] : -0.707f * _thr_sp[2]) : 0.707f * _thr_sp[2];
@@ -311,9 +312,9 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 				//cout << "pitch" << asinf(_thr_sp[0] / _thr_sp[2]) << endl;
 				attitude = {_roll_sp, _pitch_sp, yaw, _thr_sp[2]};
 				cout << attitude << endl;
-				//offbCtrlAttitude(offboard, attitude);
+				offbCtrlAttitude(offboard, attitude);
 				status = 3;
-				remotePrint(string("step response"));
+				remotePrint(string("flow hold"));
 				break;
 			case 3:
 				time_change = intervalMs( high_resolution_clock::now(), t0);
@@ -340,6 +341,7 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 				//cout << "pitch" << asinf(_thr_sp[0] / _thr_sp[2]) << endl;
 				attitude = {_roll_sp, _pitch_sp, yaw, _thr_sp[2]};
 				cout << attitude << endl;
+				offbCtrlAttitude(offboard, attitude);
 				break;
 		}
 	}
