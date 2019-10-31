@@ -265,7 +265,7 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 				yaw = euler_angle.yaw_deg;
 				t0 = high_resolution_clock::now();
 				thrust = altitudeThrustControl(_pos_sp_z, telemetry, SampleTime );
-				attitude = {0.0f, 0.0f, yaw, thrust};
+				attitude = {0.0f, 0.0f, 0.0f, thrust};
 				offbCtrlAttitude(offboard, attitude);
 				status = 1;
 				remotePrint(string("step response"));
@@ -279,7 +279,7 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 				//cout << "Kp_z: " << Kp_z << " Ki_z: "  << Ki_z << " Kd_z: " << Kd_z << endl; 
 				thrust = altitudeThrustControl(_pos_sp_z, telemetry, time_change );
 				//attitude = { 5*offset_roll*180/P_I, 5*offset_pitch*180/P_I, yaw, thrust };
-				attitude = { 0.0f, 0.0f, yaw, thrust };
+				attitude = { 0.0f, 0.0f, 0.0f, thrust };
 				/*
 				time_loop++;
 				if(time_loop < 5) {
@@ -303,7 +303,7 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 				cout << "HOLD" << endl;
 				cout << param << endl;
 				position_velocity_ned = telemetry->position_velocity_ned();
-				_pos_sp[0] = position_velocity_ned.position.north_m;
+				_pos_sp[0] = position_velocity_ned.position.north_m + param;
 				_pos_sp[1] = position_velocity_ned.position.east_m;
 				_pos_sp[2] = position_velocity_ned.position.down_m;
 				euler_angle = telemetry->attitude_euler_angle();
