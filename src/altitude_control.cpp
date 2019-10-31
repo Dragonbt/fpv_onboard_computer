@@ -328,7 +328,7 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 
 				//cout << "roll" << asinf(_thr_sp[1] / _thr_sp[2]) << endl;
 				//cout << "pitch" << asinf(_thr_sp[0] / _thr_sp[2]) << endl;
-				attitude = {rad2deg(_roll_sp), rad2deg(_pitch_sp), yaw, _thr_sp[2]};
+				attitude = {rad2deg(_roll_sp), rad2deg(_pitch_sp), 0.0f, _thr_sp[2]};
 				cout << attitude << endl;
 				offbCtrlAttitude(offboard, attitude);
 				status = 3;
@@ -357,7 +357,7 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 
 				//cout << "roll" << asinf(_thr_sp[1] / _thr_sp[2]) << endl;
 				//cout << "pitch" << asinf(_thr_sp[0] / _thr_sp[2]) << endl;
-				attitude = {rad2deg(_roll_sp), rad2deg(_pitch_sp), yaw, _thr_sp[2]};
+				attitude = {rad2deg(_roll_sp), rad2deg(_pitch_sp), 0.0f, _thr_sp[2]};
 				cout << attitude << endl;
 				offbCtrlAttitude(offboard, attitude);
 				break;
