@@ -226,7 +226,9 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 	float step = 0;
 	float _roll_sp, _pitch_sp;
 	float len;
+	float off_x, off_y, off_z, off_n, off_e, off_d;
 	vector<float> att_sp = {0.0f, 0.0f};
+
 	Kp_z = _Kp_z;
 	Ki_z = _Ki_z;
 	Kd_z = _Kd_z;
@@ -264,7 +266,6 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 			param = 0.0;
 		}
         mission_command_mutex.unlock();
-		cout << status << endl;
 		switch( status )
 		{
 			case -3:
@@ -390,6 +391,67 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 				break;
 			case VISION_HOLD_COMMAND:
 				time_ms = intervalMs(high_resolution_clock::now(), init_timepoint);
+				flow_effective = true;
+				vision_effective = false;
+				alt_with_laser = true;
+				remotePrint(string("VISION HOLD"));
+				position_velocity_ned = telemetry->position_velocity_ned();
+				target_mutex.lock();
+				if(target_topic.empty())
+				{
+					target.confidence = -1;
+				}
+				else{
+					target = target_topic.back();
+				}
+				target_mutex.unlock();
+				if( target.confidence > 0 && time_ms - target.time_ms < 1000)
+				{
+					euler_angle = telemetry->attitude_euler_angle();
+					yaw = euler_angle.yaw_deg * P_I / 180;
+					off_x = target.z_m;
+					off_y = target.x_m;
+					off_z = target.y_m;
+					off_n = off_x * cos(yaw) - off_y * sin(yaw);
+					off_e = off_x * sin(yaw) + off_y * cos(yaw);
+					off_d = off_z;
+					_pos_sp[0] = my_pos_sp_x;
+					_pos_sp[1] = position_velocity_ned.position.east_m + off_e;
+					_pos_sp[2] = position_velocity_ned.position.down_m + off_d;
+				}
+				else if(time_ms - target.time_ms > 1000){
+					remotePrint(string("TIME OUT!"));
+					status = FLOW_HOLD_COMMAND;					
+				}
+				time_change = intervalMs( high_resolution_clock::now(), t0);
+				if( time_change < SampleTime )
+					break;
+				t0 = high_resolution_clock::now();
+				_thr_sp = positionThrustControl(_pos_sp, telemetry, SampleTime );
+				_thr_sp[1] = 0.707f * _thr_sp[2] > _thr_sp[1] ? (-0.707f * _thr_sp[2] < _thr_sp[1] ? _thr_sp[1] : -0.707f * _thr_sp[2]) : 0.707f * _thr_sp[2];
+				_thr_sp[0] = 0.707f * _thr_sp[2] > _thr_sp[0] ? (-0.707f * _thr_sp[2] < _thr_sp[0] ? _thr_sp[0] : -0.707f * _thr_sp[2]) : 0.707f * _thr_sp[2];
+				//cout << "_thr_sp[0] = " << _thr_sp[0] << " " << "_thr_sp[1] = " << _thr_sp[1] << " " << "_thr_sp[2] = " << _thr_sp[2] << endl;
+				_roll_sp = asinf(_thr_sp[1] / _thr_sp[2]);
+				
+				_pitch_sp = -asinf(_thr_sp[0] / _thr_sp[2]);
+				att_sp = {asinf(_thr_sp[1] / _thr_sp[2]),-asinf(_thr_sp[0] / _thr_sp[2])};
+				if((_roll_sp * _roll_sp + _pitch_sp * _pitch_sp) > tilt_max * tilt_max){
+					
+					len = lengthofvector(att_sp);
+					_roll_sp = att_sp[0] / len * tilt_max;
+					_pitch_sp = att_sp[1] / len * tilt_max;
+				}
+				
+
+				//cout << "roll" << asinf(_thr_sp[1] / _thr_sp[2]) << endl;
+				//cout << "pitch" << asinf(_thr_sp[0] / _thr_sp[2]) << endl;
+				attitude = {rad2deg(_roll_sp), rad2deg(_pitch_sp), yaw, _thr_sp[2]};
+				cout << attitude << endl;
+				offbCtrlAttitude(offboard, attitude);
+				break;
+			/*
+			case VISION_HOLD_COMMAND:
+				time_ms = intervalMs(high_resolution_clock::now(), init_timepoint);
 				remotePrint(string("VISION HOLD"));
 				flow_effective = false;
 				vision_effective = true;
@@ -450,6 +512,7 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 				cout << attitude << endl;
 				offbCtrlAttitude(offboard, attitude);
 				break;
+			*/
 		}
 	}
     return;
