@@ -153,7 +153,8 @@ vector<float> positionThrustControl(vector<float> _pos_sp, shared_ptr<Telemetry>
 		//_pos_err_e = 1.0f;
 		_pos_err[0] = _pos_err_n * cos(yaw) + _pos_err_e * sin(yaw);
 		_pos_err[1] = -1.0f * _pos_err_n * sin(yaw) + _pos_err_e * cos(yaw);
-
+		_pos_err[0] = max(min(_pos_err[0], 0.5f), -0.5f);
+		_pos_err[1] = max(min(_pos_err[1], 0.5f), -0.5f);
 		cout << "_pos_err_x:" << _pos_err[0] << endl;
 		cout << "_pos_err_y:" << _pos_err[1] << endl;
 	}
@@ -411,7 +412,6 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 				{
 					yaw_rad = yaw * P_I / 180;
 					off_x = target.z_m-4.0f;
-					//off_x = 0.0f;
 					off_y = target.x_m;
 					off_z = target.y_m;
 					off_n = off_x * cos(yaw_rad) - off_y * sin(yaw_rad);
