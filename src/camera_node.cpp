@@ -26,7 +26,7 @@ void cameraLoop( FileNode camera_config )
     //VideoCapture cap("../testset/demo4.avi");
     Camera cap;
     Video video("../log", width, height);
-    CircleDetector detector(DETECT_AND_TRACK, RED, 0);
+    CircleDetector detector(PURE_DETECT, RED, 0);
     Rect2f roi;
     float confidence, distance;
     Vec3f orientation;
