@@ -389,7 +389,7 @@ void solvePosition(Rect2f rect, float& distance, Vec3f& orientation, Mat camera_
     scale = bottom_right[0] - top_left[0];
     orientation = {(center[0] - cx), (center[1] - cy), (fx + fy) / 2};
     mag = norm(orientation, NORM_L2);
-    orientation = orientation / mag;
     distance = mag * real_scale / scale;
+    orientation = distance * orientation / mag;
     return;
 }
