@@ -34,6 +34,9 @@ extern mutex mission_command_mutex;
 extern deque<DetectionResult> target_topic;
 extern mutex target_mutex;
 
+extern deque<ControlStatus> control_status_topic;
+extern mutex control_status_mutex;
+
 float rad2deg(float rad);
 void controlLoop( FileNode control_config );
 

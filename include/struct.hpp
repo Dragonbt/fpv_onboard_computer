@@ -85,4 +85,9 @@ struct Reference{
     int64_t time_ms;
 };
 
+struct ControlStatus{
+    int16_t status;
+    int64_t time_ms;
+};
+
 #endif

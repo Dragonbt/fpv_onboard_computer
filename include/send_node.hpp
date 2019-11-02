@@ -64,6 +64,9 @@ extern mutex string_mutex;
 extern deque<DetectionResult> target_topic;
 extern mutex target_mutex;
 
+extern deque<ControlStatus> control_status_topic;
+extern mutex control_status_mutex;
+
 void sendLoop( FileNode send_config );
 bool sendSocketInit();
 
@@ -81,4 +84,5 @@ void sendString( void );
 void sendInputAttitude( void );
 void sendReference(void);
 void sendTarget(void);
+void sendControlStatus(void);
 #endif

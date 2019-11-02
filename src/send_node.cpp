@@ -1,7 +1,7 @@
 #include "send_node.hpp"
 
 struct sockaddr_in send_to_addr;
-int64_t sent_position_ms = 0, sent_velocity_ms = 0, sent_attitude_ms = 0, sent_target_ms = 0, sent_position_body_ms = 0;
+int64_t sent_position_ms = 0, sent_velocity_ms = 0, sent_attitude_ms = 0, sent_target_ms = 0, sent_position_body_ms = 0,sent_status_ms=0;
 
 void sendLoop( FileNode send_config )
 {
@@ -281,6 +281,28 @@ void sendInputAttitude()
     return;
 }
 
+void sendControlStatus()
+{
+    vector<ControlStatus> control_status;
+    ControlStatus status;
+    control_status_mutex.lock();
+    for( size_t i=0; i < control_status_topic.size(); i++ )
+    {
+        status = control_status_topic[i];
+        if( status.time_ms > sent_status_ms )
+        {
+            control_status.push_back( status );
+        }
+    }
+    control_status_mutex.unlock();
+    if( !control_status.empty() )
+    {
+        sendMsg(CONTROL_STATUS_MSG, (uint16_t) ( control_status.size() * sizeof(ControlStatus) ), control_status.data());
+        sent_status_ms = control_status.back().time_ms;
+        control_status.clear();
+    }
+    return;
+}
 void sendReference()
 {
     vector<Reference> reference;

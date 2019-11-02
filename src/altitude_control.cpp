@@ -231,7 +231,7 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 	float len;
 	float off_x, off_y, off_z, off_n, off_e, off_d;
 	vector<float> att_sp = {0.0f, 0.0f};
-
+	high_resolution_clock::time_point last_time = high_resolution_clock::now();
 	Kp_z = _Kp_z;
 	Ki_z = _Ki_z;
 	Kd_z = _Kd_z;
@@ -257,6 +257,7 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
     high_resolution_clock::time_point t0 = high_resolution_clock::now();
 	DetectionResult target;
 	float yaw_rad = 0;
+	ControlStatus control_status;
     while(true)
     {
         mission_command_mutex.lock();
@@ -265,11 +266,24 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 			status = mission_command_topic.back().index;
 			param = mission_command_topic.back().argv[0];
 			mission_command_topic.clear();
+
+			control_status_mutex.lock();
+			control_status.status = status;
+			control_status.time_ms = intervalMs(high_resolution_clock::now(), init_timepoint);
+			while( control_status_topic.size() >= 100 )
+			{
+				control_status_topic.pop_front();
+			}
+			control_status_topic.push_back(control_status);
+			control_status_mutex.unlock();
+
 		}
 		else{
 			param = 0.0;
 		}
         mission_command_mutex.unlock();
+
+
 		switch( status )
 		{
 			case -3:
@@ -411,6 +425,7 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 				target_mutex.unlock();
 				if( target.confidence > 0 && time_ms - target.time_ms < 1000)
 				{
+					last_time = high_resolution_clock::now();
 					yaw_rad = yaw * P_I / 180;
 					off_x = target.z_m-4.0f;
 					off_y = target.x_m;
@@ -425,9 +440,18 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 					_pos_sp[1] = position_velocity_ned.position.east_m + off_e;
 					_pos_sp[2] = position_velocity_ned.position.down_m + off_d;
 				}
-				else if(time_ms - target.time_ms > 1000){
+				else if(intervalMs(high_resolution_clock::now(), last_time) > 1000){
 					remotePrint(string("TIME OUT!"));
-					status = FLOW_HOLD_COMMAND;					
+					status = FLOW_HOLD_COMMAND;
+					control_status_mutex.lock();
+					control_status.status = status;
+					control_status.time_ms = intervalMs(high_resolution_clock::now(), init_timepoint);
+					while( control_status_topic.size() >= 100 )
+					{
+						control_status_topic.pop_front();
+					}
+					control_status_topic.push_back(control_status);
+					control_status_mutex.unlock();					
 				}
 				time_change = intervalMs( high_resolution_clock::now(), t0);
 				if( time_change < SampleTime )

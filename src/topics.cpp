@@ -66,3 +66,6 @@ mutex mission_command_mutex;
 
 ofstream log_file_topic;
 mutex log_file_mutex;
+
+deque<ControlStatus> control_status_topic;
+mutex control_status_mutex;
