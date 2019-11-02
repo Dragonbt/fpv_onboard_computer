@@ -261,6 +261,7 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 			mission_command_topic.clear();
 		}
         mission_command_mutex.unlock();
+		cout << "status" << endl;
 		switch( status )
 		{
 			case -3:
