@@ -153,8 +153,9 @@ vector<float> positionThrustControl(vector<float> _pos_sp, shared_ptr<Telemetry>
 		//_pos_err_e = 1.0f;
 		_pos_err[0] = _pos_err_n * cos(yaw) + _pos_err_e * sin(yaw);
 		_pos_err[1] = -1.0f * _pos_err_n * sin(yaw) + _pos_err_e * cos(yaw);
-		//cout << "_pos_err_x:" << _pos_err[0] << endl;
-		//cout << "_pos_err_y:" << _pos_err[1] << endl;
+
+		cout << "_pos_err_x:" << _pos_err[0] << endl;
+		cout << "_pos_err_y:" << _pos_err[1] << endl;
 	}
 	else if (vision_effective) {
 		float _yaw = euler_angle.yaw_deg * P_I / 180;
@@ -253,6 +254,7 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 	cout << "Kd_y:" << Kd_y << endl;
     high_resolution_clock::time_point t0 = high_resolution_clock::now();
 	DetectionResult target;
+	float yaw_rad = 0;
     while(true)
     {
         mission_command_mutex.lock();
@@ -407,15 +409,15 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 				target_mutex.unlock();
 				if( target.confidence > 0 && time_ms - target.time_ms < 1000)
 				{
-					euler_angle = telemetry->attitude_euler_angle();
-					yaw = euler_angle.yaw_deg * P_I / 180;
-					off_x = target.z_m;
+					yaw_rad = yaw * P_I / 180;
+					off_x = target.z_m-4.0f;
+					//off_x = 0.0f;
 					off_y = target.x_m;
 					off_z = target.y_m;
-					off_n = off_x * cos(yaw) - off_y * sin(yaw);
-					off_e = off_x * sin(yaw) + off_y * cos(yaw);
+					off_n = off_x * cos(yaw_rad) - off_y * sin(yaw_rad);
+					off_e = off_x * sin(yaw_rad) + off_y * cos(yaw_rad);
 					off_d = off_z;
-					_pos_sp[0] = my_pos_sp_x;
+					_pos_sp[0] = position_velocity_ned.position.north_m + off_n;
 					_pos_sp[1] = position_velocity_ned.position.east_m + off_e;
 					_pos_sp[2] = position_velocity_ned.position.down_m + off_d;
 				}
