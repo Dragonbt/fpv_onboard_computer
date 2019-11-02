@@ -59,8 +59,8 @@ float altitudeThrustControl( float _pos_sp_z, shared_ptr<Telemetry> telemetry, f
 		//float uMax = -0.06f;
 		//float uMin = -1.0f;
 		// New limits for the experimental period
-		float uMax = -mid_thrust + 0.25f;
-		float uMin = -mid_thrust - 0.25f;
+		float uMax = -mid_thrust + 0.1f;
+		float uMin = -mid_thrust - 0.1f;
 		bool stop_integral_D = (thrust_desired_D >= uMax && err_pos_z >= 0.0f) ||
 			(thrust_desired_D <= uMin && err_pos_z <= 0.0f);
 
@@ -453,6 +453,7 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 				//cout << "pitch" << asinf(_thr_sp[0] / _thr_sp[2]) << endl;
 				attitude = {rad2deg(_roll_sp), rad2deg(_pitch_sp), yaw, _thr_sp[2]};
 				cout << attitude << endl;
+				cout << "real yaw: " << telemetry->attitude_euler_angle().yaw_deg << endl;
 				offbCtrlAttitude(offboard, attitude);
 				break;
 			/*
