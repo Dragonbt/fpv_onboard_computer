@@ -56,7 +56,6 @@ void cameraLoop( FileNode camera_config )
         case 1:
             if( detector.run(image, roi, confidence) )
             {
-                /*
                 solvePosition(roi, distance, orientation, camera_matrix, distort_coeff, 1.0);
                 result.confidence = confidence;
                 result.distance_m = distance;
@@ -72,10 +71,8 @@ void cameraLoop( FileNode camera_config )
                 target_topic.push_back(result);
                 target_mutex.unlock();
                 rectangle( image, roi, Scalar( 0, 255, 0 ), 8, 1 );
-                */
             }
             else{
-                /*
                 result.confidence = -1;
                 result.distance_m = 0;
                 result.x_m = 0;
@@ -89,7 +86,6 @@ void cameraLoop( FileNode camera_config )
                 }
                 target_topic.push_back(result);
                 target_mutex.unlock();
-                */
             }
             image_mutex.lock();
             image_topic = image.clone();
