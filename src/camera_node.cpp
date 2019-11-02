@@ -54,7 +54,6 @@ void cameraLoop( FileNode camera_config )
             image_mutex.unlock();
             break;
         case 1:
-            cout << "case 1" << endl;
             if( detector.run(image, roi, confidence) )
             {
                 solvePosition(roi, distance, orientation, camera_matrix, distort_coeff, 1.0);
