@@ -52,6 +52,7 @@ void sendLoop( FileNode send_config )
             sendStatus();
             sendString();
             sendTarget();
+            sendControlStatus();
             t0 = high_resolution_clock::now();
         }
         else{
