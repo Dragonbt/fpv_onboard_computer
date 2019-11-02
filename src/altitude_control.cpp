@@ -386,7 +386,6 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 				offbCtrlAttitude(offboard, attitude);
 				break;
 			case VISION_HOLD_COMMAND:
-				/*
 				time_ms = intervalMs(high_resolution_clock::now(), init_timepoint);
 				remotePrint(string("VISION HOLD"));
 				flow_effective = false;
@@ -447,7 +446,6 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 				attitude = {rad2deg(_roll_sp), rad2deg(_pitch_sp), yaw, _thr_sp[2]};
 				cout << attitude << endl;
 				offbCtrlAttitude(offboard, attitude);
-				*/
 				break;
 		}
 	}
