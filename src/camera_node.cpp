@@ -26,7 +26,7 @@ void cameraLoop( FileNode camera_config )
     //VideoCapture cap("../testset/demo4.avi");
     Camera cap;
     Video video("../log", width, height);
-    CircleDetector detector(PURE_DETECT, RED, 0);
+    CircleDetector detector(DETECT_AND_TRACK, RED, 0);
     Rect2f roi;
     float confidence, distance;
     Vec3f orientation;
@@ -54,6 +54,7 @@ void cameraLoop( FileNode camera_config )
             image_mutex.unlock();
             break;
         case 1:
+            cout << "case 1" << endl;
             if( detector.run(image, roi, confidence) )
             {
                 solvePosition(roi, distance, orientation, camera_matrix, distort_coeff, 1.0);
