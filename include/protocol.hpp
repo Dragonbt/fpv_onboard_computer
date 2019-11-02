@@ -16,6 +16,7 @@
 #define LOG_MSG 7
 #define REFERENCE_MSG 8
 #define TARGET_MSG 9
+#define POSITION_BODY_MSG 10
 
 #define MISSION_COMMAND_MSG 15
 
@@ -23,5 +24,6 @@
 #define FORCE_QUIT_COMMAND -1
 #define STEP_COMMAND 0
 #define FLOW_HOLD_COMMAND 2
+#define VISION_HOLD_COMMAND 4
 
 #endif

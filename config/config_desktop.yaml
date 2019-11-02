@@ -4,7 +4,7 @@ CAMERA_NODE:{
     ENABLE: 1,
     ID: 1,
     WIDTH: 1280,
-    HEIGHT: 720,
+    HEIGHT: 800,
     CAMERA_INTRINSIC_XML: "../config/camera_intrinsic.xml"}
 LOG_NODE:{
     ENABLE: 1,
@@ -24,8 +24,14 @@ SOCKET_RECV_NODE:{
     PORT: 8080}
 CONTROL_NODE:{
     ENABLE: 1,
-    Kp_z: 0.2,
+    Kp_z: 1.0,
     Ki_z: 0.001,
-    Kd_z: 0.1,
+    Kd_z: 0.3,
+    Kp_x: 0.1,
+    Ki_x: 0.0,
+    Kd_x: 0.03,
+    Kp_y: 0.2,
+    Ki_y: 0.0,
+    Kd_y: 0.08,
     URL: "serial:///dev/ttyUSB0:115200",
     TAKEOFF_ALTITUDE: 4.0}

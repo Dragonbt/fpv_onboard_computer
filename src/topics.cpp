@@ -36,6 +36,9 @@ mutex fd_mutex;
 deque<PositionNED> position_topic;
 mutex position_mutex;
 
+deque<PositionBody> position_body_topic;
+mutex position_body_mutex;
+
 deque<VelocityNED> velocity_topic;
 mutex velocity_mutex;
 

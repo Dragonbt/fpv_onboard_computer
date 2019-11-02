@@ -24,6 +24,9 @@ extern high_resolution_clock::time_point init_timepoint;
 extern deque<PositionNED> position_topic;
 extern mutex position_mutex;
 
+extern deque<PositionBody> position_body_topic;
+extern mutex position_body_mutex;
+
 extern deque<VelocityNED> velocity_topic;
 extern mutex velocity_mutex;
 

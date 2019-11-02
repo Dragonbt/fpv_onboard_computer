@@ -37,6 +37,9 @@ extern mutex image_mutex;
 extern deque<PositionNED> position_topic;
 extern mutex position_mutex;
 
+extern deque<PositionBody> position_body_topic;
+extern mutex position_body_mutex;
+
 extern deque<VelocityNED> velocity_topic;
 extern mutex velocity_mutex;
 
@@ -70,6 +73,7 @@ bool compress( Mat image, double resize_k, int quality, vector<uchar>& img_buffe
 void sendHeartBeat( void );
 void sendImg( bool gray, double img_msg_resize, int img_msg_quality );
 void sendPosition( void );
+void sendPositionBody(void);
 void sendVelocity( void );
 void sendAttitude( void );
 void sendStatus( void );

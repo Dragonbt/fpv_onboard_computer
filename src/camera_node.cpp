@@ -26,12 +26,11 @@ void cameraLoop( FileNode camera_config )
     //VideoCapture cap("../testset/demo4.avi");
     Camera cap;
     Video video("../log", width, height);
-    //CircleDetector circle_detector(NONE, 0, 5, 50);
-    //Rect2f rect;
-    //float confidence;
-    //float distance;
-    //Vec3f orientation;
-    //DetectionResult result;
+    CircleDetector detector(DETECT_AND_TRACK, RED, 0);
+    Rect2f roi;
+    float confidence, distance;
+    Vec3f orientation;
+    DetectionResult result;
     
     if ( ! cap.init( id, width, height) ){
         cout << "[ERROR]: fail to init camera" << endl;
@@ -41,27 +40,23 @@ void cameraLoop( FileNode camera_config )
         cout << "[WARNING]: camera node shut down" << endl;
         return;
     }
-    
     while( true )
     {
+        cap.read( image );
         camera_status_mutex.lock();
         camera_status = camera_status_topic;
         camera_status_mutex.unlock();
-
         switch( camera_status )
         {
         case 0:
-            cap.read( image );
             image_mutex.lock();
             image_topic = image.clone();
             image_mutex.unlock();
             break;
-        /*
         case 1:
-            cap.read( image );
-            if(circle_detector.run(image, rect, confidence))
+            if( detector.run(image, roi, confidence) )
             {
-                solvePosition(rect, distance, orientation, camera_matrix, distort_coeff, 1.0);
+                solvePosition(roi, distance, orientation, camera_matrix, distort_coeff, 1.0);
                 result.confidence = confidence;
                 result.distance_m = distance;
                 result.x_m = orientation[0];
@@ -75,7 +70,7 @@ void cameraLoop( FileNode camera_config )
                 }
                 target_topic.push_back(result);
                 target_mutex.unlock();
-                rectangle( image, rect, Scalar( 0, 255, 0 ), 2, 1 );
+                rectangle( image, roi, Scalar( 0, 255, 0 ), 8, 1 );
             }
             else{
                 result.confidence = -1;
@@ -95,16 +90,8 @@ void cameraLoop( FileNode camera_config )
             image_mutex.lock();
             image_topic = image.clone();
             image_mutex.unlock();
-            imshow("result", image);
-            waitKey(5);
-            //this_thread::sleep_for(milliseconds(20));
             break;
-        */
         case 2:
-            cap.read( image );
-            image_mutex.lock();
-            image_topic = image.clone();
-            image_mutex.unlock();
             video.open();
             video.writeImage(image);
             break;

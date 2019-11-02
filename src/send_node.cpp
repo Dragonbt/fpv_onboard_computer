@@ -1,7 +1,7 @@
 #include "send_node.hpp"
 
 struct sockaddr_in send_to_addr;
-int64_t sent_position_ms = 0, sent_velocity_ms = 0, sent_attitude_ms = 0, sent_target_ms = 0;
+int64_t sent_position_ms = 0, sent_velocity_ms = 0, sent_attitude_ms = 0, sent_target_ms = 0, sent_position_body_ms = 0;
 
 void sendLoop( FileNode send_config )
 {
@@ -43,8 +43,9 @@ void sendLoop( FileNode send_config )
         if( intervalMs(high_resolution_clock::now(), t0) > 300 )
         {
             sendHeartBeat();
-            sendPosition();
-            sendVelocity();
+            //sendPosition();
+            sendPositionBody();
+            //sendVelocity();
             sendAttitude();
             sendReference();
             sendInputAttitude();
@@ -167,6 +168,28 @@ void sendPosition()
     return;
 }
 
+void sendPositionBody()
+{
+    vector<PositionBody> position;
+    PositionBody pos;
+    position_body_mutex.lock();
+    for( size_t i=0; i < position_body_topic.size(); i++ )
+    {
+        pos = position_body_topic[i];
+        if( pos.time_ms > sent_position_body_ms )
+        {
+            position.push_back( pos );
+        }
+    }
+    position_body_mutex.unlock();
+    if( ! position.empty() )
+    {
+        sendMsg( POSITION_BODY_MSG, (uint16_t) ( position.size() * sizeof(PositionBody) ), position.data() );
+        sent_position_ms = position.back().time_ms;
+        position.clear();
+    }
+    return;
+}
 void sendVelocity()
 {
     vector<VelocityNED> velocity;

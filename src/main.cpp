@@ -27,12 +27,12 @@ int main( int argc, char* argv[] )
     FileNode control_config = config["CONTROL_NODE"];
 
     thread camera_node( cameraLoop, camera_config );
-    //thread camera_node_test( cameraLoopTest );
+    thread camera_node_test( cameraLoopTest );
     thread socket_send_node( sendLoop, send_config );
     thread socket_recv_node( recvLoop, recv_config );
     thread control_node( controlLoop, control_config );
     camera_node.join();
-    //camera_node_test.join();
+    camera_node_test.join();
     socket_send_node.join();
     socket_recv_node.join();
     control_node.join();

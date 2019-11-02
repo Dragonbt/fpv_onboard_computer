@@ -1,6 +1,8 @@
 #include "control_node.hpp"
 #include "protocol.hpp"
 
+using namespace std;
+
 vector<float> _int_pos_xy={0.0f, 0.0f};
 float Kp_z, Ki_z, Kd_z,Kp_x, Ki_x, Kd_x,Kp_y, Ki_y, Kd_y;
 int SampleTime = 20;
@@ -14,6 +16,11 @@ int time_loop = 0;
 float tilt_max = P_I / 4;
 float offset_thrust;//offset lift attenuation due to tilting
 bool flow_effective = true, vision_effective = false, position_hold_xy = true, through_ring = false;
+
+bool alt_with_laser=true;
+float my_pos_sp_x, my_pos_sp_y,my_pos_sp_z;
+int64_t time_ms = 0;
+
 float altitudeThrustControl( float _pos_sp_z, shared_ptr<Telemetry> telemetry, float dt )
 {
     float thrust = 0.0;
@@ -42,7 +49,9 @@ float altitudeThrustControl( float _pos_sp_z, shared_ptr<Telemetry> telemetry, f
 	}
     else{
 		pushReference(_pos_sp_z);
-        float err_pos_z = _pos_sp_z - _pos_z;
+        float err_pos_z;
+		if (alt_with_laser) err_pos_z = _pos_sp_z - _pos_z;
+		else err_pos_z = _pos_sp_z;//alt_with_vision;
 		float dif_pos_z = _vel_z;
 		float thrust_desired_D = Kp_z * err_pos_z + Kd_z * (-dif_pos_z) + _int_pos_z
 			- offset_thrust;
@@ -144,12 +153,21 @@ vector<float> positionThrustControl(vector<float> _pos_sp, shared_ptr<Telemetry>
 		//_pos_err_e = 1.0f;
 		_pos_err[0] = _pos_err_n * cos(yaw) + _pos_err_e * sin(yaw);
 		_pos_err[1] = -1.0f * _pos_err_n * sin(yaw) + _pos_err_e * cos(yaw);
-		cout << "_pos_err_x:" << _pos_err[0] << endl;
-		cout << "_pos_err_y:" << _pos_err[1] << endl;
+		//cout << "_pos_err_x:" << _pos_err[0] << endl;
+		//cout << "_pos_err_y:" << _pos_err[1] << endl;
 	}
 	else if (vision_effective) {
-		_pos_err[0] = _pos_sp[0];
+		float _yaw = euler_angle.yaw_deg * P_I / 180;
+		_pos[0] = position_velocity_ned.position.north_m;
+		_pos[1] = position_velocity_ned.position.east_m;
+		float _pos_err_n = my_pos_sp_x - _pos[0];
+		float _pos_err_e = my_pos_sp_y - _pos[1];
+		float _pos_err_x = _pos_err_n * cos(_yaw) + _pos_err_e * sin(_yaw);
+		//float _pos_err_y = -_pos_err_n * sin(_yaw) + _pos_err_e * cos(_yaw);
+		//_pos_err[0] = _pos_sp[0];
+		_pos_err[0] = _pos_err_x;
 		_pos_err[1] = _pos_sp[1];
+		cout << "_pos_err_x_from_flow = " << my_pos_sp_x << " " << "_pos_err_x_from_vision = " << _pos_sp[0] << endl;
 
 	}
 	if (position_hold_xy) {//state=take_off||state=landing
@@ -184,9 +202,9 @@ vector<float> positionThrustControl(vector<float> _pos_sp, shared_ptr<Telemetry>
 		//_thr_int(1) += _param_mpc_xy_vel_i.get() * vel_err_lim(1) * dt;
 	}
 	else if (through_ring) {//state = through
-		float _pitch = euler_angle.pitch_deg;
-		float _roll = euler_angle.roll_deg;
-		float thrust_z = alt_thrust * cos(_pitch) * cos(_roll);
+		//float _pitch = euler_angle.pitch_deg;
+		//float _roll = euler_angle.roll_deg;
+		//float thrust_z = alt_thrust * cos(_pitch) * cos(_roll);
 		//to be continued
 	}
 	return _thr_sp;
@@ -232,7 +250,7 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 	cout << "Ki_y:" << Ki_y << endl;
 	cout << "Kd_y:" << Kd_y << endl;
     high_resolution_clock::time_point t0 = high_resolution_clock::now();
-
+	DetectionResult target;
     while(true)
     {
         mission_command_mutex.lock();
@@ -300,12 +318,18 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 				//offbCtrlAttitude(offboard, attitude);
 				break;
 			case FLOW_HOLD_COMMAND:
-				cout << "HOLD" << endl;
+				flow_effective = true;
+				vision_effective = false;
+				alt_with_laser = true;
+				remotePrint(string("FLOW HOLD"));
 				cout << param << endl;
 				position_velocity_ned = telemetry->position_velocity_ned();
 				_pos_sp[0] = position_velocity_ned.position.north_m + param;
 				_pos_sp[1] = position_velocity_ned.position.east_m;
 				_pos_sp[2] = position_velocity_ned.position.down_m;
+				my_pos_sp_x = _pos_sp[0];
+				my_pos_sp_y = _pos_sp[1];
+				my_pos_sp_z = _pos_sp[2];
 				euler_angle = telemetry->attitude_euler_angle();
 				yaw = euler_angle.yaw_deg;
 				//yaw = 0.0f;
@@ -328,11 +352,10 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 
 				//cout << "roll" << asinf(_thr_sp[1] / _thr_sp[2]) << endl;
 				//cout << "pitch" << asinf(_thr_sp[0] / _thr_sp[2]) << endl;
-				attitude = {rad2deg(_roll_sp), rad2deg(_pitch_sp), 0.0f, _thr_sp[2]};
+				attitude = {rad2deg(_roll_sp), rad2deg(_pitch_sp), yaw, _thr_sp[2]};
 				cout << attitude << endl;
 				offbCtrlAttitude(offboard, attitude);
 				status = 3;
-				remotePrint(string("flow hold"));
 				break;
 			case 3:
 				time_change = intervalMs( high_resolution_clock::now(), t0);
@@ -357,7 +380,69 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 
 				//cout << "roll" << asinf(_thr_sp[1] / _thr_sp[2]) << endl;
 				//cout << "pitch" << asinf(_thr_sp[0] / _thr_sp[2]) << endl;
-				attitude = {rad2deg(_roll_sp), rad2deg(_pitch_sp), 0.0f, _thr_sp[2]};
+				attitude = {rad2deg(_roll_sp), rad2deg(_pitch_sp), yaw, _thr_sp[2]};
+				cout << attitude << endl;
+				offbCtrlAttitude(offboard, attitude);
+				break;
+			case VISION_HOLD_COMMAND:
+				time_ms = intervalMs(high_resolution_clock::now(), init_timepoint);
+				remotePrint(string("VISION HOLD"));
+				flow_effective = false;
+				vision_effective = true;
+				alt_with_laser = false;
+				target_mutex.lock();
+				if(target_topic.empty())
+				{
+					target.confidence = -1;
+				}
+				else{
+					target = target_topic.back();
+				}
+				target_mutex.unlock();
+				if( target.confidence > 0 && time_ms - target.time_ms < 50)
+				{
+					_pos_sp[0] = target.z_m;
+					_pos_sp[1] = target.x_m;
+					_pos_sp[2] = target.y_m;
+				}
+				else{
+					status = FLOW_HOLD_COMMAND;
+					param = 0;
+					remotePrint(string("VISION FAIL!"));
+					cout << "[WARNING]: " << "VISION FAIL " << target.confidence << " " << time_ms - target.time_ms << endl;
+					break;
+				}
+				
+
+				time_change = intervalMs( high_resolution_clock::now(), t0);
+				if( time_change < SampleTime )
+					break;
+				t0 = high_resolution_clock::now();
+				_thr_sp = positionThrustControl(_pos_sp, telemetry, SampleTime );
+				_thr_sp[1] = 0.707f * _thr_sp[2] > _thr_sp[1] ? (-0.707f * _thr_sp[2] < _thr_sp[1] ? _thr_sp[1] : -0.707f * _thr_sp[2]) : 0.707f * _thr_sp[2];
+				_thr_sp[0] = 0.707f * _thr_sp[2] > _thr_sp[0] ? (-0.707f * _thr_sp[2] < _thr_sp[0] ? _thr_sp[0] : -0.707f * _thr_sp[2]) : 0.707f * _thr_sp[2];
+				//cout << "_thr_sp[0] = " << _thr_sp[0] << " " << "_thr_sp[1] = " << _thr_sp[1] << " " << "_thr_sp[2] = " << _thr_sp[2] << endl;
+				_roll_sp = asinf(_thr_sp[1] / _thr_sp[2]);
+				
+				_pitch_sp = -asinf(_thr_sp[0] / _thr_sp[2]);
+				att_sp = {asinf(_thr_sp[1] / _thr_sp[2]),-asinf(_thr_sp[0] / _thr_sp[2])};
+				if((_roll_sp * _roll_sp + _pitch_sp * _pitch_sp) > tilt_max * tilt_max){
+					
+					len = lengthofvector(att_sp);
+					_roll_sp = att_sp[0] / len * tilt_max;
+					_pitch_sp = att_sp[1] / len * tilt_max;
+				}
+				
+
+				//cout << "roll" << asinf(_thr_sp[1] / _thr_sp[2]) << endl;
+				//cout << "pitch" << asinf(_thr_sp[0] / _thr_sp[2]) << endl;
+				if( param != 0)
+				{
+					yaw = yaw + param;
+					param = 0;
+				}
+				cout << yaw << endl;
+				attitude = {rad2deg(_roll_sp), rad2deg(_pitch_sp), yaw, _thr_sp[2]};
 				cout << attitude << endl;
 				offbCtrlAttitude(offboard, attitude);
 				break;

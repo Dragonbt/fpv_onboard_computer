@@ -9,7 +9,7 @@
 #include <thread>
 #include <mutex>
 
-//#include "detector.hpp"
+#include "detector.hpp"
 #include "utils.hpp"
 
 using namespace std;

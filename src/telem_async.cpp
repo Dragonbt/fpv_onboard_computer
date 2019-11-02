@@ -19,6 +19,9 @@ void setTelemetry( shared_ptr<Telemetry> telemetry )
     // Set up callback to monitor altitude while the vehicle is in flight
     telemetry->position_velocity_ned_async([](Telemetry::PositionVelocityNED position_velocity_ned){
         PositionNED position;
+        PositionBody position_body;
+        float yaw;
+
         VelocityNED velocity;
         
         position.north_m = position_velocity_ned.position.north_m;
@@ -42,7 +45,25 @@ void setTelemetry( shared_ptr<Telemetry> telemetry )
         }
         position_topic.push_back(position);
         position_mutex.unlock();
-
+        
+        attitude_mutex.lock();
+        if( attitude_topic.size() > 0)
+        {
+            yaw = attitude_topic.back().yaw_deg * 3.14 / 180;
+            position_body.x_m = position.north_m * cos(yaw) + position.east_m * sin(yaw);
+            position_body.y_m = position.north_m * sin(-yaw) + position.east_m * cos(yaw);
+            position_body.z_m = position.down_m;
+            
+            position_body_mutex.lock();
+            while( position_body_topic.size() >= MAX_VEC_SIZE)
+            {
+                position_body_topic.pop_front();
+            }
+            position_body_topic.push_back(position_body);
+            position_body_mutex.unlock();
+        }
+        attitude_mutex.unlock();
+        
         velocity_mutex.lock();
         while( velocity_topic.size() >= MAX_VEC_SIZE )
         {

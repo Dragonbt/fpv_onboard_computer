@@ -31,6 +31,9 @@ using namespace std::chrono;
 extern vector<MissionCommand> mission_command_topic;
 extern mutex mission_command_mutex;
 
+extern deque<DetectionResult> target_topic;
+extern mutex target_mutex;
+
 float rad2deg(float rad);
 void controlLoop( FileNode control_config );
 
