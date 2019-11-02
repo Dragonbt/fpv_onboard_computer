@@ -412,8 +412,8 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 				if( target.confidence > 0 && time_ms - target.time_ms < 1000)
 				{
 					yaw_rad = yaw * P_I / 180;
-					//off_x = target.z_m-4.0f;
-					//off_y = target.x_m;
+					off_x = target.z_m-4.0f;
+					off_y = target.x_m;
 					/*yaw_rad = P_I / 4;
 					off_x = 0.2f;
 					off_y = 0.3f;*/
