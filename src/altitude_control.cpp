@@ -427,7 +427,7 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 				{
 					last_time = high_resolution_clock::now();
 					yaw_rad = yaw * P_I / 180;
-					off_x = target.z_m-4.0f;
+					off_x = target.z_m;
 					off_y = target.x_m;
 					/*yaw_rad = P_I / 4;
 					off_x = 0.2f;
@@ -436,8 +436,10 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 					off_n = off_x * cos(yaw_rad) - off_y * sin(yaw_rad);
 					off_e = off_x * sin(yaw_rad) + off_y * cos(yaw_rad);
 					off_d = off_z;
-					_pos_sp[0] = position_velocity_ned.position.north_m + off_n;
-					_pos_sp[1] = position_velocity_ned.position.east_m + off_e;
+					//_pos_sp[0] = position_velocity_ned.position.north_m + off_n;
+					//_pos_sp[1] = position_velocity_ned.position.east_m + off_e;
+					_pos_sp[0] = my_pos_sp_x;
+					_pos_sp[1] = my_pos_sp_y;
 					_pos_sp[2] = position_velocity_ned.position.down_m + off_d;
 				}
 				else if(intervalMs(high_resolution_clock::now(), last_time) > 1000){
