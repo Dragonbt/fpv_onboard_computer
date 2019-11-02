@@ -145,6 +145,7 @@ vector<float> positionThrustControl(vector<float> _pos_sp, shared_ptr<Telemetry>
 	//float yaw = 45 * P_I / 180;
 	float _pos_err_n, _pos_err_e;
 	if (flow_effective) {
+		//yaw = P_I / 4;
 		_pos[0] = position_velocity_ned.position.north_m;
 		_pos[1] = position_velocity_ned.position.east_m;
 		_pos_err_n = _pos_sp[0] - _pos[0];
@@ -411,8 +412,11 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 				if( target.confidence > 0 && time_ms - target.time_ms < 1000)
 				{
 					yaw_rad = yaw * P_I / 180;
-					off_x = target.z_m-4.0f;
-					off_y = target.x_m;
+					//off_x = target.z_m-4.0f;
+					//off_y = target.x_m;
+					/*yaw_rad = P_I / 4;
+					off_x = 0.2f;
+					off_y = 0.3f;*/
 					off_z = target.y_m;
 					off_n = off_x * cos(yaw_rad) - off_y * sin(yaw_rad);
 					off_e = off_x * sin(yaw_rad) + off_y * cos(yaw_rad);
