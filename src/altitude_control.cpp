@@ -261,7 +261,7 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 			mission_command_topic.clear();
 		}
         mission_command_mutex.unlock();
-		//cout << "status" << endl;
+		cout << "status" << endl;
 		switch( status )
 		{
 			case -3:
@@ -382,7 +382,7 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 				//cout << "roll" << asinf(_thr_sp[1] / _thr_sp[2]) << endl;
 				//cout << "pitch" << asinf(_thr_sp[0] / _thr_sp[2]) << endl;
 				attitude = {rad2deg(_roll_sp), rad2deg(_pitch_sp), yaw, _thr_sp[2]};
-				cout << attitude << endl;
+				//cout << attitude << endl;
 				offbCtrlAttitude(offboard, attitude);
 				break;
 			case VISION_HOLD_COMMAND:
@@ -400,7 +400,7 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 					target = target_topic.back();
 				}
 				target_mutex.unlock();
-				if( target.confidence > 0 && time_ms - target.time_ms < 50)
+				if( target.confidence > 0 && time_ms - target.time_ms < 100)
 				{
 					_pos_sp[0] = target.z_m;
 					_pos_sp[1] = target.x_m;
@@ -444,7 +444,7 @@ void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboar
 				}
 				cout << yaw << endl;
 				attitude = {rad2deg(_roll_sp), rad2deg(_pitch_sp), yaw, _thr_sp[2]};
-				cout << attitude << endl;
+				//cout << attitude << endl;
 				offbCtrlAttitude(offboard, attitude);
 				break;
 		}
