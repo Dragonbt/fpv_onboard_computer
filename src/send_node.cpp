@@ -44,7 +44,7 @@ void sendLoop( FileNode send_config )
         {
             sendHeartBeat();
             //sendPosition();
-            sendPositionBody();
+            //sendPositionBody();
             //sendVelocity();
             sendAttitude();
             sendReference();

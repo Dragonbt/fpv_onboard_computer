@@ -45,7 +45,7 @@ void setTelemetry( shared_ptr<Telemetry> telemetry )
         }
         position_topic.push_back(position);
         position_mutex.unlock();
-        
+        /*
         attitude_mutex.lock();
         if( attitude_topic.size() > 0)
         {
@@ -63,7 +63,7 @@ void setTelemetry( shared_ptr<Telemetry> telemetry )
             position_body_mutex.unlock();
         }
         attitude_mutex.unlock();
-        
+        */
         velocity_mutex.lock();
         while( velocity_topic.size() >= MAX_VEC_SIZE )
         {
