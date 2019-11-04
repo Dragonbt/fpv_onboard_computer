@@ -34,24 +34,17 @@ void cameraLoop( FileNode camera_config )
     
     if ( ! cap.init( id, width, height) ){
         cout << "[ERROR]: fail to init camera" << endl;
-        camera_exception_mutex.lock();
-        camera_exception_topic = -1;
-        camera_exception_mutex.unlock();
         cout << "[WARNING]: camera node shut down" << endl;
         return;
     }
     while( true )
     {
         cap.read( image );
-        camera_status_mutex.lock();
-        camera_status = camera_status_topic;
-        camera_status_mutex.unlock();
+        camera_status = 1;
         switch( camera_status )
         {
         case 0:
-            image_mutex.lock();
-            image_topic = image.clone();
-            image_mutex.unlock();
+            image_topic.update(image);
             break;
         case 1:
             if( detector.run(image, roi, confidence) )
@@ -62,14 +55,6 @@ void cameraLoop( FileNode camera_config )
                 result.x_m = orientation[0];
                 result.y_m = orientation[1];
                 result.z_m = orientation[2];
-                result.time_ms = intervalMs(high_resolution_clock::now(), init_timepoint);
-                target_mutex.lock();
-                while( target_topic.size() >= MAX_VEC_SIZE )
-                {
-                    target_topic.pop_front();
-                }
-                target_topic.push_back(result);
-                target_mutex.unlock();
                 rectangle( image, roi, Scalar( 0, 255, 0 ), 8, 1 );
             }
             else{
@@ -77,23 +62,14 @@ void cameraLoop( FileNode camera_config )
                 result.distance_m = 0;
                 result.x_m = 0;
                 result.y_m = 0;
-                result.z_m = 0;
-                result.time_ms = intervalMs(high_resolution_clock::now(), init_timepoint);
-                target_mutex.lock();
-                while( target_topic.size() >= MAX_VEC_SIZE )
-                {
-                    target_topic.pop_front();
-                }
-                target_topic.push_back(result);
-                target_mutex.unlock();
+                result.z_m = 0;    
             }
-            image_mutex.lock();
-            image_topic = image.clone();
-            image_mutex.unlock();
+            target_topic.update(result);
+            image_topic.update(image.clone());
             break;
         case 2:
             video.open();
-            video.writeImage(image);
+            video.writeImage(image.clone());
             break;
         default:
             break;
@@ -105,12 +81,11 @@ void cameraLoop( FileNode camera_config )
 
 void cameraLoopTest()
 {
+    int64_t timestamp;
     Mat image;
     while( true )
     {
-        image_mutex.lock();
-        image = image_topic.clone();
-        image_mutex.unlock();
+        image_topic.latest(timestamp, image);
         if( image.empty() ){
             continue;
         }

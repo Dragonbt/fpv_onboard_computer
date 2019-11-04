@@ -17,10 +17,7 @@
 
 #include "control_sync.hpp"
 #include "telem_async.hpp"
-
-#define ERROR_CONSOLE_TEXT "\033[31m" // Turn text on console red
-#define TELEMETRY_CONSOLE_TEXT "\033[34m" // Turn text on console blue
-#define NORMAL_CONSOLE_TEXT "\033[0m" // Restore normal console colour
+#include "topic.hpp"
 
 using namespace std;
 using namespace mavsdk;
@@ -28,14 +25,11 @@ using namespace cv;
 using namespace std::chrono;
 
 //command
-extern vector<MissionCommand> mission_command_topic;
-extern mutex mission_command_mutex;
+extern Topic<MissionCommand> mission_command_topic;
 
-extern deque<DetectionResult> target_topic;
-extern mutex target_mutex;
+extern Topic<int16_t> control_status_topic;
 
-extern deque<ControlStatus> control_status_topic;
-extern mutex control_status_mutex;
+extern Topic<DetectionResult> target_topic;
 
 float rad2deg(float rad);
 void controlLoop( FileNode control_config );

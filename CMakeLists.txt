@@ -8,11 +8,13 @@ add_definitions("-std=c++11 -Wall -Wextra -Wno-psabi")
 find_package(OpenCV REQUIRED)
 find_package(MAVSDK REQUIRED)
 
-include_directories(include) 
+include_directories(include)
+include_directories(KCF)  
 
-FILE(GLOB_RECURSE SRC "src/*.cpp" )
+aux_source_directory(./src MAIN_SRCS)
+aux_source_directory(./KCF KCF_SRCS)
 
-add_executable( onboard ${SRC})
+add_executable( onboard ${MAIN_SRCS} ${KCF_SRCS})
 target_link_libraries( onboard ${OpenCV_LIBS} ${PLATFORM_LIBS} 
                         MAVSDK::mavsdk_action
                         MAVSDK::mavsdk_offboard

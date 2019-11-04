@@ -1,7 +1,5 @@
 #include "telem_async.hpp"
 
-Status status;
-
 void setTelemetry( shared_ptr<Telemetry> telemetry )
 {
     Telemetry::Result set_rate_result;
@@ -18,62 +16,37 @@ void setTelemetry( shared_ptr<Telemetry> telemetry )
 
     // Set up callback to monitor altitude while the vehicle is in flight
     telemetry->position_velocity_ned_async([](Telemetry::PositionVelocityNED position_velocity_ned){
-        PositionNED position;
+        PositionNED position_ned;
         PositionBody position_body;
-        float yaw;
-
-        VelocityNED velocity;
+        VelocityNED velocity_ned;
+        VelocityBody velocity_body;
+        EulerAngle attitude;
+        float yaw_rad;
+        int64_t timestamp;
         
-        position.north_m = position_velocity_ned.position.north_m;
-        position.east_m = position_velocity_ned.position.east_m;
-        position.down_m = position_velocity_ned.position.down_m;
-        /*
-        position.north_m = position_velocity_ned.position.north_m * sin(yaw) + position_velocity_ned.position.east_m * cos(yaw);
-		position.east_m = position_velocity_ned.position.north_m * cos(yaw) - position_velocity_ned.position.east_m * sin(yaw);
-        */
-        position.time_ms = intervalMs( high_resolution_clock::now(), init_timepoint );
+        position_ned.north_m = position_velocity_ned.position.north_m;
+        position_ned.east_m = position_velocity_ned.position.east_m;
+        position_ned.down_m = position_velocity_ned.position.down_m;
+        position_ned_topic.update(position_ned);
 
-        velocity.north_m_s = position_velocity_ned.velocity.north_m_s;
-        velocity.east_m_s = position_velocity_ned.velocity.east_m_s;
-        velocity.down_m_s = position_velocity_ned.velocity.down_m_s;
-        velocity.time_ms = intervalMs( high_resolution_clock::now(), init_timepoint );
-        
-        position_mutex.lock();
-        while( position_topic.size() >= MAX_VEC_SIZE )
-        {
-            position_topic.pop_front();
-        }
-        position_topic.push_back(position);
-        position_mutex.unlock();
-        /*
-        attitude_mutex.lock();
-        if( attitude_topic.size() > 0)
-        {
-            yaw = attitude_topic.back().yaw_deg * 3.14 / 180;
-            position_body.x_m = position.north_m * cos(yaw) + position.east_m * sin(yaw);
-            position_body.y_m = position.north_m * sin(-yaw) + position.east_m * cos(yaw);
-            position_body.z_m = position.down_m;
-            
-            position_body_mutex.lock();
-            while( position_body_topic.size() >= MAX_VEC_SIZE)
-            {
-                position_body_topic.pop_front();
-            }
-            position_body_topic.push_back(position_body);
-            position_body_mutex.unlock();
-        }
-        attitude_mutex.unlock();
-        */
-        velocity_mutex.lock();
-        while( velocity_topic.size() >= MAX_VEC_SIZE )
-        {
-            velocity_topic.pop_front();
-        }
-        velocity_topic.push_back(velocity);
-        velocity_mutex.unlock();
+        velocity_ned.north_m_s = position_velocity_ned.velocity.north_m_s;
+        velocity_ned.east_m_s = position_velocity_ned.velocity.east_m_s;
+        velocity_ned.down_m_s = position_velocity_ned.velocity.down_m_s;
+        velocity_ned_topic.update(velocity_ned);
 
-        writePositionNED(position);
-        writeVelocityNED(velocity);
+        if( attitude_topic.latest(timestamp, attitude) )
+        {
+            yaw_rad = attitude.yaw_deg * 3.14 / 180;
+            position_body.x_m = position_ned.north_m * cos(yaw_rad) + position_ned.east_m * sin(yaw_rad);
+            position_body.y_m = position_ned.north_m * sin(-yaw_rad) + position_ned.east_m * cos(yaw_rad);
+            position_body.z_m = position_ned.down_m;
+            position_body_topic.update(position_body);
+
+            velocity_body.x_m_s = velocity_ned.north_m_s * cos(yaw_rad) + velocity_ned.east_m_s * sin(yaw_rad);
+            velocity_body.y_m_s = velocity_ned.north_m_s * sin(-yaw_rad) + velocity_ned.east_m_s * cos(yaw_rad);
+            velocity_body.z_m_s = velocity_ned.down_m_s;
+            velocity_body_topic.update(velocity_body);
+        }
     });
 
     telemetry->attitude_euler_angle_async([](Telemetry::EulerAngle attitude_euler_angle){
@@ -81,76 +54,52 @@ void setTelemetry( shared_ptr<Telemetry> telemetry )
         euler_angle.roll_deg = attitude_euler_angle.roll_deg;
         euler_angle.pitch_deg = attitude_euler_angle.pitch_deg;
         euler_angle.yaw_deg = attitude_euler_angle.yaw_deg;
-        euler_angle.time_ms = intervalMs( high_resolution_clock::now(), init_timepoint );
-        
-        attitude_mutex.lock();
-        while( attitude_topic.size() >= MAX_VEC_SIZE )
-        {
-            attitude_topic.pop_front();
-        }
-        attitude_topic.push_back(euler_angle);
-        attitude_mutex.unlock();
-        writeAttitude(euler_angle);
+        attitude_topic.update(euler_angle);
     });
 
     telemetry->armed_async([](bool armed){
-        status_mutex.lock();
-        status.armed = armed;
-        if( status_topic.size() >= MAX_VEC_SIZE )
-        {
-            status_topic.clear();
-        }
-        status_topic.push_back(status);
-        status_mutex.unlock();
+        VehicleStatus vehicle_status;
+        int64_t timestamp;
+        vehicle_status_topic.latest(timestamp, vehicle_status);
+        vehicle_status.armed = armed;
+        vehicle_status_topic.update(vehicle_status);
     });
 
     telemetry->in_air_async([](bool in_air){
-        status_mutex.lock();
-        status.in_air = in_air;
-        if( status_topic.size() >= MAX_VEC_SIZE )
-        {
-            status_topic.clear();
-        }
-        status_topic.push_back(status);
-        status_mutex.unlock();
+        VehicleStatus vehicle_status;
+        int64_t timestamp;
+        vehicle_status_topic.latest(timestamp, vehicle_status);
+        vehicle_status.in_air = in_air;
+        vehicle_status_topic.update(vehicle_status);
     });
 
     telemetry->rc_status_async([](Telemetry::RCStatus rc_status){
-        status_mutex.lock();
-        status.rc_available_once = rc_status.available_once;
-        status.rc_available = rc_status.available;
-        status.rc_signal_strength_percent = rc_status.signal_strength_percent;
-        if( status_topic.size() >= MAX_VEC_SIZE )
-        {
-            status_topic.clear();
-        }
-        status_topic.push_back(status);
-        status_mutex.unlock();
+        VehicleStatus vehicle_status;
+        int64_t timestamp;
+        vehicle_status_topic.latest(timestamp, vehicle_status);
+        vehicle_status.rc_available_once = rc_status.available_once;
+        vehicle_status.rc_available = rc_status.available;
+        vehicle_status.rc_signal_strength_percent = rc_status.signal_strength_percent;
+        vehicle_status_topic.update(vehicle_status);
     });
 
     telemetry->battery_async([](Telemetry::Battery battery){
-        status_mutex.lock();
-        status.battery_voltage_v = battery.voltage_v;
-        status.battery_remaining_percent = battery.remaining_percent;
-        if( status_topic.size() >= MAX_VEC_SIZE )
-        {
-            status_topic.clear();
-        }
-        status_topic.push_back(status);
-        status_mutex.unlock();
+        VehicleStatus vehicle_status;
+        int64_t timestamp;
+        vehicle_status_topic.latest(timestamp, vehicle_status);
+        vehicle_status.battery_voltage_v = battery.voltage_v;
+        vehicle_status.battery_remaining_percent = battery.remaining_percent;
+        vehicle_status_topic.update(vehicle_status);
     });
 
     telemetry->flight_mode_async([](Telemetry::FlightMode flight_mode){
         string mode = Telemetry::flight_mode_str(flight_mode);
-        status_mutex.lock();
-        strncpy(status.flight_mode, mode.c_str(), sizeof(status.flight_mode));
-        status.flight_mode[sizeof(status.flight_mode) - 1] = 0;
-        if( status_topic.size() >= MAX_VEC_SIZE )
-        {
-            status_topic.clear();
-        }
-        status_topic.push_back(status);
-        status_mutex.unlock();
+        VehicleStatus vehicle_status;
+        int64_t timestamp;
+        vehicle_status_topic.latest(timestamp, vehicle_status);
+        strncpy(vehicle_status.flight_mode, mode.c_str(), sizeof(vehicle_status.flight_mode));
+        vehicle_status.flight_mode[sizeof(vehicle_status.flight_mode) - 1] = 0;
+        vehicle_status_topic.update(vehicle_status);
     });
 
     telemetry->status_text_async([](Telemetry::StatusText status_text){
@@ -170,13 +119,7 @@ void setTelemetry( shared_ptr<Telemetry> telemetry )
                 break;
         }
         string msg = prefix + status_text.text;
-        string_mutex.lock();
-        if( string_topic.size() >= MAX_VEC_SIZE )
-        {
-            string_topic.clear();
-        }
-        string_topic.push_back(msg);
-        string_mutex.unlock();
+        string_topic.update(msg);
     });
     return;
 }

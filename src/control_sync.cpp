@@ -34,6 +34,7 @@ void quitOffboard( shared_ptr<Offboard> offboard )
 
 void offbCtrlAttitude(shared_ptr<Offboard> offboard, Offboard::Attitude attitude)
 {
+    InputAttitude input_attitude;
     Offboard::Result offboard_result;
     if( ! offboard->is_active() ){
         offboard->set_attitude(attitude);
@@ -46,89 +47,10 @@ void offbCtrlAttitude(shared_ptr<Offboard> offboard, Offboard::Attitude attitude
     }
     // Send it once before starting offboard, otherwise it will be rejected.
     offboard->set_attitude(attitude);
-    pushInputAttitude(attitude);
+    input_attitude.roll_deg = attitude.roll_deg;
+    input_attitude.pitch_deg = attitude.pitch_deg;
+    input_attitude.yaw_deg = attitude.yaw_deg;
+    input_attitude.thrust = attitude.thrust_value;
+    input_attitude_topic.update(input_attitude);
     return;
-}
-
-void offbCtrlVelocityBody( std::shared_ptr<mavsdk::Offboard> offboard, Offboard::VelocityBodyYawspeed velocity )
-{
-    Offboard::Result offboard_result;
-    if( ! offboard->is_active() ){
-        offboard->set_velocity_body(velocity);
-        offboard_result = offboard->start();
-        if ( offboard_result != Offboard::Result::SUCCESS ){
-            cout << string("[ERROR]: ") + Offboard::result_str(offboard_result) << endl;
-            cout << "[ERROR]: unable to start offboard" << endl;
-            return;
-        }
-    }
-    // Send it once before starting offboard, otherwise it will be rejected.
-    offboard->set_velocity_body(velocity);
-    pushInputVelocityBody(velocity);
-    return;
-}
-
-void offbCtrlPositionNED( std::shared_ptr<mavsdk::Offboard> offboard, Offboard::PositionNEDYaw position )
-{
-    Offboard::Result offboard_result;
-    if( ! offboard->is_active() ){
-        offboard->set_position_ned( position );
-        offboard_result = offboard->start();
-        if ( offboard_result != Offboard::Result::SUCCESS ){
-            cout << string("[ERROR]: ") + Offboard::result_str(offboard_result) << endl;
-            cout << "[ERROR]: unable to start offboard" << endl;
-            return;
-        }
-    }
-    // Send it once before starting offboard, otherwise it will be rejected.
-    offboard->set_position_ned( position );
-}
-
-void pushInputVelocityBody( Offboard::VelocityBodyYawspeed velocity )
-{
-    InputVelocityBody input;
-    input.forward_m_s = velocity.forward_m_s;
-    input.right_m_s = velocity.right_m_s;
-    input.down_m_s = velocity.down_m_s;
-    input.yawspeed_deg_s = velocity.yawspeed_deg_s;
-    input.time_ms = intervalMs(high_resolution_clock::now(), init_timepoint);
-    input_velocity_body_mutex.lock();
-    if( input_velocity_body_topic.size() > MAX_VEC_SIZE )
-    {
-        input_velocity_body_topic.clear();
-    }
-    input_velocity_body_topic.push_back( input );
-    input_velocity_body_mutex.unlock();
-}
-void pushInputAttitude( Offboard::Attitude attitude )
-{
-    InputAttitude input;
-    input.roll_deg = attitude.roll_deg;
-    input.pitch_deg = attitude.pitch_deg;
-    input.yaw_deg = attitude.yaw_deg;
-    input.thrust = attitude.thrust_value;
-    input.time_ms = intervalMs(high_resolution_clock::now(), init_timepoint);
-    input_attitude_mutex.lock();
-    if( input_attitude_topic.size() > MAX_VEC_SIZE )
-    {
-        input_attitude_topic.clear();
-    }
-    input_attitude_topic.push_back( input );
-    input_attitude_mutex.unlock();
-    writeInputAttitude(input);
-}
-
-void pushReference( float _pos_sp_z )
-{
-    Reference reference;
-    reference.down_m = _pos_sp_z;
-    reference.time_ms = intervalMs(high_resolution_clock::now(), init_timepoint);
-    reference_mutex.lock();
-    if( reference_topic.size() > MAX_VEC_SIZE )
-    {
-        reference_topic.clear();
-    }
-    reference_topic.push_back(reference);
-    reference_mutex.unlock();
-    writeReference(reference);
 }

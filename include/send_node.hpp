@@ -21,7 +21,7 @@
 
 #include "utils.hpp"
 #include "struct.hpp"
-#include "protocol.hpp"
+#include "const.hpp"
 
 using namespace std;
 using namespace cv;
@@ -30,42 +30,29 @@ using namespace chrono;
 extern int fd;
 extern mutex fd_mutex;
 
-extern high_resolution_clock::time_point init_timepoint;
-extern Mat image_topic;
-extern mutex image_mutex;
+extern Topic<Mat> image_topic;
 
-extern deque<PositionNED> position_topic;
-extern mutex position_mutex;
+extern Topic<DetectionResult> target_topic;
 
-extern deque<PositionBody> position_body_topic;
-extern mutex position_body_mutex;
+extern Topic<string> string_topic;
 
-extern deque<VelocityNED> velocity_topic;
-extern mutex velocity_mutex;
+extern Topic<PositionNED> position_ned_topic;
 
-extern deque<EulerAngle> attitude_topic;
-extern mutex attitude_mutex;
+extern Topic<PositionBody> position_body_topic;
 
-extern vector<Reference> reference_topic;
-extern mutex reference_mutex;
+extern Topic<VelocityNED> velocity_ned_topic;
 
-extern vector<InputVelocityBody> input_velocity_body_topic;
-extern mutex input_velocity_body_mutex;
+extern Topic<VelocityBody> velocity_body_topic;
 
-extern vector<InputAttitude> input_attitude_topic;
-extern mutex input_attitude_mutex;
+extern Topic<EulerAngle> attitude_topic;
 
-extern vector<Status> status_topic;
-extern mutex status_mutex;
+extern Topic<VehicleStatus> vehicle_status_topic;
 
-extern vector<string> string_topic;
-extern mutex string_mutex;
+extern Topic<InputAttitude> input_attitude_topic;
 
-extern deque<DetectionResult> target_topic;
-extern mutex target_mutex;
+extern Topic<double> down_reference_topic;
 
-extern deque<ControlStatus> control_status_topic;
-extern mutex control_status_mutex;
+extern Topic<int16_t> control_status_topic;
 
 void sendLoop( FileNode send_config );
 bool sendSocketInit();
@@ -75,14 +62,20 @@ bool compress( Mat image, double resize_k, int quality, vector<uchar>& img_buffe
 
 void sendHeartBeat( void );
 void sendImg( bool gray, double img_msg_resize, int img_msg_quality );
-void sendPosition( void );
-void sendPositionBody(void);
-void sendVelocity( void );
-void sendAttitude( void );
-void sendStatus( void );
 void sendString( void );
-void sendInputAttitude( void );
-void sendReference(void);
-void sendTarget(void);
-void sendControlStatus(void);
+
+template<typename Struct>
+void sendStruct(Topic<Struct> topic, int64_t& timestamp, int msg_type);
+
+template<typename Struct>
+void sendStruct(Topic<Struct> topic, int64_t& timestamp, int msg_type)
+{
+    vector<pair<int64_t, Struct>> topic_vector;
+    topic.recent(topic_vector, timestamp);
+    if( ! topic_vector.empty() )
+    {
+        sendMsg( msg_type, (uint16_t) ( topic_vector.size() * sizeof(pair<int64_t, Struct>) ), topic_vector.data() );
+    }
+    topic_vector.clear();
+}
 #endif

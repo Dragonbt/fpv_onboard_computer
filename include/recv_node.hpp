@@ -18,7 +18,7 @@
 #include "utils.hpp"
 #include "struct.hpp"
 
-#include "protocol.hpp"
+#include "const.hpp"
 
 using namespace std;
 using namespace chrono;
@@ -27,8 +27,7 @@ using namespace cv;
 extern int fd;
 extern mutex fd_mutex;
 
-extern vector<MissionCommand> mission_command_topic;
-extern mutex mission_command_mutex;
+extern Topic<MissionCommand> mission_command_topic;
 
 void recvLoop( FileNode recv_config );
 

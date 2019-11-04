@@ -107,13 +107,7 @@ void recvMsg( char* msg, int msg_length, sockaddr_in addr )
     {
         case MISSION_COMMAND_MSG:
             memcpy( &mission_command, buffer, sizeof mission_command );
-            mission_command_mutex.lock();
-            if( mission_command_topic.size() > MAX_VEC_SIZE )
-            {
-                mission_command_topic.clear();
-            }
-            mission_command_topic.push_back(mission_command);
-            mission_command_mutex.unlock();
+            mission_command_topic.update(mission_command);
             break;
         default:
             break;

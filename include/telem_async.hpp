@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <thread>
+#include <math.h>
 #include <mutex>
 #include <mavsdk/mavsdk.h>
 #include <mavsdk/plugins/telemetry/telemetry.h>
@@ -12,29 +13,21 @@
 #include "utils.hpp"
 #include "struct.hpp"
 
-#define MAX_VEC_SIZE 40
-
 using namespace std;
 using namespace mavsdk;
 using namespace std::chrono;
 
-extern high_resolution_clock::time_point init_timepoint;
+extern Topic<PositionNED> position_ned_topic;
 
-//telem to send
-extern deque<PositionNED> position_topic;
-extern mutex position_mutex;
+extern Topic<PositionBody> position_body_topic;
 
-extern deque<PositionBody> position_body_topic;
-extern mutex position_body_mutex;
+extern Topic<VelocityNED> velocity_ned_topic;
 
-extern deque<VelocityNED> velocity_topic;
-extern mutex velocity_mutex;
+extern Topic<VelocityBody> velocity_body_topic;
 
-extern deque<EulerAngle> attitude_topic;
-extern mutex attitude_mutex;
+extern Topic<EulerAngle> attitude_topic;
 
-extern vector<Status> status_topic;
-extern mutex status_mutex;
+extern Topic<VehicleStatus> vehicle_status_topic;
 
 void setTelemetry( shared_ptr<Telemetry> telemetry );
 

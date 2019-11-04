@@ -2,9 +2,9 @@
 #cautious: NO TABS!!!!!!!
 CAMERA_NODE:{
     ENABLE: 1,
-    ID: 1,
+    ID: 0,
     WIDTH: 1280,
-    HEIGHT: 800,
+    HEIGHT: 720,
     CAMERA_INTRINSIC_XML: "../config/camera_intrinsic.xml"}
 LOG_NODE:{
     ENABLE: 1,
@@ -15,7 +15,7 @@ SOCKET_SEND_NODE:{
     ENABLE: 1,
     HOST: "127.0.0.1",
     PORT: 8080,
-    GRAY_IMG: 1,
+    GRAY_IMG: 0,
     IMG_MSG_RESIZE: 0.2,
     IMG_MSG_QUALITY: 30}
 SOCKET_RECV_NODE:{

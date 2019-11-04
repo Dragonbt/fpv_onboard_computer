@@ -11,23 +11,16 @@
 
 #include "detector.hpp"
 #include "utils.hpp"
+#include "topic.hpp"
 
 using namespace std;
 using namespace cv;
 
-extern high_resolution_clock::time_point init_timepoint;
+extern Topic<Mat> image_topic;
 
-extern Mat image_topic;
-extern mutex image_mutex;
+extern Topic<int> camera_status_topic;
 
-extern int camera_status_topic;
-extern mutex camera_status_mutex;
-
-extern int camera_exception_topic;
-extern mutex camera_exception_mutex;
-
-extern deque<DetectionResult> target_topic;
-extern mutex target_mutex;
+extern Topic<DetectionResult> target_topic;
 
 void cameraLoop( FileNode camera_config );
 

@@ -6,28 +6,29 @@
 #include <mutex>
 #include <vector>
 #include "struct.hpp"
-#include "control_node.hpp"
-#include "protocol.hpp"
+
+#include "const.hpp"
 #include <fstream>
+#include "topic.hpp"
 
 using namespace std::chrono;
 using namespace std;
 
-extern vector<string> string_topic;
-extern mutex string_mutex;
+extern high_resolution_clock::time_point init_timepoint;
+extern Topic<string> string_topic;
 
-extern ofstream log_file_topic;
-extern mutex log_file_mutex;
+float limit_values(float values, float min_values, float max_values);
+
+float deg2rad(float deg);
+
+float rad2deg(float rad);
 
 int64_t intervalMs(high_resolution_clock::time_point end, high_resolution_clock::time_point start);
+
+int64_t timestampf( void );
 
 string getCurrentTime( void );
 
 void remotePrint( string msg );
 
-void writePositionNED(PositionNED position);
-void writeVelocityNED(VelocityNED velocity);
-void writeAttitude(EulerAngle attitude);
-void writeInputAttitude(InputAttitude input_attitude);
-void writeReference( Reference reference);
 #endif

@@ -47,5 +47,5 @@
         "atomic": "cpp",
         "list": "cpp",
         "iomanip": "cpp"
-    }
+    },
 }

@@ -1,7 +1,6 @@
 #include "send_node.hpp"
 
 struct sockaddr_in send_to_addr;
-int64_t sent_position_ms = 0, sent_velocity_ms = 0, sent_attitude_ms = 0, sent_target_ms = 0, sent_position_body_ms = 0,sent_status_ms=0;
 
 void sendLoop( FileNode send_config )
 {
@@ -37,22 +36,22 @@ void sendLoop( FileNode send_config )
     send_to_addr.sin_family = AF_INET; 
     send_to_addr.sin_port = htons( port );
     
+    int64_t sent_position_body_ms = 0, sent_velocity_body_ms = 0, sent_attitude_ms = 0, sent_input_attitude_ms=0, sent_target_ms = 0,sent_vehicle_status_ms=0, sent_control_status_ms=0, sent_down_reference_ms=0;
     high_resolution_clock::time_point t0 = high_resolution_clock::now();
     while( true )
     {
         if( intervalMs(high_resolution_clock::now(), t0) > 300 )
         {
             sendHeartBeat();
-            //sendPosition();
-            //sendPositionBody();
-            //sendVelocity();
-            sendAttitude();
-            sendReference();
-            sendInputAttitude();
-            sendStatus();
+            sendStruct<PositionBody>(position_body_topic, sent_position_body_ms, POSITION_BODY_MSG);
+            sendStruct<VelocityBody>(velocity_body_topic, sent_velocity_body_ms, VELOCITY_BODY_MSG);
+            sendStruct<EulerAngle>(attitude_topic, sent_attitude_ms, ATTITUDE_MSG);
+            sendStruct<VehicleStatus>(vehicle_status_topic, sent_vehicle_status_ms, VEHICLE_STATUS_MSG);
+            sendStruct<DetectionResult>(target_topic, sent_target_ms, TARGET_MSG);
+            sendStruct<int16_t>(control_status_topic, sent_control_status_ms, CONTROL_STATUS_MSG);
+            sendStruct<InputAttitude>(input_attitude_topic, sent_input_attitude_ms, INPUT_ATTITUDE_MSG);
+            sendStruct<double>(down_reference_topic, sent_down_reference_ms, REFERENCE_MSG);
             sendString();
-            sendTarget();
-            sendControlStatus();
             t0 = high_resolution_clock::now();
         }
         else{
@@ -132,12 +131,10 @@ void sendHeartBeat()
 
 void sendImg( bool gray, double img_msg_resize, int img_msg_quality )
 {
-    Mat image, empty;
+    int64_t timestamp;
+    Mat image;
     vector< uchar > img_buffer;
-    image_mutex.lock();
-    image = image_topic.clone();
-    image_topic = empty;
-    image_mutex.unlock();
+    image_topic.latest(timestamp, image);
     if( ! image.empty() && compress( image, gray, img_msg_resize, img_msg_quality, img_buffer ) ) {
         //cout << img_buffer.size() << endl;
         sendMsg( IMG_MSG, (uint16_t) img_buffer.size(), img_buffer.data() );
@@ -146,197 +143,20 @@ void sendImg( bool gray, double img_msg_resize, int img_msg_quality )
     return;
 }
 
-void sendPosition()
-{
-    vector<PositionNED> position;
-    PositionNED pos;
-    position_mutex.lock();
-    for( size_t i=0; i < position_topic.size(); i++ )
-    {
-        pos = position_topic[i];
-        if( pos.time_ms > sent_position_ms )
-        {
-            position.push_back( pos );
-        }
-    }
-    position_mutex.unlock();
-    if( ! position.empty() )
-    {
-        sendMsg( POSITION_MSG, (uint16_t) ( position.size() * sizeof(PositionNED) ), position.data() );
-        sent_position_ms = position.back().time_ms;
-        position.clear();
-    }
-    return;
-}
-
-void sendPositionBody()
-{
-    vector<PositionBody> position;
-    PositionBody pos;
-    position_body_mutex.lock();
-    for( size_t i=0; i < position_body_topic.size(); i++ )
-    {
-        pos = position_body_topic[i];
-        if( pos.time_ms > sent_position_body_ms )
-        {
-            position.push_back( pos );
-        }
-    }
-    position_body_mutex.unlock();
-    if( ! position.empty() )
-    {
-        sendMsg( POSITION_BODY_MSG, (uint16_t) ( position.size() * sizeof(PositionBody) ), position.data() );
-        sent_position_ms = position.back().time_ms;
-        position.clear();
-    }
-    return;
-}
-void sendVelocity()
-{
-    vector<VelocityNED> velocity;
-    VelocityNED vel;
-    velocity_mutex.lock();
-    for( size_t i=0; i < velocity_topic.size(); i++ )
-    {
-        vel = velocity_topic[i];
-        if( vel.time_ms > sent_velocity_ms )
-        {
-            velocity.push_back( vel );
-        }
-    }
-    velocity_mutex.unlock();
-    if( ! velocity.empty() )
-    {
-        sendMsg( VELOCITY_MSG, (uint16_t) ( velocity.size() * sizeof(VelocityNED) ), velocity.data() );
-        sent_velocity_ms = velocity.back().time_ms;
-        velocity.clear();
-    }
-    return;
-}
-
-void sendAttitude()
-{
-    vector<EulerAngle> attitude;
-    EulerAngle att;
-    attitude_mutex.lock();
-    for( size_t i=0; i < attitude_topic.size(); i++ )
-    {
-        att = attitude_topic[i];
-        if( att.time_ms > sent_attitude_ms )
-        {
-            attitude.push_back( att );
-        }
-    }
-    attitude_mutex.unlock();
-    if( ! attitude.empty() )
-    {
-        sendMsg( ATTITUDE_MSG, (uint16_t) ( attitude.size() * sizeof(EulerAngle) ), attitude.data() );
-        sent_attitude_ms = attitude.back().time_ms;
-        attitude.clear();
-    }
-    return;
-}
-
-void sendStatus()
-{
-    vector<Status> status;
-    status_mutex.lock();
-    status = status_topic;
-    status_topic.clear();
-    status_mutex.unlock();
-    if( ! status.empty() )
-    {
-        sendMsg( STATUS_MSG, (uint16_t) sizeof(Status), &status.back() );
-    }
-    return;
-}
-
 void sendString()
 {
-    vector<string> string;
-    string_mutex.lock();
-    string = string_topic;
+    string msg;
+    vector<pair<int64_t, string>> string_vector;
+    int64_t timestamp = 0;
+    string_topic.recent(string_vector, timestamp);
     string_topic.clear();
-    string_mutex.unlock();
-    if( ! string.empty() )
+    if( ! string_vector.empty() )
     {
-        for( size_t i=0; i < string.size(); i++)
+        for( size_t i=0; i < string_vector.size(); i++)
         {
-            sendMsg( LOG_MSG, (uint16_t) string[i].size(), const_cast<char*>(string[i].data()) );
+            msg = string_vector[i].second;
+            sendMsg( LOG_MSG, (uint16_t) msg.size(), const_cast<char*>(msg.data()) );
         }
-    }
-    return;
-}
-
-void sendInputAttitude()
-{
-    vector<InputAttitude> input_attitude;
-    input_attitude_mutex.lock();
-    input_attitude = input_attitude_topic;
-    input_attitude_topic.clear();
-    input_attitude_mutex.unlock();
-    if( ! input_attitude.empty() )
-    {
-        sendMsg( INPUT_ATTITUDE_MSG, (uint16_t) ( input_attitude.size() * sizeof(InputAttitude) ), input_attitude.data() );
-    }
-    return;
-}
-
-void sendControlStatus()
-{
-    vector<ControlStatus> control_status;
-    ControlStatus status;
-    control_status_mutex.lock();
-    for( size_t i=0; i < control_status_topic.size(); i++ )
-    {
-        status = control_status_topic[i];
-        if( status.time_ms > sent_status_ms )
-        {
-            control_status.push_back( status );
-        }
-    }
-    control_status_mutex.unlock();
-    if( !control_status.empty() )
-    {
-        sendMsg(CONTROL_STATUS_MSG, (uint16_t) ( control_status.size() * sizeof(ControlStatus) ), control_status.data());
-        sent_status_ms = control_status.back().time_ms;
-        control_status.clear();
-    }
-    return;
-}
-void sendReference()
-{
-    vector<Reference> reference;
-    reference_mutex.lock();
-    reference = reference_topic;
-    reference_topic.clear();
-    reference_mutex.unlock();
-    if( ! reference.empty() )
-    {
-        sendMsg( REFERENCE_MSG, (uint16_t) (reference.size() * sizeof(Reference) ), reference.data() );
-    }
-    return;
-}
-
-void sendTarget()
-{
-    vector<DetectionResult> target;
-    DetectionResult tar;
-    target_mutex.lock();
-    for( size_t i=0; i < target_topic.size(); i++ )
-    {
-        tar = target_topic[i];
-        if( tar.time_ms > sent_target_ms )
-        {
-            target.push_back( tar );
-        }
-    }
-    target_mutex.unlock();
-    if( ! target.empty() )
-    {
-        sendMsg( TARGET_MSG, (uint16_t) ( target.size() * sizeof(DetectionResult) ), target.data() );
-        sent_target_ms = target.back().time_ms;
-        target.clear();
     }
     return;
 }
