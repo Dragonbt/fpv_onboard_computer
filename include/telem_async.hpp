@@ -19,8 +19,6 @@ using namespace std::chrono;
 
 extern Topic<PositionNED> position_ned_topic;
 
-extern Topic<PositionBody> position_body_topic;
-
 extern Topic<VelocityNED> velocity_ned_topic;
 
 extern Topic<VelocityBody> velocity_body_topic;

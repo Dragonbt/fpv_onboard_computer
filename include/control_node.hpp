@@ -32,10 +32,8 @@ extern Topic<int16_t> control_status_topic;
 extern Topic<DetectionResult> target_topic;
 
 float rad2deg(float rad);
-void controlLoop( FileNode control_config );
+void controlLoop( FileNode control_config, FileNode altitude_pid, FileNode vision_pid, FileNode flow_pid );
 
-void altitudeTest( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, float Kp_z, float Ki_z, float Kd_z,float Kp_x, float Ki_x, float Kd_x,float Kp_y, float Ki_y, float Kd_y );
-vector<float> positionThrustControl(vector<float> _pos_sp, shared_ptr<Telemetry> telemetry, float dt);
-float altitudeThrustControl( float altitude, shared_ptr<Telemetry> telemetry, float dt );
+void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, FileNode altitude_pid, FileNode vision_pid, FileNode flow_pid );
 
 #endif

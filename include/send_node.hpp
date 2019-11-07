@@ -38,8 +38,6 @@ extern Topic<string> string_topic;
 
 extern Topic<PositionNED> position_ned_topic;
 
-extern Topic<PositionBody> position_body_topic;
-
 extern Topic<VelocityNED> velocity_ned_topic;
 
 extern Topic<VelocityBody> velocity_body_topic;
@@ -50,7 +48,7 @@ extern Topic<VehicleStatus> vehicle_status_topic;
 
 extern Topic<InputAttitude> input_attitude_topic;
 
-extern Topic<double> down_reference_topic;
+extern Topic<float> down_reference_topic;
 
 extern Topic<int16_t> control_status_topic;
 

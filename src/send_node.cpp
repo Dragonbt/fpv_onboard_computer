@@ -43,14 +43,14 @@ void sendLoop( FileNode send_config )
         if( intervalMs(high_resolution_clock::now(), t0) > 300 )
         {
             sendHeartBeat();
-            sendStruct<PositionBody>(position_body_topic, sent_position_body_ms, POSITION_BODY_MSG);
+            sendStruct<PositionNED>(position_ned_topic, sent_position_body_ms, POSITION_NED_MSG);
             sendStruct<VelocityBody>(velocity_body_topic, sent_velocity_body_ms, VELOCITY_BODY_MSG);
             sendStruct<EulerAngle>(attitude_topic, sent_attitude_ms, ATTITUDE_MSG);
             sendStruct<VehicleStatus>(vehicle_status_topic, sent_vehicle_status_ms, VEHICLE_STATUS_MSG);
             sendStruct<DetectionResult>(target_topic, sent_target_ms, TARGET_MSG);
             sendStruct<int16_t>(control_status_topic, sent_control_status_ms, CONTROL_STATUS_MSG);
             sendStruct<InputAttitude>(input_attitude_topic, sent_input_attitude_ms, INPUT_ATTITUDE_MSG);
-            sendStruct<double>(down_reference_topic, sent_down_reference_ms, REFERENCE_MSG);
+            sendStruct<float>(down_reference_topic, sent_down_reference_ms, REFERENCE_MSG);
             sendString();
             t0 = high_resolution_clock::now();
         }

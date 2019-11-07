@@ -1,5 +1,217 @@
 #include "control_sync.hpp"
 
+void VisionRollThrustControl::reset(FileNode vision_pid, FileNode altitude_pid)
+{
+    vision_pid["Ky"] >> Ky;
+    vision_pid["Kz"] >> Kz;
+    vision_pid["Kp_y"] >> Kp_y;
+    vision_pid["Ki_y"] >> Ki_y;
+    vision_pid["Kd_y"] >> Kd_y;
+
+    altitude_thrust_control.reset(altitude_pid);
+
+    cout << "Vision Gain:" << endl;
+    cout << this->Ky << endl;
+    cout << this->Kz << endl;
+
+    cout << "Vision PID:" << endl;
+    cout << this->Kp_y << endl;
+    cout << this->Ki_y << endl;
+    cout << this->Kd_y << endl;
+}
+
+/*
+void VisionRollThrustControl::angleOffset( float& roll_deg, float& thrust, DetectionResult target, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms )
+{
+    time_change = dt_ms / 1000.0f;
+    float roll_rad = deg2rad( attitude.roll_deg );
+    //convert target from camera to body
+    float target_y_m = target.x_m * cos( roll_rad ) - target.y_m * sin( roll_rad );
+    float target_z_m = target.x_m * sin( roll_rad ) + target.y_m * cos( roll_rad );
+    float target_x_m = target.z_m;
+    z_deg = rad2deg( atan2f(target_z_m, target_x_m) );
+    pos_sp_z = Kz * z_deg + pos_ned.down_m;
+    alt_thrust = altitude_thrust_control.down(pos_sp_z, pos_ned, vel_body, attitude, dt_ms);
+
+    vel_y = vel_body.y_m_s;
+    vel_sp_y = vel_body.x_m_s * target_y_m / target_x_m;
+    roll_deg = calcRoll();
+    thrust = alt_thrust / ( cos(deg2rad(attitude.roll_deg)) * cos(deg2rad(attitude.pitch_deg)) );
+    limit_values(calcRoll(), -45.0f, 45.0f);
+    limit_values(thrust, 0.25f, 0.85f);
+    return;
+}
+
+void VisionRollThrustControl::hold(float& roll_deg, float& thrust, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms)
+{
+    time_change = dt_ms / 1000.0f;
+    alt_thrust = altitude_thrust_control.hold(pos_ned, vel_body, attitude, dt_ms);
+    
+    vel_y = vel_body.y_m_s;
+    roll_deg = calcRoll();
+    thrust = alt_thrust / ( cos(deg2rad(attitude.roll_deg)) * cos(deg2rad(attitude.pitch_deg)) );
+    limit_values(calcRoll(), -45.0f, 45.0f);
+    limit_values(thrust, 0.25f, 0.85f);
+    return;
+}
+
+float VisionRollThrustControl::calcRoll()
+{
+    vel_err_y = vel_sp_y - vel_y;
+    return Kp_y * vel_err_y;
+}
+*/
+
+void VisionRollThrustControl::angleOffset( float& roll_deg, float& thrust, DetectionResult target, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms )
+{
+    time_change = dt_ms / 1000.0f;
+    float roll_rad = deg2rad( attitude.roll_deg );
+    //convert target from camera to body
+    float target_y_m = target.x_m * cos( roll_rad ) - target.y_m * sin( roll_rad );
+    float target_z_m = target.x_m * sin( roll_rad ) + target.y_m * cos( roll_rad );
+    float target_x_m = target.z_m;
+    z_deg = rad2deg( atan2f(target_z_m, target_x_m) );
+    y_deg = rad2deg( atan2f(target_y_m, target.x_m) );
+
+    err_pos_y = Ky * y_deg;
+    err_pos_z = Kz * z_deg;
+    vel_err = -vel_body.y_m_s;
+
+    pos_sp_z = pos_ned.down_m + err_pos_z;
+    alt_thrust = altitude_thrust_control.down(pos_sp_z, pos_ned, vel_body, attitude, dt_ms);
+
+    roll_deg = calcRoll();
+    thrust = alt_thrust / ( cos(deg2rad(attitude.roll_deg)) * cos(deg2rad(attitude.pitch_deg)) );
+    limit_values(calcRoll(), -45.0f, 45.0f);
+    limit_values(thrust, 0.35f, 0.75f);
+    return;
+}
+
+void VisionRollThrustControl::hold(float& roll_deg, float& thrust, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms)
+{
+    time_change = dt_ms / 1000.0f;
+    alt_thrust = altitude_thrust_control.hold(pos_ned, vel_body, attitude, dt_ms);
+    
+    vel_err = -vel_body.y_m_s;
+    roll_deg = calcRoll();
+    thrust = alt_thrust / ( cos(deg2rad(attitude.roll_deg)) * cos(deg2rad(attitude.pitch_deg)) );
+    limit_values(calcRoll(), -45.0f, 45.0f);
+    limit_values(thrust, 0.35f, 0.75f);
+    return;
+}
+
+float VisionRollThrustControl::calcRoll()
+{
+    float thr_sp_y;
+	thrust_desired_y = Kp_y * err_pos_y + Kd_y * vel_err + int_pos_y;
+	float thrust_max_y_tilt = fabsf(alt_thrust) * tanf(tilt_max);//while in take_off or landing state i think the "cos(_pitch) * cos(_roll) = 1" => alt_thrust = thrust_z 
+	float thrust_max_y = sqrtf(thrust_max * thrust_max - alt_thrust * alt_thrust);
+	thrust_max_y = thrust_max_y_tilt < thrust_max_y ? thrust_max_y_tilt : thrust_max_y;
+	// Saturate thrust in NE-direction.
+    thr_sp_y = thrust_desired_y;
+
+	if (thr_sp_y  > thrust_max_y) {
+		thr_sp_y = thrust_max_y;			
+	}
+	// Use tracking Anti-Windup for NE-direction: during saturation, the integrator is used to unsaturate the output
+	// see Anti-Reset Windup for PID controllers, L.Rundqwist, 1990
+	float arw_gain = 2.f / Kp_y;
+    float vel_err_lim = 0.0f;
+	vel_err_lim = err_pos_y - (thrust_desired_y - thr_sp_y) * arw_gain;
+	
+    // Update integral
+	int_pos_y = int_pos_y + Ki_y * vel_err_lim * time_change;
+	//_thr_int(1) += _param_mpc_xy_vel_i.get() * vel_err_lim(1) * dt;
+
+	thr_sp_y = limit_values(thr_sp_y, -0.707f * alt_thrust, 0.707f * alt_thrust);
+	//cout << "_thr_sp[0] = " << _thr_sp[0] << " " << "_thr_sp[1] = " << _thr_sp[1] << " " << "_thr_sp[2] = " << _thr_sp[2] << endl;
+	float roll_sp = asinf(thr_sp_y / alt_thrust);
+    return rad2deg(roll_sp);
+}
+
+void AltitudeThrustControl::reset(FileNode altitude_pid)
+{
+    altitude_pid["Kp_z"] >> Kp_z;
+    altitude_pid["Ki_z"] >> Ki_z;
+    altitude_pid["Kd_z"] >> Kd_z;
+    int_pos_z = 0;
+    stop_integral_D = false;
+
+    cout << "Altitude PID:" << endl;
+    cout << this->Kp_z << endl;
+    cout << this->Ki_z << endl;
+    cout << this->Kd_z << endl;
+    return;
+}
+
+float AltitudeThrustControl::landing()
+{
+    float thrust;
+	if (times < 2000 / 20){// first 2 second
+        thrust = mid_thrust - 0.06f;
+	}
+	else if (times < 4000 / 20) {
+        thrust = mid_thrust - 0.12f;
+	}
+	else {
+        thrust = mid_thrust - 0.2f;
+	}
+	times++;
+    return thrust;
+}
+
+float AltitudeThrustControl::downOffset( float err, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms )
+{
+    time_change = dt_ms / 1000.0f;
+    pos_z = pos_ned.down_m;
+    vel_z = vel_body.z_m_s;
+    roll = attitude.roll_deg;
+    pitch = attitude.pitch_deg;
+    pos_sp_z = pos_z + err;
+    return calcThrust();
+}
+
+float AltitudeThrustControl::down(float pos_sp_z, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms)
+{
+    time_change = dt_ms / 1000.0f;
+    pos_z = pos_ned.down_m;
+    vel_z = vel_body.z_m_s;
+    roll = attitude.roll_deg;
+    pitch = attitude.pitch_deg;
+    this->pos_sp_z = pos_sp_z;
+    return calcThrust();
+}
+
+float AltitudeThrustControl::hold(PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms)
+{
+    time_change = dt_ms / 1000.0f;
+    pos_z = pos_ned.down_m;
+    vel_z = vel_body.z_m_s;
+    roll = attitude.roll_deg;
+    pitch = attitude.pitch_deg;
+    return calcThrust();
+}
+
+float AltitudeThrustControl::calcThrust()
+{
+    float thrust;
+    down_reference_topic.update(pos_sp_z);
+    err_pos_z = pos_sp_z - pos_z;
+    //offset_thrust = mid_thrust / (cos(deg2rad(pitch))*cos(deg2rad(roll)));
+    offset_thrust = mid_thrust;
+    thrust_desired_D = Kp_z * err_pos_z + Kd_z * (-vel_z) + int_pos_z - offset_thrust;
+    stop_integral_D = (thrust_desired_D >= uMax && err_pos_z >= 0.0f) ||
+			(thrust_desired_D <= uMin && err_pos_z <= 0.0f);
+    if( ! stop_integral_D )
+    {
+        int_pos_z += err_pos_z * Ki_z * time_change;
+        sign_thr_int_z = int_pos_z > 0 ? 1 : -1;
+		int_pos_z = std::min(fabsf(int_pos_z), 1.0f) * sign_thr_int_z;
+    }
+    thrust = limit_values(-thrust_desired_D, uMin, uMax);
+    return thrust;
+}
+
 void healthCheck( shared_ptr<Telemetry> telemetry )
 {
     while ( ! telemetry->health_all_ok() ) {

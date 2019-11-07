@@ -17,43 +17,36 @@ void setTelemetry( shared_ptr<Telemetry> telemetry )
     // Set up callback to monitor altitude while the vehicle is in flight
     telemetry->position_velocity_ned_async([](Telemetry::PositionVelocityNED position_velocity_ned){
         PositionNED position_ned;
-        PositionBody position_body;
         VelocityNED velocity_ned;
         VelocityBody velocity_body;
         EulerAngle attitude;
-        float yaw_rad;
         int64_t timestamp;
         
-        position_ned.north_m = position_velocity_ned.position.north_m;
-        position_ned.east_m = position_velocity_ned.position.east_m;
-        position_ned.down_m = position_velocity_ned.position.down_m;
+        // position_ned.north_m = position_velocity_ned.position.north_m;
+        // position_ned.east_m = position_velocity_ned.position.east_m;
+        // position_ned.down_m = position_velocity_ned.position.down_m;
+        memcpy(&position_ned, &position_velocity_ned.position, sizeof position_ned);
         position_ned_topic.update(position_ned);
 
-        velocity_ned.north_m_s = position_velocity_ned.velocity.north_m_s;
-        velocity_ned.east_m_s = position_velocity_ned.velocity.east_m_s;
-        velocity_ned.down_m_s = position_velocity_ned.velocity.down_m_s;
+        // velocity_ned.north_m_s = position_velocity_ned.velocity.north_m_s;
+        // velocity_ned.east_m_s = position_velocity_ned.velocity.east_m_s;
+        // velocity_ned.down_m_s = position_velocity_ned.velocity.down_m_s;
+        memcpy(&velocity_ned, &position_velocity_ned.velocity, sizeof velocity_ned);
         velocity_ned_topic.update(velocity_ned);
 
         if( attitude_topic.latest(timestamp, attitude) )
         {
-            yaw_rad = attitude.yaw_deg * 3.14 / 180;
-            position_body.x_m = position_ned.north_m * cos(yaw_rad) + position_ned.east_m * sin(yaw_rad);
-            position_body.y_m = position_ned.north_m * sin(-yaw_rad) + position_ned.east_m * cos(yaw_rad);
-            position_body.z_m = position_ned.down_m;
-            position_body_topic.update(position_body);
-
-            velocity_body.x_m_s = velocity_ned.north_m_s * cos(yaw_rad) + velocity_ned.east_m_s * sin(yaw_rad);
-            velocity_body.y_m_s = velocity_ned.north_m_s * sin(-yaw_rad) + velocity_ned.east_m_s * cos(yaw_rad);
-            velocity_body.z_m_s = velocity_ned.down_m_s;
+            velocity_body = velocityNED2Body(velocity_ned, attitude);
             velocity_body_topic.update(velocity_body);
         }
     });
 
     telemetry->attitude_euler_angle_async([](Telemetry::EulerAngle attitude_euler_angle){
         EulerAngle euler_angle;
-        euler_angle.roll_deg = attitude_euler_angle.roll_deg;
-        euler_angle.pitch_deg = attitude_euler_angle.pitch_deg;
-        euler_angle.yaw_deg = attitude_euler_angle.yaw_deg;
+        // euler_angle.roll_deg = attitude_euler_angle.roll_deg;
+        // euler_angle.pitch_deg = attitude_euler_angle.pitch_deg;
+        // euler_angle.yaw_deg = attitude_euler_angle.yaw_deg;
+        memcpy(&euler_angle, &attitude_euler_angle, sizeof euler_angle);
         attitude_topic.update(euler_angle);
     });
 

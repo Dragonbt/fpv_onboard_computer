@@ -26,11 +26,15 @@ int main( int argc, char* argv[] )
     FileNode recv_config = config["SOCKET_RECV_NODE"];
     FileNode control_config = config["CONTROL_NODE"];
 
+    FileNode altitude_pid = config["ALTITUDE_PID_PARAM"];
+    FileNode vision_pid = config["VISION_PID_PARAM"];
+    FileNode flow_pid = config["FLOW_PID_PARAM"];
+
     thread camera_node( cameraLoop, camera_config );
     //thread camera_node_test( cameraLoopTest );
     thread socket_send_node( sendLoop, send_config );
     thread socket_recv_node( recvLoop, recv_config );
-    thread control_node( controlLoop, control_config );
+    thread control_node( controlLoop, control_config, altitude_pid, vision_pid, flow_pid );
     camera_node.join();
     //camera_node_test.join();
     socket_send_node.join();

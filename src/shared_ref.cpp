@@ -32,8 +32,6 @@ Topic<string> string_topic(init_timepoint, 5);
 
 Topic<PositionNED> position_ned_topic(init_timepoint, 40);
 
-Topic<PositionBody> position_body_topic(init_timepoint, 40);
-
 Topic<VelocityNED> velocity_ned_topic(init_timepoint, 40);
 
 Topic<VelocityBody> velocity_body_topic(init_timepoint, 40);
@@ -45,7 +43,7 @@ Topic<VehicleStatus> vehicle_status_topic(init_timepoint, 40);
 //Topic<InputVelocityBody> input_velocity_body_topic(init_timepoint, 40);
 Topic<InputAttitude> input_attitude_topic(init_timepoint, 40);
 
-Topic<double> down_reference_topic(init_timepoint, 40);
+Topic<float> down_reference_topic(init_timepoint, 40);
 
 Topic<MissionCommand> mission_command_topic(init_timepoint, 1);
 

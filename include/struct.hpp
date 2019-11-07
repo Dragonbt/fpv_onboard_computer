@@ -4,13 +4,36 @@
 #include <chrono>
 #include <deque>
 
+struct Vector2f{
+    float x;
+    float y;
+    Vector2f operator+( const Vector2f right){
+        Vector2f sum;
+        sum.x = x + right.x;
+        sum.y = y + right.y;
+        return sum;
+    }
+    float operator*( const Vector2f right){
+        float dot;
+        dot = x * right.x + y * right.y;
+        return dot;
+    }
+};
+
+struct Vector3f{
+    float x;
+    float y;
+    float z;
+};
+
+//"qifffff" size: 8+4+4 + 8*2=32
 struct DetectionResult{
-    int16_t index = 0;
-    double distance_m = 0;
-    double x_m = 0;
-    double y_m = 0;
-    double z_m = 0;
-    double confidence = -1;
+    int32_t index = 0;
+    float distance_m = 0;
+    float x_m = 0;
+    float y_m = 0;
+    float z_m = 0;
+    float confidence = -1;
 };
 //sizeof MissionCommand
 struct MissionCommand{
@@ -19,69 +42,65 @@ struct MissionCommand{
     double argv[5] = {0};
 };
 
-//sizeof PositionNED = 8*3 + 64/8 = 32bytes
+//"qfff4x" size 8*3 = 24
 struct PositionNED{
-    double north_m = 0;
-    double east_m = 0;
-    double down_m = 0;
+    float north_m = 0;
+    float east_m = 0;
+    float down_m = 0;
 };
 
-struct PositionBody{
-    double x_m = 0;
-    double y_m = 0;
-    double z_m = 0;
-};
-
-//sizeof VelocityNED = 8*3 + 64/8 = 32bytes
+//"qfff4x" size 24
 struct VelocityNED{
-    double north_m_s = 0;
-    double east_m_s = 0;
-    double down_m_s = 0;
+    float north_m_s = 0;
+    float east_m_s = 0;
+    float down_m_s = 0;
 };
 
+//"qfff4x" size 24
 struct VelocityBody{
-    double x_m_s;
-    double y_m_s;
-    double z_m_s;
+    float x_m_s = 0;
+    float y_m_s = 0;
+    float z_m_s = 0;
 };
 
-//sizeof EulerAngle = 8*3 + 64/8 = 32bytes
+//"qfff4x" size 24
 struct EulerAngle{
-    double roll_deg = 0;
-    double pitch_deg = 0;
-    double yaw_deg = 0;
+    float roll_deg = 0;
+    float pitch_deg = 0;
+    float yaw_deg = 0;
 };
 
+//"qffff" size 24
 struct InputVelocityBody{
-    double forward_m_s = 0;
-    double right_m_s = 0;
-    double down_m_s = 0;
-    double yawspeed_deg_s = 0;
+    float forward_m_s = 0;
+    float right_m_s = 0;
+    float down_m_s = 0;
+    float yawspeed_deg_s = 0;
 };
 
-//sizeof InputAttitude = 8*4 + 8 = 40
+//"qffff" size 24
 struct InputAttitude{
-    double roll_deg = 0;
-    double pitch_deg = 0;
-    double yaw_deg = 0;
-    double thrust = 0;
+    float roll_deg = 0;
+    float pitch_deg = 0;
+    float yaw_deg = 0;
+    float thrust = 0;
 };
 
-//sizeof Status = 8 + 8*3 + 56 = 88bytes
+//"q????fff50s6x" size 8 + 8 + 8 + 56 = 80
 struct VehicleStatus{
     bool armed = false;
     bool in_air = false;
     bool rc_available_once = false;
     bool rc_available = false;
-    double rc_signal_strength_percent = 0;
-    double battery_voltage_v = 0;
-    double battery_remaining_percent = 0;
+    float rc_signal_strength_percent = 0;
+    float battery_voltage_v = 0;
+    float battery_remaining_percent = 0;
     char flight_mode[50] = " ";
 };
 
 struct XYReference{
-    double x_m;
-    double y_m;
+    float x_m = 0;
+    float y_m = 0;
 };
 
 #endif
