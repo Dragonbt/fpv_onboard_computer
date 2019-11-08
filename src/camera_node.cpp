@@ -21,11 +21,11 @@ void cameraLoop( FileNode camera_config )
     }
 
     Mat image;
-    int camera_status;
+    int camera_status = 2;
 
     //VideoCapture cap("../testset/demo4.avi");
     Camera cap;
-    Video video("../log", width, height);
+    Video video("../", width, height);
     CircleDetector detector(DETECT_AND_TRACK, RED, 0);
     Rect2f roi;
     float confidence, distance;
@@ -40,7 +40,6 @@ void cameraLoop( FileNode camera_config )
     while( true )
     {
         cap.read( image );
-        camera_status = 1;
         switch( camera_status )
         {
         case 0:
@@ -55,16 +54,9 @@ void cameraLoop( FileNode camera_config )
                 result.x_m = orientation[0];
                 result.y_m = orientation[1];
                 result.z_m = orientation[2];
+                target_topic.update(result);
                 rectangle( image, roi, Scalar( 0, 255, 0 ), 8, 1 );
             }
-            else{
-                result.confidence = -1;
-                result.distance_m = 0;
-                result.x_m = 0;
-                result.y_m = 0;
-                result.z_m = 0;    
-            }
-            target_topic.update(result);
             image_topic.update(image.clone());
             break;
         case 2:

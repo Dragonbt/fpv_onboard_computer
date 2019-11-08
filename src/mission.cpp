@@ -6,7 +6,7 @@ using namespace std;
 void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, FileNode altitude_pid, FileNode vision_pid, FileNode flow_pid )
 {
 	int16_t status = WAIT_COMMAND;
-	int64_t timestamp;
+	int64_t command_timestamp, target_timestamp;
 	double param;
 	MissionCommand command;
 	Telemetry::PositionVelocityNED position_velocity_ned;
@@ -27,7 +27,7 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 
 	int period_ms;
 	int64_t last_peroid = timestampf();
-	int64_t last_seen = timestampf();
+	int fail_cnt = 0;
     while(true)
     {
 		//only read telemetry data once every iteration
@@ -39,12 +39,11 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 		velocity_body = velocityNED2Body(velocity_ned, attitude);
 
 		//receive ground control command
-		if( mission_command_topic.latest(timestamp, command) )
+		if( mission_command_topic.latest(command_timestamp, command) )
 		{
 			mission_command_topic.clear();
 			status = command.index;
 			param = command.argv[0];
-			control_status_topic.update(status);
 		}
 		else{
 			param = 0.0;
@@ -56,6 +55,7 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 		}
 
 		//ignore compute time, this loop update every 20ms
+		control_status_topic.update(status);
 		switch( status )
 		{
 			case WAIT_COMMAND:
@@ -65,7 +65,7 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 				//do nothing
 				break;
 			case SAFE_QUIT_COMMAND:
-				remotePrint("[WARNIGN]: LANDING!");
+				//remotePrint("[WARNIGN]: LANDING!");
 				thrust = altitude_thrust_control.landing();
 				input_attitude = {0.0f, 0.0f, attitude.yaw_deg, thrust};
 				offbCtrlAttitude(offboard, input_attitude);
@@ -89,29 +89,31 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 				offbCtrlAttitude(offboard, input_attitude);
 				break;
 			case VISION_CONTROL_COMMAND:
-				target_topic.latest(timestamp, target);
-				if( target.confidence > 0 && timestampf() - timestamp < 30 )
+				if ( ! target_topic.latest(target_timestamp, target) ){
+					fail_cnt ++;
+					break;
+				}
+				if( timestampf() - target_timestamp < 30 )
 				{
-					last_seen = timestampf();
 					vision_roll_thrust_control.angleOffset(roll_deg, thrust, target, position_ned, velocity_body, attitude, period_ms);
+					fail_cnt = 0;
 				}
 				else{
-					if( timestampf() - last_seen > 1000 )
-					{
-						remotePrint("[WARNING]: TIME OUT!");
-						status = SAFE_QUIT_COMMAND;
-						break;
-					}
 					vision_roll_thrust_control.hold(roll_deg, thrust, position_ned, velocity_body, attitude, period_ms);
+					fail_cnt ++;
+				}
+				if( fail_cnt > VISION_FAIL_TOLERENCE )
+				{
+					remotePrint("TIMEOUT!");
+					status = SAFE_QUIT_COMMAND;
 				}
 				input_attitude = {roll_deg, 0.0f, yaw_deg, thrust};
 				offbCtrlAttitude(offboard, input_attitude);
 				break;
 		}
 		this_thread::sleep_for(milliseconds(20));
-		timestamp = timestampf();
-		period_ms = timestamp - last_peroid;
-		last_peroid = timestamp;	
-	}
+		period_ms = timestampf() - last_peroid;
+		last_peroid = timestampf();
+	}	
     return;
 }

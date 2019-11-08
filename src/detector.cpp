@@ -323,7 +323,7 @@ bool CircleDetector::run(Mat image, Rect2f &rec, float& confidence)
     */
     case TRACKING:
         tracker.detectMultiScale(image, rec_i, confidence, scale, scale_steps);
-        if(confidence > 0.5)
+        if(confidence > 0.3)
         {
             fail_cnt = 0;
             tracker.updateTracker(image, rec_i, scale);

@@ -35,4 +35,5 @@
 #define SEARCH_RING 11
 
 #define ALTITUDE_UPPER_BOUND 3
+#define VISION_FAIL_TOLERENCE 50
 #endif
