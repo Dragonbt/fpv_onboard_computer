@@ -51,7 +51,7 @@ void FlowPosThrustControl::calcRollPitchThrust(float& roll_deg, float& pitch_deg
     ne_reference_topic.update(pos_sp_ne);
     Vector2f thrust_xy = {0.0f, 0.0f};
     Vector2f thrust_desired = {0.0f, 0.0f};
-    thrust_desired = Kp * pos_err_xy;// + Kd * vel_err_xy + int_pos_xy;
+    thrust_desired = Kp * pos_err_xy + Kd * vel_err_xy + int_pos_xy;
     thrust_xy = thrust_desired;
 
     float thrust_max_NE_tilt = fabsf(alt_thrust) * tanf(tilt_max);//while in take_off or landing state i think the "cos(_pitch) * cos(_roll) = 1" => alt_thrust = thrust_z 
@@ -75,8 +75,11 @@ void FlowPosThrustControl::calcRollPitchThrust(float& roll_deg, float& pitch_deg
 	int_pos_xy = int_pos_xy + Ki * vel_err_lim * time_change;
     Vector3f thrust_xyz = {thrust_xy.x, thrust_xy.y, alt_thrust};
     thrust = mag3f(thrust_xyz);
-    roll_deg = rad2deg( atan2f(-thrust_xyz.y, thrust_xyz.z) );
-    pitch_deg = rad2deg( atan2f(thrust_xyz.x, sqrtf(thrust_xyz.y*thrust_xyz.y+thrust_xyz.z*thrust_xyz.z)) );
+    // roll_deg = rad2deg( atan2f(-thrust_xyz.y, thrust_xyz.z) );
+    // pitch_deg = rad2deg( atan2f(thrust_xyz.x, sqrtf(thrust_xyz.y*thrust_xyz.y+thrust_xyz.z*thrust_xyz.z)) );
+    roll_deg = asinf(thrust_xyz.y / thrust_xyz.z);
+	pitch_deg = -asinf(thrust_xyz.x / thrust_xyz.z);
+
     roll_deg=limit_values(roll_deg,-10.0f,10.0f);
     pitch_deg= limit_values(pitch_deg,-10.0f,10.0f);
 }
