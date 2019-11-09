@@ -19,15 +19,18 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 
 	AltitudeThrustControl altitude_thrust_control;
 	VisionRollThrustControl vision_roll_thrust_control;
+	FlowPosThrustControl flow_pos_thrust_control;
 	altitude_thrust_control.reset(altitude_pid);
 	vision_roll_thrust_control.reset(vision_pid, altitude_pid);
+	flow_pos_thrust_control.reset(flow_pid, altitude_pid);
 
 	Offboard::Attitude input_attitude;
 	float roll_deg, pitch_deg, yaw_deg, thrust;
-
+	float pos_sp_z;
 	int period_ms;
 	int64_t last_peroid = timestampf();
 	int fail_cnt = 0;
+	Vector3f offset_body;
     while(true)
     {
 		//only read telemetry data once every iteration
@@ -62,6 +65,7 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 				roll_deg = attitude.roll_deg;
 				pitch_deg = attitude.pitch_deg;
 				yaw_deg = attitude.yaw_deg;
+				pos_sp_z = position_ned.down_m;
 				//do nothing
 				break;
 			case SAFE_QUIT_COMMAND:
@@ -88,11 +92,31 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 				//cout << thrust << endl;
 				offbCtrlAttitude(offboard, input_attitude);
 				break;
+			case FLOW_HOLD_COMMAND:
+			    offset_body = {0.0f, 0.0f, 0.0f};
+				flow_pos_thrust_control.positionBodyOffset(roll_deg, pitch_deg, thrust, offset_body, position_ned, velocity_body, attitude, period_ms);
+				input_attitude = {roll_deg, pitch_deg, yaw_deg, thrust};
+				offbCtrlAttitude(offboard, input_attitude);
+				status = FLOW_HOLD_MODE;
+				remotePrint("Flow Hold!");
+				break;
+			case FLOW_HOLD_MODE:
+				flow_pos_thrust_control.hold(roll_deg, pitch_deg, thrust, position_ned, velocity_body, attitude, period_ms);
+				input_attitude = {roll_deg, pitch_deg, yaw_deg, thrust};
+				offbCtrlAttitude(offboard, input_attitude);
+				break;
 			case VISION_CONTROL_COMMAND:
-				if ( ! target_topic.latest(target_timestamp, target) ){
-					fail_cnt ++;
-					break;
+				if ( ! target_topic.latest(target_timestamp, target) || timestampf() - target_timestamp > 30){
+					thrust = altitude_thrust_control.down(pos_sp_z, position_ned, velocity_body, attitude, period_ms);
+					input_attitude = {0.0f, 0.0f, yaw_deg, thrust};
+					offbCtrlAttitude(offboard, input_attitude);
 				}
+				else{
+					remotePrint("VISION CONTROL!");
+					status = VISION_CONTROL_MODE;
+				}
+				break;
+			case VISION_CONTROL_MODE:
 				if( timestampf() - target_timestamp < 30 )
 				{
 					vision_roll_thrust_control.angleOffset(roll_deg, thrust, target, position_ned, velocity_body, attitude, period_ms);

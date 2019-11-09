@@ -37,6 +37,14 @@ Vector2f xy2ne( Vector2f ne, float yaw_deg );
 
 VelocityBody velocityNED2Body(VelocityNED velocity_ned, EulerAngle attitude);
 
+inline float mag3f(Vector3f vec){
+	return sqrtf(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z);
+}
+
+inline float mag2f(Vector2f vec){
+	return sqrtf(vec.x * vec.x + vec.y * vec.y);
+};
+
 inline vector<float> pos_ne2xy(vector<float>pos_ne, float yaw_rad) {
 	vector<float> pos_xy = { 0.0f,0.0f };
 	pos_xy[0] = cos(yaw_rad) * pos_ne[0] + sin(yaw_rad) * pos_ne[1];

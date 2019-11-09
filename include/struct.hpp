@@ -13,10 +13,29 @@ struct Vector2f{
         sum.y = y + right.y;
         return sum;
     }
-    float operator*( const Vector2f right){
-        float dot;
-        dot = x * right.x + y * right.y;
+    Vector2f operator-( const Vector2f right){
+        Vector2f err;
+        err.x = x - right.x;
+        err.y = y - right.y;
+        return err;
+    }
+    Vector2f operator*( const Vector2f right){
+        Vector2f dot;
+        dot.x = x * right.x;
+        dot.y = y * right.y;
         return dot;
+    }
+    Vector2f operator*( float a){
+        Vector2f dot;
+        dot.x = x * a;
+        dot.y = y * a;
+        return dot;
+    }
+    Vector2f operator/(float a){
+        Vector2f div;
+        div.x = x / a;
+        div.y = y / a;
+        return div;
     }
 };
 

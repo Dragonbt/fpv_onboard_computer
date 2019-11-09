@@ -68,7 +68,7 @@ class VisionRollThrustControl{
     float int_pos_y = 0.0f;
     float vel_err = 0.0f;
     float tilt_max = P_I / 4;
-    float thrust_max = 1;
+    float thrust_max = 1.0f;
     float thrust_desired_y;
     float alt_thrust;
     float time_change;
@@ -78,5 +78,27 @@ class VisionRollThrustControl{
     float vel_err_y = 0.0f;
     float pos_sp_z;
     float calcRoll();
+};
+
+class FlowPosThrustControl {
+public:
+	void reset(FileNode flow_pid, FileNode altitude_pid);
+    void positionBodyOffset( float& roll_deg, float& pitch_deg, float& thrust, Vector3f offset_body, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms);
+    void hold(float& roll_deg, float& pitch_deg, float& thrust, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms);
+	void calcRollPitchThrust(float& roll_deg, float& pitch_deg, float thrust);
+private:
+	AltitudeThrustControl altitude_thrust_control;
+	Vector2f int_pos_xy = { 0.0f,0.0f };
+    Vector2f pos_sp_ne;
+    float pos_sp_d;
+    Vector2f pos_err_ne;
+    Vector2f pos_err_xy;
+    Vector2f vel_err_xy;
+	float Kp_x, Kp_y, Ki_x, Ki_y, Kd_x, Kd_y;
+    Vector2f Kp, Ki, Kd;
+    float alt_thrust;
+    float tilt_max = P_I / 4;
+    float thrust_max = 1.0f;
+    float time_change;
 };
 #endif
