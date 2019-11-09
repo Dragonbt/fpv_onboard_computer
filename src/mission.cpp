@@ -84,7 +84,7 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 				status = ALTITUDE_STAY_MODE;
 				cout << param << endl;
 				thrust = altitude_thrust_control.downOffset(-param, position_ned, velocity_body, attitude, period_ms);
-				input_attitude = {5.0f, 5.0f, yaw_deg, thrust};
+				input_attitude = {0.0f, 0.0f, yaw_deg, thrust};
 				offbCtrlAttitude(offboard, input_attitude);
 				break;
 			case ALTITUDE_STAY_MODE:
