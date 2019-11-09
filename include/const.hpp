@@ -3,7 +3,7 @@
 
 #define P_I 3.14159
 
-#define MAX_MSG_LENGTH 0x22FF
+#define MAX_MSG_LENGTH 0x9FFF
 #define HEAD 0xAAAA
 #define TAIL 0xDDDD
 
@@ -17,8 +17,9 @@
 #define INPUT_ATTITUDE_MSG 5
 #define VEHICLE_STATUS_MSG 6
 #define LOG_MSG 7
-#define REFERENCE_MSG 8
+#define REFERENCE_DOWN_MSG 8
 #define TARGET_MSG 9
+#define REFERENCE_NE_MSG 10
 #define CONTROL_STATUS_MSG 11
 
 #define MISSION_COMMAND_MSG 15

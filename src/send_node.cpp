@@ -36,7 +36,7 @@ void sendLoop( FileNode send_config )
     send_to_addr.sin_family = AF_INET; 
     send_to_addr.sin_port = htons( port );
     
-    int64_t sent_position_body_ms = 0, sent_velocity_body_ms = 0, sent_attitude_ms = 0, sent_input_attitude_ms=0, sent_target_ms = 0,sent_vehicle_status_ms=0, sent_control_status_ms=0, sent_down_reference_ms=0;
+    int64_t sent_position_body_ms = 0, sent_velocity_body_ms = 0, sent_attitude_ms = 0, sent_input_attitude_ms=0, sent_target_ms = 0,sent_vehicle_status_ms=0, sent_control_status_ms=0, sent_down_reference_ms=0, sent_ne_reference_ms=0;
     high_resolution_clock::time_point t0 = high_resolution_clock::now();
     while( true )
     {
@@ -50,7 +50,8 @@ void sendLoop( FileNode send_config )
             sendStruct<DetectionResult>(target_topic, sent_target_ms, TARGET_MSG);
             sendStruct<int16_t>(control_status_topic, sent_control_status_ms, CONTROL_STATUS_MSG);
             sendStruct<InputAttitude>(input_attitude_topic, sent_input_attitude_ms, INPUT_ATTITUDE_MSG);
-            sendStruct<float>(down_reference_topic, sent_down_reference_ms, REFERENCE_MSG);
+            sendStruct<float>(down_reference_topic, sent_down_reference_ms, REFERENCE_DOWN_MSG);
+            sendStruct<Vector2f>(ne_reference_topic, sent_ne_reference_ms, REFERENCE_NE_MSG);
             sendString();
             t0 = high_resolution_clock::now();
         }

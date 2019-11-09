@@ -50,6 +50,8 @@ extern Topic<InputAttitude> input_attitude_topic;
 
 extern Topic<float> down_reference_topic;
 
+extern Topic<Vector2f> ne_reference_topic;
+
 extern Topic<int16_t> control_status_topic;
 
 void sendLoop( FileNode send_config );

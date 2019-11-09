@@ -31,7 +31,7 @@ void FlowPosThrustControl::positionBodyOffset( float& roll_deg, float& pitch_deg
     pos_err_ne = xy2ne(pos_ne, attitude.yaw_deg);
     pos_sp_ne = pos_ne + pos_err_ne;
     vel_err_xy = {-vel_body.x_m_s, -vel_body.y_m_s};
-    float alt_thrust = altitude_thrust_control.downOffset(offset_body.z, pos_ned, vel_body, attitude, dt_ms);
+    alt_thrust = altitude_thrust_control.downOffset(offset_body.z, pos_ned, vel_body, attitude, dt_ms);
     calcRollPitchThrust(roll_deg, pitch_deg, thrust);
 }
 
@@ -41,12 +41,13 @@ void FlowPosThrustControl::hold(float& roll_deg, float& pitch_deg, float& thrust
     Vector2f pos_ne = {pos_ned.north_m, pos_ned.east_m};
     pos_err_xy = pos_sp_ne - pos_ne;
     vel_err_xy = {-vel_body.x_m_s, -vel_body.y_m_s};
-    float alt_thrust = altitude_thrust_control.hold(pos_ned, vel_body, attitude, dt_ms);
+    alt_thrust = altitude_thrust_control.hold(pos_ned, vel_body, attitude, dt_ms);
     calcRollPitchThrust(roll_deg, pitch_deg, thrust);
 }
 
-void FlowPosThrustControl::calcRollPitchThrust(float& roll_deg, float& pitch_deg, float thrust)
+void FlowPosThrustControl::calcRollPitchThrust(float& roll_deg, float& pitch_deg, float& thrust)
 {
+    ne_reference_topic.update(pos_sp_ne);
     Vector2f thrust_xy = {0.0f, 0.0f};
     Vector2f thrust_desired = {0.0f, 0.0f};
     thrust_desired = Kp * pos_err_xy + Kd * vel_err_xy + int_pos_xy;

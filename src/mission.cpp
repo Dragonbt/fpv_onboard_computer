@@ -54,7 +54,8 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 
 		if( -position_ned.down_m > ALTITUDE_UPPER_BOUND )
 		{
-			status = SAFE_QUIT_COMMAND;
+			if(status != FORCE_QUIT_COMMAND)
+				status = SAFE_QUIT_COMMAND;
 		}
 
 		//ignore compute time, this loop update every 20ms
