@@ -28,7 +28,7 @@ void FlowPosThrustControl::positionBodyOffset( float& roll_deg, float& pitch_deg
     time_change = dt_ms / 1000.0f;
     Vector2f pos_ne = {pos_ned.north_m, pos_ned.east_m};
     pos_err_xy = {offset_body.x, offset_body.y};
-    pos_err_ne = xy2ne(pos_ne, attitude.yaw_deg);
+    pos_err_ne = xy2ne(pos_err_xy, attitude.yaw_deg);
     pos_sp_ne = pos_ne + pos_err_ne;
     vel_err_xy = {-vel_body.x_m_s, -vel_body.y_m_s};
     alt_thrust = altitude_thrust_control.downOffset(offset_body.z, pos_ned, vel_body, attitude, dt_ms);
