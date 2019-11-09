@@ -51,7 +51,7 @@ void FlowPosThrustControl::calcRollPitchThrust(float& roll_deg, float& pitch_deg
     ne_reference_topic.update(pos_sp_ne);
     Vector2f thrust_xy = {0.0f, 0.0f};
     Vector2f thrust_desired = {0.0f, 0.0f};
-    thrust_desired = Kp * pos_err_xy + Kd * vel_err_xy + int_pos_xy;
+    thrust_desired = Kp * pos_err_xy;// + Kd * vel_err_xy + int_pos_xy;
     thrust_xy = thrust_desired;
 
     float thrust_max_NE_tilt = fabsf(alt_thrust) * tanf(tilt_max);//while in take_off or landing state i think the "cos(_pitch) * cos(_roll) = 1" => alt_thrust = thrust_z 
