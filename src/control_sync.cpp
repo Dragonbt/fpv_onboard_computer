@@ -39,7 +39,8 @@ void FlowPosThrustControl::hold(float& roll_deg, float& pitch_deg, float& thrust
 {
     time_change = dt_ms / 1000.0f;
     Vector2f pos_ne = {pos_ned.north_m, pos_ned.east_m};
-    pos_err_xy = pos_sp_ne - pos_ne;
+    pos_err_ne = pos_sp_ne - pos_ne;
+    pos_err_xy = ne2xy(pos_err_ne, attitude.yaw_deg);
     vel_err_xy = {-vel_body.x_m_s, -vel_body.y_m_s};
     alt_thrust = altitude_thrust_control.hold(pos_ned, vel_body, attitude, dt_ms);
     calcRollPitchThrust(roll_deg, pitch_deg, thrust);
