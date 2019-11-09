@@ -56,6 +56,7 @@ class AltitudeThrustControl{
     int times = 0;
     float min_vx_find_loop = 0.0f;
     float tilt_max = P_I / 4.0f;
+    float thrust_max = 1.0f;
     float calcThrust();
 };
 

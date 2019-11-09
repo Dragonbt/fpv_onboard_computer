@@ -244,7 +244,7 @@ void AltitudeThrustControl::braking(float& roll_deg, float& pitch_deg, float& th
 	Vector2f Vxy = { vel_body.x_m_s, vel_body.y_m_s};
 	Vector2f Vxy_sp = { min_vx_find_loop ,0.0f };
 	Vector2f Vxy_err = Vxy_sp - Vxy;
-	Vector2f Kp_brank = { 1.0f,1.0f };
+	Vector2f Kp_brank = { 0.1f,0.1f };
 	
 	//float Ki_brank = 0.01f;
 	//float thrustx = Kp_brank * Vx_err + _int_vel_x;
@@ -252,12 +252,12 @@ void AltitudeThrustControl::braking(float& roll_deg, float& pitch_deg, float& th
 	//_int_vel_x += Ki_brank * dt * Vx_err;
 
 	float thrust_max_tilt = fabsf(alt_thrust) * tanf(tilt_max);//while in take_off or landing state i think the "cos(_pitch) * cos(_roll) = 1" => alt_thrust = thrust_z 
-	float thrust_max = sqrtf(thrust_max * thrust_max - alt_thrust * alt_thrust);
-	thrust_max = thrust_max_tilt < thrust_max ? thrust_max_tilt : thrust_max;
+	float thrust_max_xy = sqrtf(thrust_max * thrust_max - alt_thrust * alt_thrust);
+	thrust_max_xy = thrust_max_tilt < thrust_max_xy ? thrust_max_tilt : thrust_max_xy;
 	// Saturate thrust in NE-direction.
     float mag = mag2f(thrustxy);
-	if (mag * mag > thrust_max * thrust_max) {
-		thrustxy = thrustxy / (mag / thrust_max);
+	if (mag * mag > thrust_max_xy * thrust_max_xy) {
+		thrustxy = thrustxy / (mag / thrust_max_xy);
 	}
 	//if (Vx_err > 0 && _int_vel_x < 0) _int_vel_x
 	float pitch = -atanf(thrustxy.x / alt_thrust);
