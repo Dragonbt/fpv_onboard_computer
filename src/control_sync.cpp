@@ -74,11 +74,11 @@ void FlowPosThrustControl::calcRollPitchThrust(float& roll_deg, float& pitch_deg
 	// Update integral
 	int_pos_xy = int_pos_xy + Ki * vel_err_lim * time_change;
     Vector3f thrust_xyz = {thrust_xy.x, thrust_xy.y, alt_thrust};
-    thrust = mag3f(thrust_xyz);
+    thrust = alt_thrust;
     // roll_deg = rad2deg( atan2f(-thrust_xyz.y, thrust_xyz.z) );
     // pitch_deg = rad2deg( atan2f(thrust_xyz.x, sqrtf(thrust_xyz.y*thrust_xyz.y+thrust_xyz.z*thrust_xyz.z)) );
     roll_deg = rad2deg( asinf(thrust_xyz.y / thrust_xyz.z) );
-	pitch_deg = rad2deg( -asinf(thrust_xyz.x / thrust_xyz.z) );
+	pitch_deg = rad2deg(-asinf(thrust_xyz.x / thrust_xyz.z) );
 
     roll_deg=limit_values(roll_deg,-10.0f,10.0f);
     pitch_deg= limit_values(pitch_deg,-10.0f,10.0f);
