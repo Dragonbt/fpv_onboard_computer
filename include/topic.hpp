@@ -72,7 +72,7 @@ bool Topic<Struct>::latest(int64_t& timestamp, Struct& content)
 {
     bool valid;
     std::pair<int64_t, Struct> topic;
-    pthread_rwlock_rdlock(&rwlock);
+    pthread_rwlock_wrlock(&rwlock);
     if( ! topic_deque.empty() )
     {
         topic = topic_deque.back();
@@ -91,7 +91,7 @@ template<class Struct>
 void Topic<Struct>::recent(std::vector< std::pair<int64_t, Struct> >& topic_vector, int64_t& timestamp)
 {
     std::pair<int64_t, Struct> topic;
-    pthread_rwlock_rdlock(&rwlock);
+    pthread_rwlock_wrlock(&rwlock);
     if( ! topic_deque.empty() )
     {
        for(size_t i = 0; i < topic_deque.size(); i++)
