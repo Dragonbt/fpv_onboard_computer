@@ -46,7 +46,9 @@ Topic<InputAttitude> input_attitude_topic(init_timepoint, 40);
 Topic<float> down_reference_topic(init_timepoint, 40);
 
 Topic<Vector2f> ne_reference_topic(init_timepoint, 40);
- 
+
 Topic<MissionCommand> mission_command_topic(init_timepoint, 1);
 
 Topic<int16_t> control_status_topic(init_timepoint, 10);
+
+Topic<Vector2f> pos_err_xy_topic(init_timepoint, 40);

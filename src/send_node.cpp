@@ -36,12 +36,13 @@ void sendLoop( FileNode send_config )
     send_to_addr.sin_family = AF_INET; 
     send_to_addr.sin_port = htons( port );
     
-    int64_t sent_position_body_ms = 0, sent_velocity_body_ms = 0, sent_attitude_ms = 0, sent_input_attitude_ms=0, sent_target_ms = 0,sent_vehicle_status_ms=0, sent_control_status_ms=0, sent_down_reference_ms=0, sent_ne_reference_ms=0;
+    int64_t sent_err_ms = 0,sent_position_body_ms = 0, sent_velocity_body_ms = 0, sent_attitude_ms = 0, sent_input_attitude_ms=0, sent_target_ms = 0,sent_vehicle_status_ms=0, sent_control_status_ms=0, sent_down_reference_ms=0, sent_ne_reference_ms=0;
     high_resolution_clock::time_point t0 = high_resolution_clock::now();
     while( true )
     {
         if( intervalMs(high_resolution_clock::now(), t0) > 300 )
         {
+            cout << "Sending: " << timestampf() << endl;
             sendHeartBeat();
             sendStruct<PositionNED>(position_ned_topic, sent_position_body_ms, POSITION_NED_MSG);
             sendStruct<VelocityBody>(velocity_body_topic, sent_velocity_body_ms, VELOCITY_BODY_MSG);
@@ -52,6 +53,7 @@ void sendLoop( FileNode send_config )
             sendStruct<InputAttitude>(input_attitude_topic, sent_input_attitude_ms, INPUT_ATTITUDE_MSG);
             sendStruct<float>(down_reference_topic, sent_down_reference_ms, REFERENCE_DOWN_MSG);
             sendStruct<Vector2f>(ne_reference_topic, sent_ne_reference_ms, REFERENCE_NE_MSG);
+            sendStruct<Vector2f>(pos_err_xy_topic, sent_err_ms, 21);
             sendString();
             t0 = high_resolution_clock::now();
         }

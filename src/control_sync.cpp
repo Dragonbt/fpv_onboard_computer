@@ -47,6 +47,7 @@ void FlowPosThrustControl::hold(float& roll_deg, float& pitch_deg, float& thrust
 
 void FlowPosThrustControl::calcRollPitchThrust(float& roll_deg, float& pitch_deg, float& thrust)
 {
+    pos_err_xy_topic.update(pos_err_xy);
     ne_reference_topic.update(pos_sp_ne);
     Vector2f thrust_xy = {0.0f, 0.0f};
     Vector2f thrust_desired = {0.0f, 0.0f};
@@ -76,6 +77,8 @@ void FlowPosThrustControl::calcRollPitchThrust(float& roll_deg, float& pitch_deg
     thrust = mag3f(thrust_xyz);
     roll_deg = rad2deg( atan2f(-thrust_xyz.y, thrust_xyz.z) );
     pitch_deg = rad2deg( atan2f(thrust_xyz.x, sqrtf(thrust_xyz.y*thrust_xyz.y+thrust_xyz.z*thrust_xyz.z)) );
+    roll_deg=limit_values(roll_deg,-10.0f,10.0f);
+    pitch_deg= limit_values(pitch_deg,-10.0f,10.0f);
 }
 
 void VisionRollThrustControl::reset(FileNode vision_pid, FileNode altitude_pid)

@@ -21,6 +21,8 @@ extern Topic<float> down_reference_topic;
 
 extern Topic<Vector2f> ne_reference_topic;
 
+extern Topic<Vector2f> pos_err_xy_topic;
+
 void healthCheck( shared_ptr<Telemetry> telemetry );
 void waitForArmed( shared_ptr<Telemetry> telemetry );
 void quitOffboard( shared_ptr<Offboard> offboard );
