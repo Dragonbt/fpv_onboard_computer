@@ -43,7 +43,7 @@ inline float mag3f(Vector3f vec){
 
 inline float mag2f(Vector2f vec){
 	return sqrtf(vec.x * vec.x + vec.y * vec.y);
-};
+}
 
 inline vector<float> pos_ne2xy(vector<float>pos_ne, float yaw_rad) {
 	vector<float> pos_xy = { 0.0f,0.0f };

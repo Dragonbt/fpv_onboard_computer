@@ -37,6 +37,7 @@ class AltitudeThrustControl{
     float down( float pos_sp_z, PositionNED, VelocityBody vel_body, EulerAngle attitude, int dt_ms );
     float hold( PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms );
     float landing();
+    void braking(float& roll_deg, float& pitch_deg, float& thrust, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms);
 
     private:
     float Kp_z, Ki_z, Kd_z;
@@ -53,6 +54,8 @@ class AltitudeThrustControl{
     bool stop_integral_D = false;
     int sign_thr_int_z;
     int times = 0;
+    float min_vx_find_loop = 0.0f;
+    float tilt_max = P_I / 4.0f;
     float calcThrust();
 };
 

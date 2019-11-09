@@ -76,10 +76,10 @@ void FlowPosThrustControl::calcRollPitchThrust(float& roll_deg, float& pitch_deg
 	int_pos_xy = int_pos_xy + Ki * vel_err_lim * time_change;
     Vector3f thrust_xyz = {thrust_xy.x, thrust_xy.y, alt_thrust};
     thrust = alt_thrust;
-    // roll_deg = rad2deg( atan2f(-thrust_xyz.y, thrust_xyz.z) );
-    // pitch_deg = rad2deg( atan2f(thrust_xyz.x, sqrtf(thrust_xyz.y*thrust_xyz.y+thrust_xyz.z*thrust_xyz.z)) );
-    roll_deg = rad2deg( asinf(thrust_xyz.y / thrust_xyz.z) );
-	pitch_deg = rad2deg(-asinf(thrust_xyz.x / thrust_xyz.z) );
+    roll_deg = rad2deg( atan2f(thrust_xyz.y, thrust_xyz.z) );
+    pitch_deg = rad2deg( atan2f(-thrust_xyz.x, sqrtf(thrust_xyz.y*thrust_xyz.y+thrust_xyz.z*thrust_xyz.z)) );
+    //roll_deg = rad2deg( asinf(thrust_xyz.y / thrust_xyz.z) );
+	//pitch_deg = rad2deg(-asinf(thrust_xyz.x / thrust_xyz.z) );
 
     roll_deg=limit_values(roll_deg,-10.0f,10.0f);
     pitch_deg= limit_values(pitch_deg,-10.0f,10.0f);
@@ -237,6 +237,36 @@ float AltitudeThrustControl::landing()
 	}
 	times++;
     return thrust;
+}
+
+void AltitudeThrustControl::braking(float& roll_deg, float& pitch_deg, float& thrust, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms) {
+	float alt_thrust = hold(pos_ned, vel_body, attitude, dt_ms);
+	Vector2f Vxy = { vel_body.x_m_s, vel_body.y_m_s};
+	Vector2f Vxy_sp = { min_vx_find_loop ,0.0f };
+	Vector2f Vxy_err = Vxy_sp - Vxy;
+	Vector2f Kp_brank = { 1.0f,1.0f };
+	
+	//float Ki_brank = 0.01f;
+	//float thrustx = Kp_brank * Vx_err + _int_vel_x;
+	Vector2f thrustxy = Kp_brank * Vxy_err;
+	//_int_vel_x += Ki_brank * dt * Vx_err;
+
+	float thrust_max_tilt = fabsf(alt_thrust) * tanf(tilt_max);//while in take_off or landing state i think the "cos(_pitch) * cos(_roll) = 1" => alt_thrust = thrust_z 
+	float thrust_max = sqrtf(thrust_max * thrust_max - alt_thrust * alt_thrust);
+	thrust_max = thrust_max_tilt < thrust_max ? thrust_max_tilt : thrust_max;
+	// Saturate thrust in NE-direction.
+    float mag = mag2f(thrustxy);
+	if (mag * mag > thrust_max * thrust_max) {
+		thrustxy = thrustxy / (mag / thrust_max);
+	}
+	//if (Vx_err > 0 && _int_vel_x < 0) _int_vel_x
+	float pitch = -atanf(thrustxy.x / alt_thrust);
+	float roll = atanf(thrustxy.y / alt_thrust);
+	pitch = limit_values(pitch, -P_I / 6.0f, P_I / 6.0f);
+	roll = limit_values(roll, -P_I / 6.0f, P_I / 6.0f);
+	roll_deg = rad2deg(roll);
+	pitch_deg = rad2deg(pitch);
+	thrust = alt_thrust;
 }
 
 float AltitudeThrustControl::downOffset( float err, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms )
