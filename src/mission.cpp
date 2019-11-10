@@ -6,6 +6,13 @@ using namespace std;
 void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, FileNode altitude_pid, FileNode vision_pid, FileNode flow_pid )
 {
 	int16_t status = WAIT_COMMAND;
+	int16_t missions_status=INIT_MISSION;
+	int count=0;
+
+	float altitude_offset = 0;
+	float altitude_set = 0;
+	bool  flag_climb_init=false,flag_search_init = false,flag_target1_found = false, flag_adjust_init=false,flag_land_init=false;
+
 	int64_t command_timestamp, target_timestamp;
 	double param;
 	MissionCommand command;
@@ -186,6 +193,134 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 				input_attitude = {roll_deg, pitch_deg, yaw_deg, thrust};
 				offbCtrlAttitude(offboard, input_attitude);
 				break;
+			case MISSIONS_AUTO:
+				switch(missions_status){
+					case INIT_MISSION:
+					flag_climb_init = false;
+					flag_target1_found = false;
+					flag_adjust_init = false;
+					flag_search_init = false;
+					flag_land_init=false;
+					altitude_offset = position_ned.down_m;
+					//sleep, waiting for system init
+					break;
+					case TAKEOFF_MISSION:
+						if(altitude_set<1.5f) altitude_set += 0.5/CONTROL_FREQUENCY;
+						altitude_thrust_control.takeoff(altitude_set ,roll_deg, pitch_deg, thrust, position_ned, velocity_body, attitude, period_ms);
+						input_attitude = {roll_deg, pitch_deg, yaw_deg, thrust};
+						//cout << thrust << endl;
+						offbCtrlAttitude(offboard, input_attitude);
+						if(position_ned.down_m>1.0f) missions_status=SETPOINT_CLIMB_MISSION;
+						break;
+					case SETPOINT_CLIMB_MISSION:
+						if((position_ned.east_m<1e-4)&&(position_ned.north_m<1e-4)){
+							altitude_thrust_control.takeoff(altitude_set ,roll_deg, pitch_deg, thrust, position_ned, velocity_body, attitude, period_ms);
+							input_attitude = {roll_deg, pitch_deg, yaw_deg, thrust};
+							//cout << thrust << endl;
+							offbCtrlAttitude(offboard, input_attitude);
+							flag_climb_init=false;
+						}else{
+							if(!flag_climb_init){
+								altitude_set = position_ned.down_m;
+								offset_body = {0.0f, 0.0f, 0.0f};
+								flow_pos_thrust_control.positionBodyOffset(roll_deg, pitch_deg, thrust, offset_body, position_ned, velocity_body, attitude, period_ms);
+								input_attitude = {roll_deg, pitch_deg, yaw_deg, thrust};
+								offbCtrlAttitude(offboard, input_attitude);
+								remotePrint("Flow init!");
+								flag_climb_init = true;
+								return;
+							}
+							
+							flow_pos_thrust_control.climb(altitude_set, roll_deg, pitch_deg, thrust, position_ned, velocity_body, attitude, period_ms);
+							input_attitude = {roll_deg, pitch_deg, yaw_deg, thrust};
+							offbCtrlAttitude(offboard, input_attitude);
+						}
+						#if (TEST_LEVEL==LEVEL_FINAL1)||(TEST_LEVEL==LEVEL_FINAL2)||(TEST_LEVEL==LEVEL_FINAL3)
+						if(flag_target1_found){
+							missions_status = AJUSTPOSITION_MISSION;
+							return;
+						}
+						if(position_ned.down_m > 4.5){
+							missions_status = SEARCH_TARGET_MISSION;
+							return;
+						}
+						if(altitude_set<5)
+						altitude_set += 0.75/CONTROL_FREQUENCY;
+						#else
+						if(position_ned.down_m > 1.45){
+							missions_status = AJUSTPOSITION_MISSION;
+							return;
+						}
+						if(altitude_set<1.5)
+						altitude_set += 0.5/CONTROL_FREQUENCY;
+						#endif
+					break;
+					case AJUSTPOSITION_MISSION:
+					#if(TEST_LEVEL== LEVEL1)
+						flow_pos_thrust_control.hold(roll_deg, pitch_deg, thrust, position_ned, velocity_body, attitude, period_ms);
+						input_attitude = {roll_deg, pitch_deg, yaw_deg, thrust};
+						offbCtrlAttitude(offboard, input_attitude);
+						count++;
+						if(count>=5*CONTROL_FREQUENCY){
+							missions_status = LAND_MISSION;
+						}
+					#else
+						flag_target_lost
+
+					#endif
+
+					break;
+					case APROACH_MISSION:
+					//flag_target_lost
+					break;
+					case THROUGH_MISSION:
+					break;
+					case STOP_MISSION:
+					break;
+					case SEARCH_TARGET_MISSION:
+					break;
+					case LAND_MISSION:
+					if(position_ned.down_m > 1.0){
+						if((position_ned.east_m<1e-4)&&(position_ned.north_m<1e-4)){
+							altitude_thrust_control.takeoff(altitude_set ,roll_deg, pitch_deg, thrust, position_ned, velocity_body, attitude, period_ms);
+							input_attitude = {roll_deg, pitch_deg, yaw_deg, thrust};
+							//cout << thrust << endl;
+							offbCtrlAttitude(offboard, input_attitude);
+							flag_land_init=false;
+						}else{
+							if(!flag_land_init){
+								altitude_set = position_ned.down_m;
+								offset_body = {0.0f, 0.0f, 0.0f};
+								flow_pos_thrust_control.positionBodyOffset(roll_deg, pitch_deg, thrust, offset_body, position_ned, velocity_body, attitude, period_ms);
+								input_attitude = {roll_deg, pitch_deg, yaw_deg, thrust};
+								offbCtrlAttitude(offboard, input_attitude);
+								remotePrint("land init!");
+								flag_land_init = true;
+								return;
+							}
+							flow_pos_thrust_control.climb(altitude_set, roll_deg, pitch_deg, thrust, position_ned, velocity_body, attitude, period_ms);
+							input_attitude = {roll_deg, pitch_deg, yaw_deg, thrust};
+							offbCtrlAttitude(offboard, input_attitude);
+						}
+						altitude_set -= 0.5/CONTROL_FREQUENCY;
+					}else{
+						altitude_set -= 0.3/CONTROL_FREQUENCY;
+						altitude_thrust_control.takeoff(altitude_set ,roll_deg, pitch_deg, thrust, position_ned, velocity_body, attitude, period_ms);
+						input_attitude = {roll_deg, pitch_deg, yaw_deg, thrust};
+						//cout << thrust << endl;
+						offbCtrlAttitude(offboard, input_attitude);
+					}
+					if(altitude_set<=0&&position_ned.down_m<0.2){
+						missions_status = FINISH;
+					}
+					break;
+					case FINISH:
+
+					break;
+				}
+
+			break;
+
 		}
 		this_thread::sleep_for(milliseconds(20));
 		period_ms = timestampf() - last_peroid;

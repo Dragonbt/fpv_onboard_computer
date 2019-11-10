@@ -38,6 +38,7 @@ class AltitudeThrustControl{
     float hold( PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms );
     float landing();
     void braking(float& roll_deg, float& pitch_deg, float& thrust, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms);
+    void takeoff(float alttitude_set,float& roll_deg, float& pitch_deg, float& thrust, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms);
 
     private:
     float Kp_z, Ki_z, Kd_z;
@@ -101,7 +102,8 @@ public:
 	void reset(FileNode flow_pid, FileNode altitude_pid);
     void positionBodyOffset( float& roll_deg, float& pitch_deg, float& thrust, Vector3f offset_body, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms);
     void hold(float& roll_deg, float& pitch_deg, float& thrust, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms);
-	void calcRollPitchThrust(float& roll_deg, float& pitch_deg, float& thrust);
+	void calcRollPitchThrust(float& roll_deg, float& pitch_deg, float& thrust, EulerAngle attitude);
+    void climb(float altitude_set,float& roll_deg, float& pitch_deg, float& thrust, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms);
 private:
 	AltitudeThrustControl altitude_thrust_control;
 	Vector2f int_pos_xy = { 0.0f,0.0f };

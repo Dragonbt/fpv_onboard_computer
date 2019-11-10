@@ -1,6 +1,19 @@
 #ifndef _CONST_
 #define _CONST_
 
+#define TEST_LEVEL LEVEL1
+
+#define LEVEL1 1
+#define LEVEL2 2
+#define LEVEL3 3
+#define LEVEL4 4
+#define LEVEL5 5
+#define LEVEL_FINAL1 11
+#define LEVEL_FINAL2 12
+#define LEVEL_FINAL3 13
+
+#define CONTROL_FREQUENCY 50.0f
+
 #define P_I 3.14159
 
 #define MAX_MSG_LENGTH 0x9FFF
@@ -37,6 +50,19 @@
 #define VISION_OPEN_LOOP_MODE 10
 #define SEARCH_RING 11
 #define BRAKING 12
+#define MISSIONS_AUTO 99
+
+#define INIT_MISSION 0
+#define TAKEOFF_MISSION 1
+#define SETPOINT_CLIMB_MISSION 2
+#define AJUSTPOSITION_MISSION 3
+#define APROACH_MISSION 4
+#define THROUGH_MISSION 5
+#define STOP_MISSION 6
+#define SEARCH_TARGET_MISSION 7
+#define LAND_MISSION 8
+
+#define FINISH 15
 
 #define ALTITUDE_UPPER_BOUND 3
 #define VISION_FAIL_TOLERENCE 50
