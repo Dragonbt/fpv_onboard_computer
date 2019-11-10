@@ -108,18 +108,22 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 				offbCtrlAttitude(offboard, input_attitude);
 				break;
 			case VISION_CONTROL_COMMAND:
-				if ( ! target_topic.latest(target_timestamp, target) || timestampf() - target_timestamp > 30){
+				if ( target_topic.latest(target_timestamp, target) && timestampf() - target_timestamp < 30){
+					remotePrint("VISION CONTROL!");
+					status = VISION_CONTROL_MODE;
+					vision_roll_thrust_control.angleOffset(roll_deg, thrust, target, position_ned, velocity_body, attitude, period_ms);
+					input_attitude = {roll_deg, 0.0f, yaw_deg, thrust};
+					offbCtrlAttitude(offboard, input_attitude);
+					fail_cnt = 0;
+				}
+				else{
 					thrust = altitude_thrust_control.down(pos_sp_z, position_ned, velocity_body, attitude, period_ms);
 					input_attitude = {0.0f, 0.0f, yaw_deg, thrust};
 					offbCtrlAttitude(offboard, input_attitude);
 				}
-				else{
-					remotePrint("VISION CONTROL!");
-					status = VISION_CONTROL_MODE;
-				}
 				break;
 			case VISION_CONTROL_MODE:
-				if( timestampf() - target_timestamp < 30 )
+				if( target_topic.latest(target_timestamp, target) && timestampf() - target_timestamp < 30 )
 				{
 					vision_roll_thrust_control.angleOffset(roll_deg, thrust, target, position_ned, velocity_body, attitude, period_ms);
 					fail_cnt = 0;
