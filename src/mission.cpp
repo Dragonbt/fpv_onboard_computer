@@ -231,7 +231,7 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 								offbCtrlAttitude(offboard, input_attitude);
 								remotePrint("Flow init!");
 								flag_climb_init = true;
-								return;
+								break;
 							}
 							
 							flow_pos_thrust_control.climb(-altitude_set, roll_deg, pitch_deg, thrust, position_ned, velocity_body, attitude, period_ms);
@@ -241,18 +241,18 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 						#if (TEST_LEVEL==LEVEL_FINAL1)||(TEST_LEVEL==LEVEL_FINAL2)||(TEST_LEVEL==LEVEL_FINAL3)
 						if(flag_target1_found){
 							missions_status = AJUSTPOSITION_MISSION;
-							return;
+							break;
 						}
 						if(position_ned.down_m > 4.5){
 							missions_status = SEARCH_TARGET_MISSION;
-							return;
+							break;
 						}
 						if(altitude_set<5)
 						altitude_set += 0.75/CONTROL_FREQUENCY;
 						#else
 						if(-position_ned.down_m > 1.45){
 							missions_status = AJUSTPOSITION_MISSION;
-							return;
+							break;
 						}
 						if(-altitude_set<1.5)
 						altitude_set += 0.5/CONTROL_FREQUENCY;
@@ -301,7 +301,7 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 								offbCtrlAttitude(offboard, input_attitude);
 								remotePrint("land init!");
 								flag_land_init = true;
-								return;
+								break;
 							}
 							flow_pos_thrust_control.climb(-altitude_set, roll_deg, pitch_deg, thrust, position_ned, velocity_body, attitude, period_ms);
 							input_attitude = {roll_deg, pitch_deg, yaw_deg, thrust};
