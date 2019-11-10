@@ -27,7 +27,7 @@ void cameraLoop( FileNode camera_config )
     mutex cap_mutex;
     Camera cap(cap_mutex);
     Video video("../", width, height);
-    CircleDetector detector(DETECT_AND_TRACK, RED, 0);
+    CircleDetector detector(PURE_DETECT, RED, 0);
     Rect2f roi;
     float confidence, distance;
     Vec3f orientation;
