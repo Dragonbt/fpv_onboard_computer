@@ -194,7 +194,6 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 				offbCtrlAttitude(offboard, input_attitude);
 				break;
 			case MISSIONS_AUTO:
-				cout << "MISSION AUTO" << endl;
 				switch(missions_status){
 					case INIT_MISSION:
 					flag_climb_init = false;
