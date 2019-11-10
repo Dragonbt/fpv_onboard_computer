@@ -68,7 +68,7 @@ class VisionRollThrustControl{
 
     private:
     AltitudeThrustControl altitude_thrust_control;
-    float y_deg, z_deg;
+    float y_rad, z_rad;
     float Ky, Kz;
     float Kp_y, Ki_y, Kd_y;
     float err_pos_z = 0.0f;
@@ -80,6 +80,10 @@ class VisionRollThrustControl{
     float thrust_desired_y;
     float alt_thrust;
     float time_change;
+
+    float target_x_m = 10.0f;
+    float target_y_m = 0.0f;
+    float target_z_m = 0.0f;
 
     float vel_y;
     float vel_sp_y = 0.0f;

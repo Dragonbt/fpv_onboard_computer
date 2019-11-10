@@ -151,14 +151,15 @@ void VisionRollThrustControl::angleOffset( float& roll_deg, float& thrust, Detec
     time_change = dt_ms / 1000.0f;
     float roll_rad = deg2rad( attitude.roll_deg );
     //convert target from camera to body
-    float target_y_m = target.x_m * cos( roll_rad ) - target.y_m * sin( roll_rad );
-    float target_z_m = target.x_m * sin( roll_rad ) + target.y_m * cos( roll_rad );
-    float target_x_m = target.z_m;
-    z_deg = atan2f(target_z_m, target_x_m);
-    y_deg = atan2f(target_y_m, target_x_m);
+    target_y_m = target.x_m * cos( roll_rad ) - target.y_m * sin( roll_rad );
+    target_z_m = target.x_m * sin( roll_rad ) + target.y_m * cos( roll_rad );
+    target_x_m = target.z_m;
 
-    err_pos_y = Ky * y_deg;
-    err_pos_z = Kz * z_deg;
+    z_rad = atan2f(target_z_m, target_x_m);
+    y_rad = atan2f(target_y_m, target_x_m);
+
+    err_pos_y = Ky * y_rad;
+    err_pos_z = Kz * z_rad;
     vel_err = -vel_body.y_m_s;
 
     pos_sp_z = pos_ned.down_m + err_pos_z;
@@ -171,9 +172,19 @@ void VisionRollThrustControl::angleOffset( float& roll_deg, float& thrust, Detec
 void VisionRollThrustControl::hold(float& roll_deg, float& thrust, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms)
 {
     time_change = dt_ms / 1000.0f;
+    target_x_m = target_x_m + vel_body.x_m_s * time_change;
+    target_y_m = target_y_m + vel_body.y_m_s * time_change;
+    target_z_m = target_z_m + vel_body.z_m_s * time_change;
+
+    //z_rad = atan2f(target_z_m, target_x_m);
+    y_rad = atan2f(target_y_m, target_x_m);
+
+    err_pos_y = Ky * y_rad;
+    //err_pos_z = Kz * z_rad;
+    vel_err = -vel_body.y_m_s;
+
     alt_thrust = altitude_thrust_control.hold(pos_ned, vel_body, attitude, dt_ms);
     
-    vel_err = -vel_body.y_m_s;
     roll_deg = calcRoll();
     thrust = alt_thrust / ( cos(deg2rad(attitude.roll_deg)) * cos(deg2rad(attitude.pitch_deg)) );
     return;
