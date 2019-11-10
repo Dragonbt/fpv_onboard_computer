@@ -186,15 +186,14 @@ void VisionRollThrustControl::hold(float& roll_deg, float& thrust, PositionNED p
     alt_thrust = altitude_thrust_control.hold(pos_ned, vel_body, attitude, dt_ms);
     
     roll_deg = calcRoll();
-    roll_deg = limit_values(roll_deg, -30.0f, 30.0f);
     thrust = alt_thrust / ( cos(deg2rad(attitude.roll_deg)) * cos(deg2rad(attitude.pitch_deg)) );
     return;
 }
 
 float VisionRollThrustControl::calcRoll()
 {
-    cout << "err_pos_y: " << rad2deg(err_pos_y) << endl;
-    cout << "err_pos_z: " << rad2deg(err_pos_z) << endl;
+    //cout << "err_pos_y: " << rad2deg(err_pos_y) << endl;
+    //cout << "err_pos_z: " << rad2deg(err_pos_z) << endl;
     float thr_sp_y;
 	thrust_desired_y = Kp_y * err_pos_y + Kd_y * vel_err + int_pos_y;
 	float thrust_max_y_tilt = fabsf(alt_thrust) * tanf(tilt_max);//while in take_off or landing state i think the "cos(_pitch) * cos(_roll) = 1" => alt_thrust = thrust_z 
@@ -219,8 +218,8 @@ float VisionRollThrustControl::calcRoll()
 	thr_sp_y = limit_values(thr_sp_y, -0.707f * alt_thrust, 0.707f * alt_thrust);
 	//cout << "_thr_sp[0] = " << _thr_sp[0] << " " << "_thr_sp[1] = " << _thr_sp[1] << " " << "_thr_sp[2] = " << _thr_sp[2] << endl;
 	float roll_sp = asinf(thr_sp_y / alt_thrust);
-    cout << "roll_deg: " << rad2deg(roll_sp) << endl;
-    return rad2deg(roll_sp);
+    //cout << "roll_deg: " << rad2deg(roll_sp) << endl;
+    return limit_values( rad2deg(roll_sp), -30.0f, 30.0f);
 }
 
 void AltitudeThrustControl::reset(FileNode altitude_pid)
