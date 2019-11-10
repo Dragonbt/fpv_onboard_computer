@@ -27,7 +27,9 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 	Offboard::Attitude input_attitude;
 	float roll_deg, pitch_deg, yaw_deg, thrust;
 	float pos_sp_z;
+	float open_loop_distance;
 	int period_ms;
+	high_resolution_clock::time_point open_loop_t0;
 	int64_t last_peroid = timestampf();
 	int fail_cnt = 0;
 	Vector3f offset_body;
@@ -127,17 +129,60 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 				{
 					vision_roll_thrust_control.angleOffset(roll_deg, thrust, target, position_ned, velocity_body, attitude, period_ms);
 					fail_cnt = 0;
+					vision_roll_thrust_control.update_thr_ring_flag(target);
 				}
 				else{
 					vision_roll_thrust_control.hold(roll_deg, thrust, position_ned, velocity_body, attitude, period_ms);
 					fail_cnt ++;
 				}
-				if( fail_cnt > VISION_FAIL_TOLERENCE )
+				if( fail_cnt > VISION_FAIL_TOLERENCE )//1s?
 				{
-					remotePrint("TIMEOUT!");
-					status = SAFE_QUIT_COMMAND;
+					if(vision_roll_thrust_control.can_through_ring_flag){
+						status = VISION_OPEN_LOOP_MODE;
+						cout << "VISION OPEN LOOP!" << endl;
+						break;
+					}
+					else{
+						remotePrint("TIMEOUT!");
+						//vision_roll_thrust_control.braking(roll_deg, pitch_deg, thrust, pos_ned, vel_body, attitude, period_ms);
+						status = BRAKING;
+						//status = SAFE_QUIT_COMMAND;
+						//status = SAFE_QUIT_COMMAND;
+						break;
+					}
+					
 				}
 				input_attitude = {roll_deg, -2.0f, yaw_deg, thrust};
+				offbCtrlAttitude(offboard, input_attitude);
+				break;
+			case VISION_OPEN_LOOP_MODE:
+				fail_cnt++;
+				if(fail_cnt < 1.5*VISION_FAIL_TOLERENCE){
+					vision_roll_thrust_control.braking(roll_deg, pitch_deg, thrust, position_ned, velocity_body, attitude, period_ms);
+					input_attitude = {roll_deg, -2.0f, yaw_deg, thrust};
+					offbCtrlAttitude(offboard, input_attitude);
+				}
+				else {
+					vision_roll_thrust_control.braking(roll_deg, pitch_deg, thrust, position_ned, velocity_body, attitude, period_ms);
+					input_attitude = {roll_deg, pitch_deg, yaw_deg, thrust};
+					offbCtrlAttitude(offboard, input_attitude);
+					if(fail_cnt > 2.5*VISION_FAIL_TOLERENCE) {
+						status = SEARCH_RING;
+						cout << "SEARCH RING!" << endl;
+						break;
+					}
+
+				}
+				break;
+			case BRAKING:
+				cout << "BRAKING" << endl;
+				vision_roll_thrust_control.braking(roll_deg, pitch_deg, thrust, position_ned, velocity_body, attitude, period_ms);
+				input_attitude = {roll_deg, pitch_deg, yaw_deg, thrust};
+				offbCtrlAttitude(offboard, input_attitude);
+				break;
+			case SEARCH_RING:
+				vision_roll_thrust_control.braking(roll_deg, pitch_deg, thrust, position_ned, velocity_body, attitude, period_ms);
+				input_attitude = {roll_deg, pitch_deg, yaw_deg, thrust};
 				offbCtrlAttitude(offboard, input_attitude);
 				break;
 		}

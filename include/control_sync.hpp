@@ -62,10 +62,12 @@ class AltitudeThrustControl{
 
 class VisionRollThrustControl{
     public:
+    bool can_through_ring_flag = false;
     void reset(FileNode vision_pid, FileNode altitude_pid);
     void angleOffset( float& roll_deg, float& thrust, DetectionResult target, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms );
     void hold(float& roll_deg, float& thrust, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms);
-
+    void update_thr_ring_flag(DetectionResult target);
+    void braking(float& roll_deg, float& pitch_deg, float& thrust, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms);
     private:
     AltitudeThrustControl altitude_thrust_control;
     float y_rad, z_rad;
@@ -80,6 +82,7 @@ class VisionRollThrustControl{
     float thrust_desired_y;
     float alt_thrust;
     float time_change;
+    float min_vx_find_loop = 0.0f;
 
     float target_x_m = 10.0f;
     float target_y_m = 0.0f;

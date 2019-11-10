@@ -28,6 +28,7 @@ void cameraLoopTest();
 
 class Camera{
     public:
+        Camera(mutex& mtx);
         bool init( int id, int _width, int _height );
         bool isOpened( void );
         bool read( Mat& frame );
@@ -37,7 +38,7 @@ class Camera{
         double fps, interval;
         bool new_frame;
         VideoCapture cap;
-        mutex cap_mutex;
+        mutex& cap_mutex;
         high_resolution_clock::time_point last_grab;
         void updating( void );
 };

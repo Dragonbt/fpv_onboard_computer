@@ -172,6 +172,10 @@ void VisionRollThrustControl::angleOffset( float& roll_deg, float& thrust, Detec
 void VisionRollThrustControl::hold(float& roll_deg, float& thrust, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms)
 {
     time_change = dt_ms / 1000.0f;
+    if(attitude.roll_deg > 0 && vel_body.y_m_s < 0) vel_body.y_m_s = -vel_body.y_m_s;
+    else if(attitude.roll_deg < 0 && vel_body.y_m_s > 0) vel_body.y_m_s = -vel_body.y_m_s;
+    if(attitude.pitch_deg > 0 && vel_body.x_m_s > 0) vel_body.x_m_s = -vel_body.y_m_s;
+    if(attitude.pitch_deg < 0 && vel_body.x_m_s < 0) vel_body.y_m_s = -vel_body.y_m_s;
     target_x_m = target_x_m - vel_body.x_m_s * time_change;
     target_y_m = target_y_m - vel_body.y_m_s * time_change;
     target_z_m = target_z_m - vel_body.z_m_s * time_change;
@@ -220,6 +224,41 @@ float VisionRollThrustControl::calcRoll()
 	float roll_sp = asinf(thr_sp_y / alt_thrust);
     //cout << "roll_deg: " << rad2deg(roll_sp) << endl;
     return limit_values( rad2deg(roll_sp), -30.0f, 30.0f);
+}
+
+void VisionRollThrustControl::braking(float& roll_deg, float& pitch_deg, float& thrust, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms) {
+	float alt_thrust = altitude_thrust_control.hold(pos_ned, vel_body, attitude, dt_ms);
+	Vector2f Vxy = { vel_body.x_m_s, vel_body.y_m_s};
+	Vector2f Vxy_sp = { min_vx_find_loop ,0.0f };
+	Vector2f Vxy_err = Vxy_sp - Vxy;
+	Vector2f Kp_brank = { 0.1f,0.1f };
+	
+	//float Ki_brank = 0.01f;
+	//float thrustx = Kp_brank * Vx_err + _int_vel_x;
+	Vector2f thrustxy = Kp_brank * Vxy_err;
+	//_int_vel_x += Ki_brank * dt * Vx_err;
+
+	float thrust_max_tilt = fabsf(alt_thrust) * tanf(tilt_max);//while in take_off or landing state i think the "cos(_pitch) * cos(_roll) = 1" => alt_thrust = thrust_z 
+	float thrust_max_xy = sqrtf(thrust_max * thrust_max - alt_thrust * alt_thrust);
+	thrust_max_xy = thrust_max_tilt < thrust_max_xy ? thrust_max_tilt : thrust_max_xy;
+	// Saturate thrust in NE-direction.
+    float mag = mag2f(thrustxy);
+	if (mag * mag > thrust_max_xy * thrust_max_xy) {
+		thrustxy = thrustxy / (mag / thrust_max_xy);
+	}
+	//if (Vx_err > 0 && _int_vel_x < 0) _int_vel_x
+	float pitch = -atanf(thrustxy.x / alt_thrust);
+	float roll = atanf(thrustxy.y / alt_thrust);
+	pitch = limit_values(pitch, -P_I / 6.0f, P_I / 6.0f);
+	roll = limit_values(roll, -P_I / 6.0f, P_I / 6.0f);
+	roll_deg = rad2deg(roll);
+	pitch_deg = rad2deg(pitch);
+	thrust = alt_thrust;
+}
+
+void VisionRollThrustControl::update_thr_ring_flag(DetectionResult target){
+    if (target.x_m*target.x_m + target.y_m*target.y_m < 0.2*0.2) can_through_ring_flag = true;
+	else can_through_ring_flag = false;
 }
 
 void AltitudeThrustControl::reset(FileNode altitude_pid)

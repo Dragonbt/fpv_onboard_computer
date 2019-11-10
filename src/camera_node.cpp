@@ -24,7 +24,8 @@ void cameraLoop( FileNode camera_config )
     int camera_status = 1;
 
     //VideoCapture cap("../testset/demo4.avi");
-    Camera cap;
+    mutex cap_mutex;
+    Camera cap(cap_mutex);
     Video video("../", width, height);
     CircleDetector detector(DETECT_AND_TRACK, RED, 0);
     Rect2f roi;
@@ -87,7 +88,13 @@ void cameraLoopTest()
     return;
 }
 
-bool Camera::init( int id, int _width, int _height ){
+Camera::Camera(mutex& mtx):
+    cap_mutex(mtx)
+{
+    return;
+}
+bool Camera::init( int id, int _width, int _height)
+{
     if ( ! cap.open( id ) ){
         cout << "[ERROR]: fail to open camera" << endl;
         return false;
