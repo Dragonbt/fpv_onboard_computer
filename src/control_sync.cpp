@@ -181,8 +181,8 @@ void VisionRollThrustControl::hold(float& roll_deg, float& thrust, PositionNED p
 
 float VisionRollThrustControl::calcRoll()
 {
-    cout << "err_pos_y: " << err_pos_y << endl;
-    cout << "err_pos_z: " << err_pos_z << endl;
+    cout << "err_pos_y: " << rad2deg(err_pos_y) << endl;
+    cout << "err_pos_z: " << rad2deg(err_pos_z) << endl;
     float thr_sp_y;
 	thrust_desired_y = Kp_y * err_pos_y + Kd_y * vel_err + int_pos_y;
 	float thrust_max_y_tilt = fabsf(alt_thrust) * tanf(tilt_max);//while in take_off or landing state i think the "cos(_pitch) * cos(_roll) = 1" => alt_thrust = thrust_z 
