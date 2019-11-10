@@ -184,21 +184,20 @@ void VisionRollThrustControl::hold(float& roll_deg, float& thrust, PositionNED p
     // else if(attitude.roll_deg < 0 && vel_body.y_m_s > 0) vel_body.y_m_s = -vel_body.y_m_s;
     // if(attitude.pitch_deg > 0 && vel_body.x_m_s > 0) vel_body.x_m_s = -vel_body.y_m_s;
     // if(attitude.pitch_deg < 0 && vel_body.x_m_s < 0) vel_body.y_m_s = -vel_body.y_m_s;
-    target_x_m = target_x_m - vel_body.x_m_s * time_change;
-    target_y_m = target_y_m - vel_body.y_m_s * time_change;
-    target_z_m = target_z_m - vel_body.z_m_s * time_change;
-
-    //z_rad = atan2f(target_z_m, target_x_m);
-    y_rad = atan2f(target_y_m, target_x_m);
-
     if( target_x_m > 4.0f && ! K_lock)
     {
         Ky = 1.0f;
+        target_x_m = target_x_m - vel_body.x_m_s * time_change;
+        target_y_m = target_y_m - vel_body.y_m_s * time_change;
+        target_z_m = target_z_m - vel_body.z_m_s * time_change;
+        y_rad = atan2f(target_y_m, target_x_m);
     }
     else{
         Ky = 0.5f;
         K_lock = true;
     }
+    //z_rad = atan2f(target_z_m, target_x_m);
+    
     err_pos_y = Ky * y_rad;
     //err_pos_z = Kz * z_rad;
     vel_err = -vel_body.y_m_s;
