@@ -186,7 +186,7 @@ void VisionRollThrustControl::hold(float& roll_deg, float& thrust, PositionNED p
     // if(attitude.pitch_deg < 0 && vel_body.x_m_s < 0) vel_body.y_m_s = -vel_body.y_m_s;
     if( target_x_m > 4.0f && ! K_lock)
     {
-        Ky = 1.0f;
+        Ky = 1.0;
         target_x_m = target_x_m - vel_body.x_m_s * time_change;
         target_y_m = target_y_m - vel_body.y_m_s * time_change;
         target_z_m = target_z_m - vel_body.z_m_s * time_change;
