@@ -50,10 +50,10 @@ class AltitudeThrustControl{
     float offset_thrust;
     float thrust_desired_D;
     float mid_thrust = 0.55;
-    //float uMax = mid_thrust + 0.1f;
-    //float uMin = mid_thrust - 0.1f;
-    float uMax = 0.7f;
-    float uMin = 0.4f;
+    float uMax = mid_thrust + 0.1f;
+    float uMin = mid_thrust - 0.1f;
+    //float uMax = 0.7f;
+    //float uMin = 0.4f;
     bool stop_integral_D = false;
     int sign_thr_int_z;
     int times = 0;
