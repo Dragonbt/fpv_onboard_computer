@@ -172,9 +172,9 @@ void VisionRollThrustControl::angleOffset( float& roll_deg, float& thrust, Detec
 void VisionRollThrustControl::hold(float& roll_deg, float& thrust, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms)
 {
     time_change = dt_ms / 1000.0f;
-    target_x_m = target_x_m + vel_body.x_m_s * time_change;
-    target_y_m = target_y_m + vel_body.y_m_s * time_change;
-    target_z_m = target_z_m + vel_body.z_m_s * time_change;
+    target_x_m = target_x_m - vel_body.x_m_s * time_change;
+    target_y_m = target_y_m - vel_body.y_m_s * time_change;
+    target_z_m = target_z_m - vel_body.z_m_s * time_change;
 
     //z_rad = atan2f(target_z_m, target_x_m);
     y_rad = atan2f(target_y_m, target_x_m);
