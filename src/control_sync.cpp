@@ -155,7 +155,7 @@ void VisionRollThrustControl::angleOffset( float& roll_deg, float& thrust, Detec
     float target_z_m = target.x_m * sin( roll_rad ) + target.y_m * cos( roll_rad );
     float target_x_m = target.z_m;
     z_deg = atan2f(target_z_m, target_x_m);
-    y_deg = atan2f(target_y_m, target.x_m);
+    y_deg = atan2f(target_y_m, target_x_m);
 
     err_pos_y = Ky * y_deg;
     err_pos_z = Kz * z_deg;
