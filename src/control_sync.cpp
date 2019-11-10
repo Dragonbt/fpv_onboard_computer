@@ -230,13 +230,13 @@ float AltitudeThrustControl::landing()
 {
     float thrust;
 	if (times < 2000 / 20){// first 2 second
-        thrust = mid_thrust - 0.06f;
+        thrust = mid_thrust - 0.03f;
 	}
 	else if (times < 4000 / 20) {
-        thrust = mid_thrust - 0.12f;
+        thrust = mid_thrust - 0.08f;
 	}
 	else {
-        thrust = mid_thrust - 0.2f;
+        thrust = mid_thrust - 0.1f;
 	}
 	times++;
     return thrust;
