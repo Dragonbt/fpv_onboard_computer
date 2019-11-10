@@ -28,9 +28,9 @@ ALTITUDE_PID_PARAM:{
 VISION_PID_PARAM:{
     Ky: 1,
     Kz: 1,
-    Kp_y: 3,
+    Kp_y: 1,
     Ki_y: 0.0,
-    Kd_y: 0.35}
+    Kd_y: 0.1}
 FLOW_PID_PARAM:{
     Kp_x: 0.06,
     Ki_x: 0.0,
