@@ -145,8 +145,8 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 					else{
 						remotePrint("TIMEOUT!");
 						//vision_roll_thrust_control.braking(roll_deg, pitch_deg, thrust, pos_ned, vel_body, attitude, period_ms);
-						status = BRAKING;
-						//status = SAFE_QUIT_COMMAND;
+						//status = BRAKING;
+						status = SAFE_QUIT_COMMAND;
 						//status = SAFE_QUIT_COMMAND;
 						break;
 					}
@@ -166,8 +166,9 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 					vision_roll_thrust_control.braking(roll_deg, pitch_deg, thrust, position_ned, velocity_body, attitude, period_ms);
 					input_attitude = {roll_deg, pitch_deg, yaw_deg, thrust};
 					offbCtrlAttitude(offboard, input_attitude);
-					if(fail_cnt > 2.5*VISION_FAIL_TOLERENCE) {
-						status = SEARCH_RING;
+					if(fail_cnt > 2 * VISION_FAIL_TOLERENCE) {
+						//status = SEARCH_RING;
+						status = SAFE_QUIT_COMMAND;
 						cout << "SEARCH RING!" << endl;
 						break;
 					}

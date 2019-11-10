@@ -244,7 +244,8 @@ float VisionRollThrustControl::calcRoll()
 void VisionRollThrustControl::braking(float& roll_deg, float& pitch_deg, float& thrust, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms) {
 	float alt_thrust = altitude_thrust_control.hold(pos_ned, vel_body, attitude, dt_ms);
 	Vector2f Vxy = { vel_body.x_m_s, vel_body.y_m_s};
-	Vector2f Vxy_sp = { min_vx_find_loop ,0.0f };
+	//Vector2f Vxy_sp = { min_vx_find_loop ,0.0f };
+    Vector2f Vxy_sp = { -0.1f ,0.0f };
 	Vector2f Vxy_err = Vxy_sp - Vxy;
 	Vector2f Kp_brank = { 0.1f,0.1f };
 	
@@ -295,10 +296,10 @@ float AltitudeThrustControl::landing()
 {
     float thrust;
 	if (times < 2000 / 20){// first 2 second
-        thrust = mid_thrust - 0.03f;
+        thrust = mid_thrust - 0.05f;
 	}
 	else if (times < 4000 / 20) {
-        thrust = mid_thrust - 0.08f;
+        thrust = mid_thrust - 0.1f;
 	}
 	else {
         thrust = mid_thrust - 0.1f;
