@@ -152,14 +152,14 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 					}
 					
 				}
-				input_attitude = {roll_deg, -2.0f, yaw_deg, thrust};
+				input_attitude = {roll_deg, -1.0f, yaw_deg, thrust};
 				offbCtrlAttitude(offboard, input_attitude);
 				break;
 			case VISION_OPEN_LOOP_MODE:
 				fail_cnt++;
 				if(fail_cnt < 1.5*VISION_FAIL_TOLERENCE){
 					vision_roll_thrust_control.braking(roll_deg, pitch_deg, thrust, position_ned, velocity_body, attitude, period_ms);
-					input_attitude = {roll_deg, -2.0f, yaw_deg, thrust};
+					input_attitude = {roll_deg, -1.0f, yaw_deg, thrust};
 					offbCtrlAttitude(offboard, input_attitude);
 				}
 				else {
