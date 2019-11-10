@@ -30,7 +30,7 @@ VISION_PID_PARAM:{
     Kz: 1,
     Kp_y: 0.5,
     Ki_y: 0.0,
-    Kd_y: 0.05}
+    Kd_y: 0.2}
 FLOW_PID_PARAM:{
     Kp_x: 0.06,
     Ki_x: 0.0,
