@@ -23,13 +23,13 @@ CONTROL_NODE:{
     TAKEOFF_ALTITUDE: 4.0}
 ALTITUDE_PID_PARAM:{
     Kp_z: 1.0,
-    Ki_z: 0.001,
+    Ki_z: 0.002,
     Kd_z: 0.3}
 VISION_PID_PARAM:{
     Ky: 1,
     Kz: 1,
     Kp_y: 0.5,
-    Ki_y: 0.0,
+    Ki_y: 0.001,
     Kd_y: 0.2}
 FLOW_PID_PARAM:{
     Kp_x: 0.06,
