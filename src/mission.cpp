@@ -194,6 +194,7 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 				offbCtrlAttitude(offboard, input_attitude);
 				break;
 			case MISSIONS_AUTO:
+				cout << "MISSION AUTO" << endl;
 				switch(missions_status){
 					case INIT_MISSION:
 					flag_climb_init = false;
@@ -202,6 +203,7 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 					flag_search_init = false;
 					flag_land_init=false;
 					altitude_offset = position_ned.down_m;
+					missions_status=TAKEOFF_MISSION;
 					//sleep, waiting for system init
 					break;
 					case TAKEOFF_MISSION:
