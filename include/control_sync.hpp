@@ -71,6 +71,7 @@ class VisionRollThrustControl{
     private:
     AltitudeThrustControl altitude_thrust_control;
     float y_rad, z_rad;
+    bool K_lock = false;
     float Ky, Kz;
     float Kp_y, Ki_y, Kd_y;
     float err_pos_z = 0.0f;

@@ -158,6 +158,14 @@ void VisionRollThrustControl::angleOffset( float& roll_deg, float& thrust, Detec
     z_rad = atan2f(target_z_m, target_x_m);
     y_rad = atan2f(target_y_m, target_x_m);
 
+    if( target_x_m > 4.0f && ! K_lock)
+    {
+        Ky = 1.0f;
+    }
+    else{
+        Ky = 0.5f;
+        K_lock = true;
+    }
     err_pos_y = Ky * y_rad;
     err_pos_z = Kz * z_rad;
     vel_err = -vel_body.y_m_s;
@@ -172,10 +180,10 @@ void VisionRollThrustControl::angleOffset( float& roll_deg, float& thrust, Detec
 void VisionRollThrustControl::hold(float& roll_deg, float& thrust, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms)
 {
     time_change = dt_ms / 1000.0f;
-    if(attitude.roll_deg > 0 && vel_body.y_m_s < 0) vel_body.y_m_s = -vel_body.y_m_s;
-    else if(attitude.roll_deg < 0 && vel_body.y_m_s > 0) vel_body.y_m_s = -vel_body.y_m_s;
-    if(attitude.pitch_deg > 0 && vel_body.x_m_s > 0) vel_body.x_m_s = -vel_body.y_m_s;
-    if(attitude.pitch_deg < 0 && vel_body.x_m_s < 0) vel_body.y_m_s = -vel_body.y_m_s;
+    // if(attitude.roll_deg > 0 && vel_body.y_m_s < 0) vel_body.y_m_s = -vel_body.y_m_s;
+    // else if(attitude.roll_deg < 0 && vel_body.y_m_s > 0) vel_body.y_m_s = -vel_body.y_m_s;
+    // if(attitude.pitch_deg > 0 && vel_body.x_m_s > 0) vel_body.x_m_s = -vel_body.y_m_s;
+    // if(attitude.pitch_deg < 0 && vel_body.x_m_s < 0) vel_body.y_m_s = -vel_body.y_m_s;
     target_x_m = target_x_m - vel_body.x_m_s * time_change;
     target_y_m = target_y_m - vel_body.y_m_s * time_change;
     target_z_m = target_z_m - vel_body.z_m_s * time_change;
@@ -183,6 +191,14 @@ void VisionRollThrustControl::hold(float& roll_deg, float& thrust, PositionNED p
     //z_rad = atan2f(target_z_m, target_x_m);
     y_rad = atan2f(target_y_m, target_x_m);
 
+    if( target_x_m > 4.0f && ! K_lock)
+    {
+        Ky = 1.0f;
+    }
+    else{
+        Ky = 0.5f;
+        K_lock = true;
+    }
     err_pos_y = Ky * y_rad;
     //err_pos_z = Kz * z_rad;
     vel_err = -vel_body.y_m_s;
