@@ -186,6 +186,7 @@ void VisionRollThrustControl::hold(float& roll_deg, float& thrust, PositionNED p
     alt_thrust = altitude_thrust_control.hold(pos_ned, vel_body, attitude, dt_ms);
     
     roll_deg = calcRoll();
+    roll_deg = limit_values(roll_deg, -30.0f, 30.0f);
     thrust = alt_thrust / ( cos(deg2rad(attitude.roll_deg)) * cos(deg2rad(attitude.pitch_deg)) );
     return;
 }
