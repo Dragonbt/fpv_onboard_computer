@@ -37,6 +37,9 @@ extern Topic<DetectionResult> target_topic;
 float rad2deg(float rad);
 void controlLoop( FileNode control_config, FileNode altitude_pid, FileNode vision_pid, FileNode flow_pid );
 
+#if (TEST_LEVEL == LEVEL_FINAL0) || (TEST_LEVEL == LEVEL_FINAL1) || (TEST_LEVEL == LEVEL_FINAL2) || (TEST_LEVEL == LEVEL_FINAL3)
+void missionLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, FileNode altitude_pid, FileNode vision_pid, FileNode flow_pid );
+#else
 void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, FileNode altitude_pid, FileNode vision_pid, FileNode flow_pid );
-
+#endif
 #endif

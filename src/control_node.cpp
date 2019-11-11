@@ -33,7 +33,13 @@ void controlLoop( FileNode control_config, FileNode altitude_pid, FileNode visio
     /*Health Check*/
     //healthCheck( telemetry );
     setTelemetry( telemetry );
+    
+    #if (TEST_LEVEL == LEVEL_FINAL0) || (TEST_LEVEL == LEVEL_FINAL1) || (TEST_LEVEL == LEVEL_FINAL2) || (TEST_LEVEL == LEVEL_FINAL3)
+    missionLoop( telemetry, offboard, altitude_pid, vision_pid, flow_pid);
+    #else
     testLoop( telemetry, offboard, altitude_pid, vision_pid, flow_pid);
+    #endif
+    
     cout << "[WARNING]: control node shut down" << endl;
     return;
 }
