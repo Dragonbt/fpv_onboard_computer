@@ -25,10 +25,13 @@ using namespace cv;
 using namespace std::chrono;
 
 //command
+extern mutex mission_command_mtx;
 extern Topic<MissionCommand> mission_command_topic;
 
+extern mutex control_status_mtx;
 extern Topic<int16_t> control_status_topic;
 
+extern mutex target_mtx;
 extern Topic<DetectionResult> target_topic;
 
 float rad2deg(float rad);

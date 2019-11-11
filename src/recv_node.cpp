@@ -107,7 +107,7 @@ void recvMsg( char* msg, int msg_length, sockaddr_in addr )
     {
         case MISSION_COMMAND_MSG:
             memcpy( &mission_command, buffer, sizeof mission_command );
-            mission_command_topic.update(mission_command);
+            update<MissionCommand>(mission_command_topic, mission_command, mission_command_mtx);
             break;
         default:
             break;

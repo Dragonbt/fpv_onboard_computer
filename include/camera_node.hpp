@@ -16,10 +16,13 @@
 using namespace std;
 using namespace cv;
 
+extern mutex image_mtx;
 extern Topic<Mat> image_topic;
 
+extern mutex camera_status_mtx;
 extern Topic<int> camera_status_topic;
 
+extern mutex target_mtx;
 extern Topic<DetectionResult> target_topic;
 
 void cameraLoop( FileNode camera_config );

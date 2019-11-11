@@ -19,10 +19,13 @@ using namespace cv;
 extern mutex input_attitude_mtx;
 extern Topic<InputAttitude> input_attitude_topic;
 
+extern mutex down_reference_mtx;
 extern Topic<float> down_reference_topic;
 
+extern mutex ne_reference_mtx;
 extern Topic<Vector2f> ne_reference_topic;
 
+extern mutex pos_err_xy_mtx;
 extern Topic<Vector2f> pos_err_xy_topic;
 
 void healthCheck( shared_ptr<Telemetry> telemetry );

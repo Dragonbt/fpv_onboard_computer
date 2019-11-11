@@ -27,6 +27,7 @@ using namespace cv;
 extern int fd;
 extern mutex fd_mutex;
 
+extern mutex mission_command_mtx;
 extern Topic<MissionCommand> mission_command_topic;
 
 void recvLoop( FileNode recv_config );

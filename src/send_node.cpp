@@ -44,18 +44,17 @@ void sendLoop( FileNode send_config )
         {
             //cout << "Sending: " << timestampf() << endl;
             sendHeartBeat();
-            sendStruct<PositionNED>(position_ned_topic, sent_position_body_ms, POSITION_NED_MSG);
-            sendStruct<VelocityBody>(velocity_body_topic, sent_velocity_body_ms, VELOCITY_BODY_MSG);
-            sendStruct<EulerAngle>(attitude_topic, sent_attitude_ms, ATTITUDE_MSG);
-            sendStruct<VehicleStatus>(vehicle_status_topic, sent_vehicle_status_ms, VEHICLE_STATUS_MSG);
-            sendStruct<DetectionResult>(target_topic, sent_target_ms, TARGET_MSG);
-            sendStruct<int16_t>(control_status_topic, sent_control_status_ms, CONTROL_STATUS_MSG);
-            sendStruct<InputAttitude>(input_attitude_topic, sent_input_attitude_ms, INPUT_ATTITUDE_MSG);
-            sendStruct<float>(down_reference_topic, sent_down_reference_ms, REFERENCE_DOWN_MSG);
-            sendStruct<Vector2f>(ne_reference_topic, sent_ne_reference_ms, REFERENCE_NE_MSG);
-            sendStruct<Vector2f>(pos_err_xy_topic, sent_err_ms, POS_XY_ERR_MSG);
+            sendStruct<PositionNED>(position_ned_topic, sent_position_body_ms, POSITION_NED_MSG, position_ned_mtx);
+            sendStruct<VelocityBody>(velocity_body_topic, sent_velocity_body_ms, VELOCITY_BODY_MSG, velocity_body_mtx);
+            sendStruct<EulerAngle>(attitude_topic, sent_attitude_ms, ATTITUDE_MSG, attitude_mtx);
+            sendStruct<VehicleStatus>(vehicle_status_topic, sent_vehicle_status_ms, VEHICLE_STATUS_MSG, vehicle_status_mtx);
+            sendStruct<DetectionResult>(target_topic, sent_target_ms, TARGET_MSG, target_mtx);
+            sendStruct<int16_t>(control_status_topic, sent_control_status_ms, CONTROL_STATUS_MSG, control_status_mtx);
+            sendStruct<InputAttitude>(input_attitude_topic, sent_input_attitude_ms, INPUT_ATTITUDE_MSG, input_attitude_mtx);
+            sendStruct<float>(down_reference_topic, sent_down_reference_ms, REFERENCE_DOWN_MSG, down_reference_mtx);
+            sendStruct<Vector2f>(ne_reference_topic, sent_ne_reference_ms, REFERENCE_NE_MSG, ne_reference_mtx);
+            sendStruct<Vector2f>(pos_err_xy_topic, sent_err_ms, POS_XY_ERR_MSG, pos_err_xy_mtx);
             sendString();
-            cout << sent_input_attitude_ms << endl;
             t0 = high_resolution_clock::now();
         }
         else{
@@ -138,7 +137,7 @@ void sendImg( bool gray, double img_msg_resize, int img_msg_quality )
     int64_t timestamp;
     Mat image;
     vector< uchar > img_buffer;
-    image_topic.latest(timestamp, image);
+    latest<Mat>(image_topic, timestamp, image, image_mtx);
     if( ! image.empty() && compress( image, gray, img_msg_resize, img_msg_quality, img_buffer ) ) {
         //cout << img_buffer.size() << endl;
         sendMsg( IMG_MSG, (uint16_t) img_buffer.size(), img_buffer.data() );
@@ -152,8 +151,8 @@ void sendString()
     string msg;
     vector<pair<int64_t, string>> string_vector;
     int64_t timestamp = 0;
-    string_topic.recent(string_vector, timestamp);
-    string_topic.clear();
+    recent<string>(string_topic, string_vector, timestamp, string_mtx);
+    clear<string>(string_topic, string_mtx);
     if( ! string_vector.empty() )
     {
         for( size_t i=0; i < string_vector.size(); i++)

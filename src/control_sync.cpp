@@ -49,8 +49,9 @@ void FlowPosThrustControl::hold(float& roll_deg, float& pitch_deg, float& thrust
 
 void FlowPosThrustControl::calcRollPitchThrust(float& roll_deg, float& pitch_deg, float& thrust,EulerAngle attitude)
 {
-    pos_err_xy_topic.update(pos_err_xy);
-    ne_reference_topic.update(pos_sp_ne);
+    update<Vector2f>(pos_err_xy_topic, pos_err_xy, pos_err_xy_mtx);
+    update<Vector2f>(ne_reference_topic, pos_sp_ne, ne_reference_mtx);
+
     Vector2f thrust_xy = {0.0f, 0.0f};
     Vector2f thrust_desired = {0.0f, 0.0f};
     thrust_desired = Kp * pos_err_xy + Kd * vel_err_xy + int_pos_xy;
@@ -187,6 +188,7 @@ void VisionRollThrustControl::angleOffset( float& roll_deg, float& thrust, Detec
 
     roll_deg = calcRoll();
 	thrust = alt_thrust / ( cos(deg2rad(attitude.roll_deg)) * cos(deg2rad(attitude.pitch_deg)) );
+    return;
 }
 
 void VisionRollThrustControl::hold(float& roll_deg, float& thrust, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms)
@@ -438,7 +440,7 @@ float AltitudeThrustControl::hold(PositionNED pos_ned, VelocityBody vel_body, Eu
 float AltitudeThrustControl::calcThrust()
 {
     float thrust;
-    down_reference_topic.update(pos_sp_z);
+    update<float>(down_reference_topic, pos_sp_z, down_reference_mtx);
     err_pos_z = pos_sp_z - pos_z;
     //offset_thrust = mid_thrust / (cos(deg2rad(pitch))*cos(deg2rad(roll)));
     offset_thrust = mid_thrust;
@@ -506,6 +508,6 @@ void offbCtrlAttitude(shared_ptr<Offboard> offboard, Offboard::Attitude attitude
     input_attitude.pitch_deg = attitude.pitch_deg;
     input_attitude.yaw_deg = attitude.yaw_deg;
     input_attitude.thrust = attitude.thrust_value;
-    input_attitude_topic.update(input_attitude);
+    update<InputAttitude>(input_attitude_topic, input_attitude, input_attitude_mtx);
     return;
 }

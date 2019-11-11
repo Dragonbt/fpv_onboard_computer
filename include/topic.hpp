@@ -11,7 +11,7 @@
 template<class Struct>
 class Topic{
     public:
-    Topic(std::mutex& mtx, std::chrono::high_resolution_clock::time_point init_timepoint=std::chrono::high_resolution_clock::now(), size_t max_size=1);
+    Topic(std::chrono::high_resolution_clock::time_point init_timepoint=std::chrono::high_resolution_clock::now(), size_t max_size=1);
     ~Topic();
     void update(Struct content);
     bool latest(int64_t& timestamp, Struct& content);
@@ -19,16 +19,26 @@ class Topic{
     void clear(void);
 
     private:
-    std::mutex& topic_mutex; 
     std::chrono::high_resolution_clock::time_point init_time_point;
     size_t max_size;
     std::deque< std::pair<int64_t, Struct> > topic_deque;
     int64_t timestamp(void);
 };
 
+template<typename Struct>
+void update(Topic<Struct>& topic, Struct content, std::mutex& mtx);
+
+template<typename Struct>
+bool latest(Topic<Struct>& topic, int64_t& timestamp, Struct& content, std::mutex& mtx);
+
+template<typename Struct>
+void recent(Topic<Struct>& topic, std::vector< std::pair<int64_t, Struct> >& topic_vector, int64_t& timestamp, std::mutex& mtx);
+
+template<typename Struct>
+void clear(Topic<Struct>& topic, std::mutex& mtx);
+
 template<class Struct>
-Topic<Struct>::Topic(std::mutex& mtx, std::chrono::high_resolution_clock::time_point init_timepoint, size_t max_size):
-    topic_mutex(mtx)
+Topic<Struct>::Topic(std::chrono::high_resolution_clock::time_point init_timepoint, size_t max_size)
 {
     this->init_time_point = init_timepoint;
     this->max_size = std::max(max_size, (size_t)1);
@@ -45,7 +55,6 @@ template<class Struct>
 void Topic<Struct>::update(const Struct content)
 {
     std::pair<int64_t, Struct> topic = std::make_pair(timestamp(), content);
-    topic_mutex.lock();
     if( topic_deque.size() >= max_size )
     {
         for(size_t i = 0; i < 1 + topic_deque.size() - max_size; i++)
@@ -54,7 +63,6 @@ void Topic<Struct>::update(const Struct content)
         }
     }
     topic_deque.push_back(topic);
-    topic_mutex.unlock();
     return;
 }
 
@@ -63,7 +71,6 @@ bool Topic<Struct>::latest(int64_t& timestamp, Struct& content)
 {
     bool valid;
     std::pair<int64_t, Struct> topic;
-    topic_mutex.lock();
     if( ! topic_deque.empty() )
     {
         topic = topic_deque.back();
@@ -74,7 +81,6 @@ bool Topic<Struct>::latest(int64_t& timestamp, Struct& content)
     else{
         valid = false;
     }
-    topic_mutex.unlock();
     return valid;
 }
 
@@ -82,7 +88,6 @@ template<class Struct>
 void Topic<Struct>::recent(std::vector< std::pair<int64_t, Struct> >& topic_vector, int64_t& timestamp)
 {
     std::pair<int64_t, Struct> topic;
-    topic_mutex.lock();
     if( ! topic_deque.empty() )
     {
        for(size_t i = 0; i < topic_deque.size(); i++)
@@ -95,16 +100,13 @@ void Topic<Struct>::recent(std::vector< std::pair<int64_t, Struct> >& topic_vect
             }
         }
     }
-    topic_mutex.unlock();
     return;
 }
 
 template<class Struct>
 void Topic<Struct>::clear( void )
 {
-    topic_mutex.lock();
     topic_deque.clear();
-    topic_mutex.unlock();
     return;
 }
 
@@ -116,4 +118,40 @@ int64_t Topic<Struct>::timestamp(void)
     return d.count();
 }
 
+template<typename Struct>
+void update(Topic<Struct>& topic, Struct content, std::mutex& mtx)
+{
+    mtx.lock();
+    topic.update(content);
+    mtx.unlock();
+    return;
+}
+
+template<typename Struct>
+bool latest(Topic<Struct>& topic, int64_t& timestamp, Struct& content, std::mutex& mtx)
+{
+    bool valid = false;
+    mtx.lock();
+    valid = topic.latest(timestamp, content);
+    mtx.unlock();
+    return valid;
+}
+
+template<typename Struct>
+void recent(Topic<Struct>& topic, std::vector< std::pair<int64_t, Struct> >& topic_vector, int64_t& timestamp, std::mutex& mtx)
+{
+    mtx.lock();
+    topic.recent(topic_vector, timestamp);
+    mtx.unlock();
+    return;
+}
+
+template<typename Struct>
+void clear(Topic<Struct>& topic, std::mutex& mtx)
+{
+    mtx.lock();
+    topic.clear();
+    mtx.unlock();
+    return;
+}
 #endif

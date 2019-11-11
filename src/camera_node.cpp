@@ -41,10 +41,11 @@ void cameraLoop( FileNode camera_config )
     while( true )
     {
         cap.read( image );
+        //cout << image.clone().empty() << endl;
         switch( camera_status )
         {
         case 0:
-            image_topic.update(image);
+            update<Mat>(image_topic, image.clone(), image_mtx);
             break;
         case 1:
             if( detector.run(image, roi, confidence) )
@@ -58,7 +59,7 @@ void cameraLoop( FileNode camera_config )
                 target_topic.update(result);
                 rectangle( image, roi, Scalar( 0, 255, 0 ), 8, 1 );
             }
-            image_topic.update(image.clone());
+            update<Mat>(image_topic, image.clone(), image_mtx);
             break;
         case 2:
             video.open();
@@ -78,7 +79,7 @@ void cameraLoopTest()
     Mat image;
     while( true )
     {
-        image_topic.latest(timestamp, image);
+        latest<Mat>(image_topic, timestamp, image, image_mtx);
         if( image.empty() ){
             continue;
         }

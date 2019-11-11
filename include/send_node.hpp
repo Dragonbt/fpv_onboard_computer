@@ -30,31 +30,43 @@ using namespace chrono;
 extern int fd;
 extern mutex fd_mutex;
 
+extern mutex image_mtx;
 extern Topic<Mat> image_topic;
 
+extern mutex target_mtx;
 extern Topic<DetectionResult> target_topic;
 
+extern mutex string_mtx;
 extern Topic<string> string_topic;
 
+extern mutex position_ned_mtx;
 extern Topic<PositionNED> position_ned_topic;
 
+extern mutex velocity_ned_mtx;
 extern Topic<VelocityNED> velocity_ned_topic;
 
+extern mutex velocity_body_mtx;
 extern Topic<VelocityBody> velocity_body_topic;
 
+extern mutex attitude_mtx;
 extern Topic<EulerAngle> attitude_topic;
 
+extern mutex vehicle_status_mtx;
 extern Topic<VehicleStatus> vehicle_status_topic;
 
 extern mutex input_attitude_mtx;
 extern Topic<InputAttitude> input_attitude_topic;
 
+extern mutex down_reference_mtx;
 extern Topic<float> down_reference_topic;
 
+extern mutex ne_reference_mtx;
 extern Topic<Vector2f> ne_reference_topic;
 
+extern mutex control_status_mtx;
 extern Topic<int16_t> control_status_topic;
 
+extern mutex pos_err_xy_mtx;
 extern Topic<Vector2f> pos_err_xy_topic;
 
 void sendLoop( FileNode send_config );
@@ -68,13 +80,13 @@ void sendImg( bool gray, double img_msg_resize, int img_msg_quality );
 void sendString( void );
 
 template<typename Struct>
-void sendStruct(Topic<Struct> topic, int64_t& timestamp, int msg_type);
+void sendStruct(Topic<Struct> topic, int64_t& timestamp, int msg_type, mutex& mtx);
 
 template<typename Struct>
-void sendStruct(Topic<Struct> topic, int64_t& timestamp, int msg_type)
+void sendStruct(Topic<Struct> topic, int64_t& timestamp, int msg_type, mutex& mtx)
 {
     vector<pair<int64_t, Struct>> topic_vector;
-    topic.recent(topic_vector, timestamp);
+    recent<Struct>(topic, topic_vector, timestamp, mtx);
     if( ! topic_vector.empty() )
     {
         sendMsg( msg_type, (uint16_t) ( topic_vector.size() * sizeof(pair<int64_t, Struct>) ), topic_vector.data() );

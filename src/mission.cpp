@@ -51,9 +51,9 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 		velocity_body = velocityNED2Body(velocity_ned, attitude);
 
 		//receive ground control command
-		if( mission_command_topic.latest(command_timestamp, command) )
+		if( latest<MissionCommand>(mission_command_topic, command_timestamp, command, mission_command_mtx) )
 		{
-			mission_command_topic.clear();
+			clear<MissionCommand>(mission_command_topic, mission_command_mtx);
 			status = command.index;
 			param = command.argv[0];
 		}
@@ -68,7 +68,7 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 		}
 
 		//ignore compute time, this loop update every 20ms
-		control_status_topic.update(status);
+		update<int16_t>(control_status_topic, status, control_status_mtx);
 		switch( status )
 		{
 			case WAIT_COMMAND:
@@ -117,7 +117,7 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 				offbCtrlAttitude(offboard, input_attitude);
 				break;
 			case VISION_CONTROL_COMMAND:
-				if ( target_topic.latest(target_timestamp, target) && timestampf() - target_timestamp < 30){
+				if( latest<DetectionResult>(target_topic, target_timestamp, target, target_mtx) && timestampf() - target_timestamp < 30){
 					remotePrint("VISION CONTROL!");
 					status = VISION_CONTROL_MODE;
 					vision_roll_thrust_control.angleOffset(roll_deg, thrust, target, position_ned, velocity_body, attitude, period_ms);
@@ -132,7 +132,7 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 				}
 				break;
 			case VISION_CONTROL_MODE:
-				if( target_topic.latest(target_timestamp, target) && timestampf() - target_timestamp < 30 )
+				if( latest<DetectionResult>(target_topic, target_timestamp, target, target_mtx) && timestampf() - target_timestamp < 30)
 				{
 					vision_roll_thrust_control.angleOffset(roll_deg, thrust, target, position_ned, velocity_body, attitude, period_ms);
 					fail_cnt = 0;
@@ -194,7 +194,7 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 				offbCtrlAttitude(offboard, input_attitude);
 				break;
 			case MISSIONS_AUTO:
-				cout << missions_status << endl;
+				//cout << missions_status << endl;
 				switch(missions_status){
 					case INIT_MISSION:
 					flag_climb_init = false;
