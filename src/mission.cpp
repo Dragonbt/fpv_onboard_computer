@@ -256,7 +256,7 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 							missions_status = AJUSTPOSITION_MISSION;
 							break;
 						}
-						if(-altitude_set<1.5)
+						if(altitude_set<1.5)
 						altitude_set += 0.8/CONTROL_FREQUENCY;
 						#endif
 					break;
