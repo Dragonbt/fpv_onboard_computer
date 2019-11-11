@@ -46,6 +46,7 @@ void FlowPosThrustControl::hold(float& roll_deg, float& pitch_deg, float& thrust
     calcRollPitchThrust(roll_deg, pitch_deg, thrust,attitude);
 }
 
+
 void FlowPosThrustControl::calcRollPitchThrust(float& roll_deg, float& pitch_deg, float& thrust,EulerAngle attitude)
 {
     pos_err_xy_topic.update(pos_err_xy);
@@ -311,6 +312,10 @@ void AltitudeThrustControl::reset(FileNode altitude_pid)
     cout << this->Ki_z << endl;
     cout << this->Kd_z << endl;
     return;
+}
+
+void AltitudeThrustControl::set_pos_sp_z(float _pos_sp_z){
+    pos_sp_z = _pos_sp_z;
 }
 
 void AltitudeThrustControl::takeoff(float alttitude_set,float& roll_deg, float& pitch_deg, float& thrust, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms){

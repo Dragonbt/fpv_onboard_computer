@@ -7,6 +7,7 @@
 #include <mavsdk/plugins/offboard/offboard.h>
 #include <mavsdk/plugins/telemetry/telemetry.h>
 #include <opencv2/core/core.hpp>
+#include <mutex>
 #include "utils.hpp"
 #include "struct.hpp"
 
@@ -15,6 +16,7 @@ using namespace mavsdk;
 using namespace chrono;
 using namespace cv;
 
+extern mutex input_attitude_mtx;
 extern Topic<InputAttitude> input_attitude_topic;
 
 extern Topic<float> down_reference_topic;
@@ -39,7 +41,7 @@ class AltitudeThrustControl{
     float landing();
     void braking(float& roll_deg, float& pitch_deg, float& thrust, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms);
     void takeoff(float alttitude_set,float& roll_deg, float& pitch_deg, float& thrust, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms);
-
+    void set_pos_sp_z(float _pos_sp_z);
     private:
     float Kp_z, Ki_z, Kd_z;
     float time_change;

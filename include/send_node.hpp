@@ -46,6 +46,7 @@ extern Topic<EulerAngle> attitude_topic;
 
 extern Topic<VehicleStatus> vehicle_status_topic;
 
+extern mutex input_attitude_mtx;
 extern Topic<InputAttitude> input_attitude_topic;
 
 extern Topic<float> down_reference_topic;

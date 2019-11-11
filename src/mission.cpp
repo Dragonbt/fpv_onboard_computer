@@ -213,7 +213,10 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 						input_attitude = {roll_deg, pitch_deg, yaw_deg, thrust};
 						//cout << thrust << endl;
 						offbCtrlAttitude(offboard, input_attitude);
-						if(-position_ned.down_m>1.0f) missions_status=SETPOINT_CLIMB_MISSION;
+						if(-position_ned.down_m>1.0f){
+							altitude_set = 1.0;
+							missions_status = SETPOINT_CLIMB_MISSION;
+						}
 						break;
 					case SETPOINT_CLIMB_MISSION:
 						cout << "SETPOINT_CLIMB_MISSION" << endl;
@@ -252,7 +255,8 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 						if(altitude_set<5)
 						altitude_set += 0.75/CONTROL_FREQUENCY;
 						#else
-						if(-position_ned.down_m > 1.45){
+						if(-position_ned.down_m > 1.45 && altitude_set>1.45){
+							altitude_set = 1.45;
 							missions_status = AJUSTPOSITION_MISSION;
 							break;
 						}
@@ -309,7 +313,7 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 							input_attitude = {roll_deg, pitch_deg, yaw_deg, thrust};
 							offbCtrlAttitude(offboard, input_attitude);
 						}
-						altitude_set -= 0.5/CONTROL_FREQUENCY;
+						altitude_set -= 0.8/CONTROL_FREQUENCY;
 					}else{
 						altitude_set -= 0.3/CONTROL_FREQUENCY;
 						altitude_thrust_control.takeoff(-altitude_set ,roll_deg, pitch_deg, thrust, position_ned, velocity_body, attitude, period_ms);
