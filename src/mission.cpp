@@ -323,7 +323,7 @@ void testLoop(shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, Fi
 		case SAFE_QUIT_COMMAND:
 			//remotePrint("[WARNIGN]: LANDING!");
 			thrust = altitude_thrust_control.landing();
-			input_attitude = {0.0f, 15.0f, attitude.yaw_deg, thrust};
+			input_attitude = {0.0f, 5.0f, attitude.yaw_deg, thrust};
 			offbCtrlAttitude(offboard, input_attitude);
 			break;
 		case FORCE_QUIT_COMMAND:
@@ -425,7 +425,7 @@ void testLoop(shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, Fi
 				remotePrint("VISION CONTROL!");
 				status = VISION_CONTROL_MODE_YAW;
 				vision_roll_thrust_control.angleOffset_roll_yaw(roll_deg,yaw_deg,thrust,target,position_ned, velocity_body, attitude, period_ms);
-				input_attitude = {roll_deg, -2.0f, yaw_deg, thrust};
+				input_attitude = {roll_deg, -5.0f, yaw_deg, thrust};
 				offbCtrlAttitude(offboard, input_attitude);
 				fail_cnt = 0;
 			}
@@ -469,7 +469,7 @@ void testLoop(shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, Fi
 					break;
 				}
 			}
-			input_attitude = {roll_deg, -2.0f, yaw_deg, thrust};
+			input_attitude = {roll_deg, -5.0f, yaw_deg, thrust};
 			offbCtrlAttitude(offboard, input_attitude);
 			break;
 
@@ -503,7 +503,7 @@ void testLoop(shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, Fi
 					break;
 				}
 			}
-			input_attitude = {roll_deg, -10.0f, yaw_deg, thrust};
+			input_attitude = {roll_deg, -5.0f, yaw_deg, thrust};
 			offbCtrlAttitude(offboard, input_attitude);
 			break;
 		case VISION_OPEN_LOOP_MODE:
