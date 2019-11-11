@@ -173,8 +173,8 @@ void CircleDetector::param_adapt( float r, float &canny_thresh, float &dp, float
     if(r < 0)
     {
         canny_thresh = 200;
-        dp = 5;
-        reject_thresh = 4;
+        dp = 10;
+        reject_thresh = 6;
     }
     else if(r  <  100)
     {
@@ -185,7 +185,7 @@ void CircleDetector::param_adapt( float r, float &canny_thresh, float &dp, float
     else{
         canny_thresh = 300;
         dp = 10;
-        reject_thresh = 6;
+        reject_thresh = 4;
     }
     delta_r = max(r * r / 1600, 10.0f);
     delta_r = min(delta_r, 50.0f);
