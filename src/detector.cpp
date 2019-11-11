@@ -336,7 +336,7 @@ bool CircleDetector::run(Mat image, Rect2f &rec, float& confidence)
         edgeDetection(est_roi, edges, dx, dy, 300);
         edges = edges & mask;
         confidence = circleDetect( edges, dx, dy, rec, 5, r - 5, est_rec.width / 2);
-        if ( confidence < 2.0f ){
+        if ( confidence < 1.0f ){
             if(type == DETECT_AND_TRACK)
             {
                 status = LOCAL_ESTIMATE;
