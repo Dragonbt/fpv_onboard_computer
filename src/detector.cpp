@@ -183,9 +183,9 @@ void CircleDetector::param_adapt( float r, float &canny_thresh, float &dp, float
         reject_thresh = 1.5;
     }
     else{
-        canny_thresh = 200;
-        dp = 5;
-        reject_thresh = 4;
+        canny_thresh = 300;
+        dp = 10;
+        reject_thresh = 6;
     }
     delta_r = max(r * r / 1600, 10.0f);
     delta_r = min(delta_r, 50.0f);
@@ -333,10 +333,10 @@ bool CircleDetector::run(Mat image, Rect2f &rec, float& confidence)
         }
         est_roi = image(est_rec);
         colorMask(est_roi, mask);
-        edgeDetection(est_roi, edges, dx, dy, 200);
+        edgeDetection(est_roi, edges, dx, dy, 300);
         edges = edges & mask;
         confidence = circleDetect( edges, dx, dy, rec, 5, r - 5, est_rec.width / 2);
-        if ( confidence < 4.0f ){
+        if ( confidence < 2.0f ){
             if(type == DETECT_AND_TRACK)
             {
                 status = LOCAL_ESTIMATE;
