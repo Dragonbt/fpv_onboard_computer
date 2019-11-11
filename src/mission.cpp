@@ -320,8 +320,10 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 					}
 					break;
 					case FINISH:
-
-					break;
+						input_attitude = {roll_deg, pitch_deg, yaw_deg, 0.0f};
+						//cout << thrust << endl;
+						offbCtrlAttitude(offboard, input_attitude);
+						return;
 				}
 
 			break;

@@ -21,7 +21,7 @@ void cameraLoop( FileNode camera_config )
     }
 
     Mat image;
-    int camera_status = 1;
+    int camera_status = 2;
 
     //VideoCapture cap("../testset/demo4.avi");
     mutex cap_mutex;
