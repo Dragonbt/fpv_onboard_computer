@@ -56,7 +56,7 @@ class LowPassFilter{
 
 class CircleDetector{
     public:
-    CircleDetector(DETECTOR_TYPE type, COLOR _color=NONE, float radius=0, float scale_cut_freq=5, float center_cut_freq=20);
+    CircleDetector(DETECTOR_TYPE type, COLOR _color=NONE, float radius=0, float scale_cut_freq=5, float center_cut_freq=50);
     bool run(Mat image, Rect2f &rect, float& confidence);
 
     private:

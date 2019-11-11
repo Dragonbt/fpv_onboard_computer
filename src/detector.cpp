@@ -173,8 +173,8 @@ void CircleDetector::param_adapt( float r, float &canny_thresh, float &dp, float
     if(r < 0)
     {
         canny_thresh = 200;
-        dp = 10;
-        reject_thresh = 6;
+        dp = 5;
+        reject_thresh = 4;
     }
     else if(r  <  100)
     {
@@ -183,8 +183,8 @@ void CircleDetector::param_adapt( float r, float &canny_thresh, float &dp, float
         reject_thresh = 1.5;
     }
     else{
-        canny_thresh = 300;
-        dp = 10;
+        canny_thresh = 200;
+        dp = 5;
         reject_thresh = 4;
     }
     delta_r = max(r * r / 1600, 10.0f);
@@ -213,7 +213,7 @@ bool CircleDetector::run(Mat image, Rect2f &rec, float& confidence)
     float scale;
 
     float reject_thresh = 0;
-    vector<float> scale_steps = {1.0f, 1.0f / 1.05f, 1.05f};
+    vector<float> scale_steps = {1.0f};
     switch ( status )
     {
     case GLOBAL_ESTIMATE:
@@ -233,8 +233,8 @@ bool CircleDetector::run(Mat image, Rect2f &rec, float& confidence)
             break;
         }
         fail_cnt = 0;
-        filter.run(rec, rec, high_resolution_clock::now());
         prev_rec = rec;
+        filter.run(rec, rec, high_resolution_clock::now());
         if(type == DETECT_AND_TRACK)
         {
             status = TRACKING;
@@ -272,8 +272,8 @@ bool CircleDetector::run(Mat image, Rect2f &rec, float& confidence)
         fail_cnt = 0;
         rec.x = rec.x + est_rec.x;
         rec.y = rec.y + est_rec.y;
-        filter.run(rec, rec, high_resolution_clock::now());
         prev_rec = rec;
+        filter.run(rec, rec, high_resolution_clock::now());
         if(type == DETECT_AND_TRACK)
         {
             status = TRACKING;
@@ -293,8 +293,8 @@ bool CircleDetector::run(Mat image, Rect2f &rec, float& confidence)
             break;
         }
         fail_cnt = 0;
-        filter.run(rec, rec, high_resolution_clock::now());
         prev_rec = rec;
+        filter.run(rec, rec, high_resolution_clock::now());
         if(type == DETECT_AND_TRACK)
         {
             status = TRACKING;
@@ -322,29 +322,58 @@ bool CircleDetector::run(Mat image, Rect2f &rec, float& confidence)
         //found = circleDetect( edges, dx, dy, rec, confidence, 1, 1, height / 2, 0);
     */
     case TRACKING:
+        r = prev_rec.width / 2;
         tracker.detectMultiScale(image, rec_i, confidence, scale, scale_steps);
-        if(confidence > 0.5)
-        {
-            fail_cnt = 0;
-            tracker.updateTracker(image, rec_i, scale);
-            rec = rec_i;
-            filter.run(rec, rec, high_resolution_clock::now());
-            prev_rec = rec;
-            found = true;
+        est_rec = resizeRect( rec_i, padding ) & Rect2f(0, 0, width, height );
+        if ( est_rec.empty() ){
+            status = GLOBAL_ESTIMATE;
+            cout << "GLOBAL_ESTIMATE" << endl;
+            found = false;
             break;
         }
-        else{
-            fail_cnt ++;
-            if( fail_cnt > 3 )
+        est_roi = image(est_rec);
+        colorMask(est_roi, mask);
+        edgeDetection(est_roi, edges, dx, dy, 200);
+        edges = edges & mask;
+        confidence = circleDetect( edges, dx, dy, rec, 5, r - 5, est_rec.width / 2);
+        if ( confidence < 4.0f ){
+            if(type == DETECT_AND_TRACK)
             {
-                if(type == DETECT_AND_TRACK)
-                {
-                    status = LOCAL_ESTIMATE;
-                    cout << "LOCAL_ESTIMATE" << endl;
-                }
+                status = LOCAL_ESTIMATE;
+                cout << "LOCAL_ESTIMATE" << endl;
             }
+            found = false;
+            break;
         }
-        found = false;
+        rec.x = rec.x + est_rec.x;
+        rec.y = rec.y + est_rec.y;
+        prev_rec = rec;
+        scale = scale * rec.width / rec_i.width;
+        tracker.updateTracker(image, rec, scale);
+        filter.run(rec, rec, high_resolution_clock::now());
+        found = true;
+        // if(confidence > 0.3)
+        // {
+        //     fail_cnt = 0;
+        //     tracker.updateTracker(image, rec_i, scale);
+        //     rec = rec_i;
+        //     filter.run(rec, rec, high_resolution_clock::now());
+        //     prev_rec = rec;
+        //     found = true;
+        //     break;
+        // }
+        // else{
+        //     fail_cnt ++;
+        //     if( fail_cnt > 5 )
+        //     {
+        //         if(type == DETECT_AND_TRACK)
+        //         {
+        //             status = LOCAL_ESTIMATE;
+        //             cout << "LOCAL_ESTIMATE" << endl;
+        //         }
+        //     }
+        // }
+        //found = false;
         /*
         rec = tracker.update(image);
         found = true;

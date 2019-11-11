@@ -46,7 +46,6 @@ void FlowPosThrustControl::hold(float& roll_deg, float& pitch_deg, float& thrust
     calcRollPitchThrust(roll_deg, pitch_deg, thrust,attitude);
 }
 
-
 void FlowPosThrustControl::calcRollPitchThrust(float& roll_deg, float& pitch_deg, float& thrust,EulerAngle attitude)
 {
     update<Vector2f>(pos_err_xy_topic, pos_err_xy, pos_err_xy_mtx);
@@ -254,6 +253,61 @@ float VisionRollThrustControl::calcRoll()
     float roll_sp = atan2f(thr_sp_y, alt_thrust);
     //cout << "roll_deg: " << rad2deg(roll_sp) << endl;
     return limit_values( rad2deg(roll_sp), -30.0f, 30.0f);
+}
+
+void VisionRollThrustControl::angleOffset_Yaw( float& yaw_deg, float& thrust, DetectionResult target, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms )
+{
+    time_change = dt_ms / 1000.0f;
+    float roll_rad = deg2rad( attitude.roll_deg );
+    //convert target from camera to body
+    target_y_m = target.x_m * cos( roll_rad ) - target.y_m * sin( roll_rad );
+    target_z_m = target.x_m * sin( roll_rad ) + target.y_m * cos( roll_rad );
+    target_x_m = target.z_m;
+
+    z_rad = atan2f(target_z_m, target_x_m);
+    y_rad = atan2f(target_y_m, target_x_m);
+    
+    err_pos_z = Kz * z_rad;
+    //vel_err = -vel_body.y_m_s;
+
+    pos_sp_z = pos_ned.down_m + err_pos_z;
+    alt_thrust = altitude_thrust_control.down(pos_sp_z, pos_ned, vel_body, attitude, dt_ms);
+
+    yaw_deg = attitude.yaw_deg + rad2deg(y_rad);
+	thrust = alt_thrust / ( cos(deg2rad(attitude.roll_deg)) * cos(deg2rad(attitude.pitch_deg)) );
+    return;
+}
+
+void VisionRollThrustControl::hold_yaw(float& thrust, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms)
+{
+    time_change = dt_ms / 1000.0f;
+    // if(attitude.roll_deg > 0 && vel_body.y_m_s < 0) vel_body.y_m_s = -vel_body.y_m_s;
+    // else if(attitude.roll_deg < 0 && vel_body.y_m_s > 0) vel_body.y_m_s = -vel_body.y_m_s;
+    // if(attitude.pitch_deg > 0 && vel_body.x_m_s > 0) vel_body.x_m_s = -vel_body.y_m_s;
+    // if(attitude.pitch_deg < 0 && vel_body.x_m_s < 0) vel_body.y_m_s = -vel_body.y_m_s;
+    /*if( target_x_m > 4.0f && ! K_lock)
+    {
+        Ky = 0.4f;
+        target_x_m = target_x_m - vel_body.x_m_s * time_change;
+        target_y_m = target_y_m - vel_body.y_m_s * time_change;
+        target_z_m = target_z_m - vel_body.z_m_s * time_change;
+        y_rad = atan2f(target_y_m, target_x_m);
+    }
+    else{
+        Ky = 0.2f;
+        K_lock = true;
+    }*/
+    //z_rad = atan2f(target_z_m, target_x_m);
+    
+    //err_pos_y = Ky * y_rad;
+    //err_pos_z = Kz * z_rad;
+    //vel_err = -vel_body.y_m_s;
+
+    alt_thrust = altitude_thrust_control.hold(pos_ned, vel_body, attitude, dt_ms);
+    //yaw_deg = attitude.yaw_deg + rad2deg(y_rad);
+    
+    thrust = alt_thrust / ( cos(deg2rad(attitude.roll_deg)) * cos(deg2rad(attitude.pitch_deg)) );
+    return;
 }
 
 void VisionRollThrustControl::braking(float& roll_deg, float& pitch_deg, float& thrust, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms) {

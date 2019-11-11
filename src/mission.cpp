@@ -253,12 +253,6 @@ void missionLoop(shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard,
 void testLoop(shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, FileNode altitude_pid, FileNode vision_pid, FileNode flow_pid)
 {
 	int16_t status = WAIT_COMMAND;
-	int16_t missions_status = INIT_MISSION;
-	int count = 0;
-
-	float altitude_offset = 0;
-	float altitude_set = 0;
-	bool flag_climb_init = false, flag_search_init = false, flag_target1_found = false, flag_adjust_init = false, flag_land_init = false;
 
 	int64_t command_timestamp, target_timestamp;
 	double param;
@@ -279,9 +273,9 @@ void testLoop(shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, Fi
 	flow_pos_thrust_control.reset(flow_pid, altitude_pid);
 
 	Offboard::Attitude input_attitude;
-	float roll_deg, pitch_deg, yaw_deg, thrust;
+	float roll_deg, pitch_deg, yaw_deg, thrust, thrust_n;
 	float pos_sp_z;
-	float open_loop_distance;
+	//float open_loop_distance;
 	int period_ms;
 	high_resolution_clock::time_point open_loop_t0;
 	int64_t last_peroid = timestampf();
@@ -368,8 +362,11 @@ void testLoop(shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, Fi
 			if (latest<DetectionResult>(target_topic, target_timestamp, target, target_mtx) && timestampf() - target_timestamp < 30)
 			{
 				remotePrint("VISION CONTROL!");
-				status = VISION_CONTROL_MODE;
-				vision_roll_thrust_control.angleOffset(roll_deg, thrust, target, position_ned, velocity_body, attitude, period_ms);
+				status = VISION_CONTROL_MODE_YAW;
+				//status = VISION_CONTROL_MODE;
+				//vision_roll_thrust_control.angleOffset(roll_deg, thrust, target, position_ned, velocity_body, attitude, period_ms);
+				vision_roll_thrust_control.angleOffset_Yaw(yaw_deg, thrust, target, position_ned, velocity_body, attitude, period_ms);
+				vision_roll_thrust_control.braking(roll_deg, pitch_deg, thrust_n, position_ned, velocity_body, attitude, period_ms);
 				input_attitude = {roll_deg, -2.0f, yaw_deg, thrust};
 				offbCtrlAttitude(offboard, input_attitude);
 				fail_cnt = 0;
@@ -380,6 +377,44 @@ void testLoop(shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, Fi
 				input_attitude = {0.0f, 0.0f, yaw_deg, thrust};
 				offbCtrlAttitude(offboard, input_attitude);
 			}
+			break;
+		case VISION_CONTROL_MODE_YAW:
+			if (latest<DetectionResult>(target_topic, target_timestamp, target, target_mtx) && timestampf() - target_timestamp < 30)
+			{
+				//vision_roll_thrust_control.angleOffset(roll_deg, thrust, target, position_ned, velocity_body, attitude, period_ms);
+				vision_roll_thrust_control.angleOffset_Yaw(yaw_deg, thrust, target, position_ned, velocity_body, attitude, period_ms);
+				vision_roll_thrust_control.braking(roll_deg, pitch_deg, thrust_n, position_ned, velocity_body, attitude, period_ms);
+				fail_cnt = 0;
+				vision_roll_thrust_control.update_thr_ring_flag(target);
+			}
+			else
+			{
+				//vision_roll_thrust_control.hold(roll_deg, thrust, position_ned, velocity_body, attitude, period_ms);
+				vision_roll_thrust_control.hold_yaw(thrust, position_ned, velocity_body, attitude, period_ms);
+				vision_roll_thrust_control.braking(roll_deg, pitch_deg, thrust_n, position_ned, velocity_body, attitude, period_ms);
+				fail_cnt++;
+			}
+			if (fail_cnt > VISION_FAIL_TOLERENCE) //1s?
+			{
+				vision_roll_thrust_control.can_through_ring_flag = false;
+				if (vision_roll_thrust_control.can_through_ring_flag)
+				{
+					status = VISION_OPEN_LOOP_MODE;
+					cout << "VISION OPEN LOOP!" << endl;
+					break;
+				}
+				else
+				{
+					remotePrint("TIMEOUT!");
+					//vision_roll_thrust_control.braking(roll_deg, pitch_deg, thrust, pos_ned, vel_body, attitude, period_ms);
+					//status = BRAKING;
+					status = SAFE_QUIT_COMMAND;
+					//status = SAFE_QUIT_COMMAND;
+					break;
+				}
+			}
+			input_attitude = {roll_deg, -2.0f, yaw_deg, thrust};
+			offbCtrlAttitude(offboard, input_attitude);
 			break;
 		case VISION_CONTROL_MODE:
 			if (latest<DetectionResult>(target_topic, target_timestamp, target, target_mtx) && timestampf() - target_timestamp < 30)
@@ -446,145 +481,6 @@ void testLoop(shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, Fi
 			vision_roll_thrust_control.braking(roll_deg, pitch_deg, thrust, position_ned, velocity_body, attitude, period_ms);
 			input_attitude = {roll_deg, pitch_deg, yaw_deg, thrust};
 			offbCtrlAttitude(offboard, input_attitude);
-			break;
-		case MISSIONS_AUTO:
-			//cout << missions_status << endl;
-			switch (missions_status)
-			{
-			case INIT_MISSION:
-				flag_climb_init = false;
-				flag_target1_found = false;
-				flag_adjust_init = false;
-				flag_search_init = false;
-				flag_land_init = false;
-				altitude_offset = -position_ned.down_m;
-				missions_status = TAKEOFF_MISSION;
-				//sleep, waiting for system init
-				break;
-			case TAKEOFF_MISSION:
-				cout << "TAKEOFF_MISSION" << endl;
-				if (altitude_set < 1.1f)
-					altitude_set += 0.5 / CONTROL_FREQUENCY;
-				altitude_thrust_control.takeoff(-altitude_set, roll_deg, pitch_deg, thrust, position_ned, velocity_body, attitude, period_ms);
-				input_attitude = {roll_deg, pitch_deg, yaw_deg, thrust};
-				//cout << thrust << endl;
-				offbCtrlAttitude(offboard, input_attitude);
-				if (-position_ned.down_m > 1.0f)
-				{
-					altitude_set = 1.0;
-					missions_status = SETPOINT_CLIMB_MISSION;
-				}
-				break;
-			case SETPOINT_CLIMB_MISSION:
-				cout << "SETPOINT_CLIMB_MISSION" << endl;
-				if ((position_ned.east_m < 1e-4) && (position_ned.north_m < 1e-4))
-				{
-					cout << "FLOw CAN NOT THRUST" << endl;
-					altitude_thrust_control.takeoff(-altitude_set, roll_deg, pitch_deg, thrust, position_ned, velocity_body, attitude, period_ms);
-					input_attitude = {roll_deg, pitch_deg, yaw_deg, thrust};
-					//cout << thrust << endl;
-					offbCtrlAttitude(offboard, input_attitude);
-					flag_climb_init = false;
-				}
-				else
-				{
-					if (!flag_climb_init)
-					{
-						altitude_set = -position_ned.down_m;
-						offset_body = {0.0f, 0.0f, 0.0f};
-						flow_pos_thrust_control.positionBodyOffset(roll_deg, pitch_deg, thrust, offset_body, position_ned, velocity_body, attitude, period_ms);
-						input_attitude = {roll_deg, pitch_deg, yaw_deg, thrust};
-						offbCtrlAttitude(offboard, input_attitude);
-						remotePrint("Flow init!");
-						flag_climb_init = true;
-						break;
-					}
-
-					flow_pos_thrust_control.climb(-altitude_set, roll_deg, pitch_deg, thrust, position_ned, velocity_body, attitude, period_ms);
-					input_attitude = {roll_deg, pitch_deg, yaw_deg, thrust};
-					offbCtrlAttitude(offboard, input_attitude);
-				}
-				if (-position_ned.down_m > 1.45 && altitude_set > 1.45)
-				{
-					altitude_set = 1.45;
-					missions_status = AJUSTPOSITION_MISSION;
-					break;
-				}
-				if (altitude_set < 1.5)
-					altitude_set += 0.8 / CONTROL_FREQUENCY;
-				break;
-			case AJUSTPOSITION_MISSION:
-				cout << "AJUSTPOSITION_MISSION" << endl;
-				flow_pos_thrust_control.hold(roll_deg, pitch_deg, thrust, position_ned, velocity_body, attitude, period_ms);
-				input_attitude = {roll_deg, pitch_deg, yaw_deg, thrust};
-				offbCtrlAttitude(offboard, input_attitude);
-				count++;
-				if (count >= 5 * CONTROL_FREQUENCY)
-				{
-					missions_status = LAND_MISSION;
-				}
-
-				break;
-			case APROACH_MISSION:
-				//flag_target_lost
-				break;
-			case THROUGH_MISSION:
-				break;
-			case STOP_MISSION:
-				break;
-			case SEARCH_TARGET_MISSION:
-				break;
-			case LAND_MISSION:
-				//cout << "LAND_MISSION" << endl;
-				if (-position_ned.down_m > 1.0)
-				{
-					if ((position_ned.east_m < 1e-4) && (position_ned.north_m < 1e-4))
-					{
-						altitude_thrust_control.takeoff(-altitude_set, roll_deg, pitch_deg, thrust, position_ned, velocity_body, attitude, period_ms);
-						input_attitude = {roll_deg, pitch_deg, yaw_deg, thrust};
-						//cout << thrust << endl;
-						offbCtrlAttitude(offboard, input_attitude);
-						flag_land_init = false;
-					}
-					else
-					{
-						if (!flag_land_init)
-						{
-							altitude_set = -position_ned.down_m;
-							offset_body = {0.0f, 0.0f, 0.0f};
-							flow_pos_thrust_control.positionBodyOffset(roll_deg, pitch_deg, thrust, offset_body, position_ned, velocity_body, attitude, period_ms);
-							input_attitude = {roll_deg, pitch_deg, yaw_deg, thrust};
-							offbCtrlAttitude(offboard, input_attitude);
-							remotePrint("land init!");
-							flag_land_init = true;
-							break;
-						}
-						flow_pos_thrust_control.climb(-altitude_set, roll_deg, pitch_deg, thrust, position_ned, velocity_body, attitude, period_ms);
-						input_attitude = {roll_deg, pitch_deg, yaw_deg, thrust};
-						offbCtrlAttitude(offboard, input_attitude);
-					}
-					altitude_set -= 0.8 / CONTROL_FREQUENCY;
-				}
-				else
-				{
-					altitude_set -= 0.3 / CONTROL_FREQUENCY;
-					altitude_thrust_control.takeoff(-altitude_set, roll_deg, pitch_deg, thrust, position_ned, velocity_body, attitude, period_ms);
-					input_attitude = {roll_deg, pitch_deg, yaw_deg, thrust};
-					//cout << thrust << endl;
-					offbCtrlAttitude(offboard, input_attitude);
-				}
-				if (altitude_set <= 0 && -position_ned.down_m < 0.2)
-				{
-					missions_status = FINISH;
-				}
-				break;
-			case FINISH:
-				input_attitude = {roll_deg, pitch_deg, yaw_deg, 0.0f};
-				//cout << thrust << endl;
-				offbCtrlAttitude(offboard, input_attitude);
-				return;
-			}
-
 			break;
 		}
 		this_thread::sleep_for(milliseconds(20));
