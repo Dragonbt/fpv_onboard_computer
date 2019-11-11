@@ -25,7 +25,7 @@ SOCKET_RECV_NODE:{
 CONTROL_NODE:{
     ENABLE: 1,
     URL: "serial:///dev/ttyUSB0:115200",
-    TAKEOFF_ALTITUDE: 4.0}
+    TAKEOFF_ALTITUDE: 3.0}
 ALTITUDE_PID_PARAM:{
     Kp_z: 0.5,
     Ki_z: 0.001,
