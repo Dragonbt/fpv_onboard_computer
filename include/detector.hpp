@@ -65,7 +65,7 @@ class CircleDetector{
     COLOR color;
     Rect2f prev_rec;
     uint8_t fail_cnt;
-    uint8_t fail_tolerent = 20;
+    uint8_t fail_tolerent = 2;
     KCFTracker tracker;
     LowPassFilter filter;
     Rect2f resizeRect( Rect2f rect, float ratio);

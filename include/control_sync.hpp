@@ -78,7 +78,9 @@ class VisionRollThrustControl{
     void braking(float& roll_deg, float& pitch_deg, float& thrust, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms);
     void angleOffset_Yaw( float& yaw_deg, float& thrust, DetectionResult target, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms );
     void hold_yaw(float& thrust, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms);
-    
+    void angleOffset_roll_yaw(float& roll_deg, float& yaw_deg,float& thrust, DetectionResult target, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms );
+    void hold_roll_yaw(float& thrust, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms);
+
     private:
     AltitudeThrustControl altitude_thrust_control;
     float y_rad, z_rad;
@@ -105,6 +107,7 @@ class VisionRollThrustControl{
     float vel_err_y = 0.0f;
     float pos_sp_z;
     float calcRoll();
+    float calcRoll_kfy();
 };
 
 class FlowPosThrustControl {

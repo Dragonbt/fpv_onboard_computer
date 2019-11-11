@@ -358,16 +358,74 @@ void testLoop(shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, Fi
 			input_attitude = {roll_deg, pitch_deg, yaw_deg, thrust};
 			offbCtrlAttitude(offboard, input_attitude);
 			break;
+		// case VISION_CONTROL_COMMAND:
+		// 	if (latest<DetectionResult>(target_topic, target_timestamp, target, target_mtx) && timestampf() - target_timestamp < 30)
+		// 	{
+		// 		remotePrint("VISION CONTROL!");
+		// 		// status = VISION_CONTROL_MODE;
+		// 		// vision_roll_thrust_control.angleOffset(roll_deg, thrust, target, position_ned, velocity_body, attitude, period_ms);
+		// 		status = VISION_CONTROL_MODE_YAW;
+		// 		vision_roll_thrust_control.angleOffset_Yaw(yaw_deg, thrust, target, position_ned, velocity_body, attitude, period_ms);
+		// 		vision_roll_thrust_control.braking(roll_deg, pitch_deg, thrust_n, position_ned, velocity_body, attitude, period_ms);
+		// 		input_attitude = {roll_deg, -10.0f, yaw_deg, thrust};
+		// 		offbCtrlAttitude(offboard, input_attitude);
+		// 		fail_cnt = 0;
+		// 	}
+		// 	else
+		// 	{
+		// 		thrust = altitude_thrust_control.down(pos_sp_z, position_ned, velocity_body, attitude, period_ms);
+		// 		input_attitude = {0.0f, 0.0f, yaw_deg, thrust};
+		// 		offbCtrlAttitude(offboard, input_attitude);
+		// 	}
+		// 	break;
+		// case VISION_CONTROL_MODE_YAW:
+		// 	if (latest<DetectionResult>(target_topic, target_timestamp, target, target_mtx) && timestampf() - target_timestamp < 30)
+		// 	{
+		// 		//vision_roll_thrust_control.angleOffset(roll_deg, thrust, target, position_ned, velocity_body, attitude, period_ms);
+		// 		vision_roll_thrust_control.angleOffset_Yaw(yaw_deg, thrust, target, position_ned, velocity_body, attitude, period_ms);
+		// 		vision_roll_thrust_control.braking(roll_deg, pitch_deg, thrust_n, position_ned, velocity_body, attitude, period_ms);
+		// 		fail_cnt = 0;
+		// 		vision_roll_thrust_control.update_thr_ring_flag(target);
+		// 	}
+		// 	else
+		// 	{
+		// 		//vision_roll_thrust_control.hold(roll_deg, thrust, position_ned, velocity_body, attitude, period_ms);
+		// 		vision_roll_thrust_control.hold_yaw(thrust, position_ned, velocity_body, attitude, period_ms);
+		// 		vision_roll_thrust_control.braking(roll_deg, pitch_deg, thrust_n, position_ned, velocity_body, attitude, period_ms);
+		// 		fail_cnt++;
+		// 	}
+		// 	if (fail_cnt > VISION_FAIL_TOLERENCE) //1s?
+		// 	{
+		// 		vision_roll_thrust_control.can_through_ring_flag = false;
+		// 		if (vision_roll_thrust_control.can_through_ring_flag)
+		// 		{
+		// 			status = VISION_OPEN_LOOP_MODE;
+		// 			cout << "VISION OPEN LOOP!" << endl;
+		// 			break;
+		// 		}
+		// 		else
+		// 		{
+		// 			remotePrint("TIMEOUT!");
+		// 			//vision_roll_thrust_control.braking(roll_deg, pitch_deg, thrust, pos_ned, vel_body, attitude, period_ms);
+		// 			//status = BRAKING;
+		// 			status = SAFE_QUIT_COMMAND;
+		// 			//status = SAFE_QUIT_COMMAND;
+		// 			break;
+		// 		}
+		// 	}
+		// 	cout << "yaw_deg_sp: " << yaw_deg << endl;
+		// 	input_attitude = {roll_deg, -10.0f, yaw_deg, thrust};
+		// 	offbCtrlAttitude(offboard, input_attitude);
+		// 	break;
+
+
 		case VISION_CONTROL_COMMAND:
 			if (latest<DetectionResult>(target_topic, target_timestamp, target, target_mtx) && timestampf() - target_timestamp < 30)
 			{
 				remotePrint("VISION CONTROL!");
-				// status = VISION_CONTROL_MODE;
-				// vision_roll_thrust_control.angleOffset(roll_deg, thrust, target, position_ned, velocity_body, attitude, period_ms);
 				status = VISION_CONTROL_MODE_YAW;
-				vision_roll_thrust_control.angleOffset_Yaw(yaw_deg, thrust, target, position_ned, velocity_body, attitude, period_ms);
-				vision_roll_thrust_control.braking(roll_deg, pitch_deg, thrust_n, position_ned, velocity_body, attitude, period_ms);
-				input_attitude = {roll_deg, -10.0f, yaw_deg, thrust};
+				vision_roll_thrust_control.angleOffset_roll_yaw(roll_deg,yaw_deg,thrust,target,position_ned, velocity_body, attitude, period_ms);
+				input_attitude = {roll_deg, -2.0f, yaw_deg, thrust};
 				offbCtrlAttitude(offboard, input_attitude);
 				fail_cnt = 0;
 			}
@@ -382,16 +440,14 @@ void testLoop(shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, Fi
 			if (latest<DetectionResult>(target_topic, target_timestamp, target, target_mtx) && timestampf() - target_timestamp < 30)
 			{
 				//vision_roll_thrust_control.angleOffset(roll_deg, thrust, target, position_ned, velocity_body, attitude, period_ms);
-				vision_roll_thrust_control.angleOffset_Yaw(yaw_deg, thrust, target, position_ned, velocity_body, attitude, period_ms);
-				vision_roll_thrust_control.braking(roll_deg, pitch_deg, thrust_n, position_ned, velocity_body, attitude, period_ms);
+				vision_roll_thrust_control.angleOffset_roll_yaw(roll_deg, yaw_deg, thrust, target, position_ned, velocity_body, attitude, period_ms);
 				fail_cnt = 0;
 				vision_roll_thrust_control.update_thr_ring_flag(target);
 			}
 			else
 			{
 				//vision_roll_thrust_control.hold(roll_deg, thrust, position_ned, velocity_body, attitude, period_ms);
-				vision_roll_thrust_control.hold_yaw(thrust, position_ned, velocity_body, attitude, period_ms);
-				vision_roll_thrust_control.braking(roll_deg, pitch_deg, thrust_n, position_ned, velocity_body, attitude, period_ms);
+				vision_roll_thrust_control.hold_roll_yaw(thrust, position_ned, velocity_body, attitude, period_ms);
 				fail_cnt++;
 			}
 			if (fail_cnt > VISION_FAIL_TOLERENCE) //1s?
@@ -413,10 +469,10 @@ void testLoop(shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, Fi
 					break;
 				}
 			}
-			cout << "yaw_deg_sp: " << yaw_deg << endl;
-			input_attitude = {roll_deg, -10.0f, yaw_deg, thrust};
+			input_attitude = {roll_deg, -2.0f, yaw_deg, thrust};
 			offbCtrlAttitude(offboard, input_attitude);
 			break;
+
 		case VISION_CONTROL_MODE:
 			if (latest<DetectionResult>(target_topic, target_timestamp, target, target_mtx) && timestampf() - target_timestamp < 30)
 			{

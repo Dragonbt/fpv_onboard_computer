@@ -180,7 +180,7 @@ void CircleDetector::param_adapt( float r, float &canny_thresh, float &dp, float
     {
         canny_thresh = 150;
         dp = 1;
-        reject_thresh = 1.0;
+        reject_thresh = 1.5;
     }
     else{
         canny_thresh = 300;
@@ -202,7 +202,7 @@ bool CircleDetector::run(Mat image, Rect2f &rec, float& confidence)
     Mat est_roi;
 
     float delta_r = 10;
-    float padding = 1.5;
+    float padding = 1.2;
 
     float dp = 10;
     float canny_thresh = 200;
@@ -324,7 +324,7 @@ bool CircleDetector::run(Mat image, Rect2f &rec, float& confidence)
     case TRACKING:
         r = prev_rec.width / 2;
         tracker.detectMultiScale(image, rec_i, confidence, scale, scale_steps);
-        est_rec = resizeRect( rec_i, padding ) & Rect2f(0, 0, width, height );
+        est_rec = resizeRect( rec_i, 1.1f ) & Rect2f(0, 0, width, height );
         if ( est_rec.empty() ){
             status = GLOBAL_ESTIMATE;
             cout << "GLOBAL_ESTIMATE" << endl;
@@ -336,7 +336,7 @@ bool CircleDetector::run(Mat image, Rect2f &rec, float& confidence)
         edgeDetection(est_roi, edges, dx, dy, 300);
         edges = edges & mask;
         confidence = circleDetect( edges, dx, dy, rec, 5, r - 5, est_rec.width / 2);
-        if ( confidence < 1.0f ){
+        if ( confidence < 1.5f ){
             if(type == DETECT_AND_TRACK)
             {
                 status = LOCAL_ESTIMATE;

@@ -355,6 +355,81 @@ void VisionRollThrustControl::update_thr_ring_flag(DetectionResult target){
 	else can_through_ring_flag = false;
 }
 
+void VisionRollThrustControl::angleOffset_roll_yaw( float& roll_deg,float& yaw_deg, float& thrust, DetectionResult target, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms )
+{
+    time_change = dt_ms / 1000.0f;
+    float roll_rad = deg2rad( attitude.roll_deg );
+    //convert target from camera to body
+    target_y_m = target.x_m * cos( roll_rad ) - target.y_m * sin( roll_rad );
+    target_z_m = target.x_m * sin( roll_rad ) + target.y_m * cos( roll_rad );
+    target_x_m = target.z_m;
+
+    z_rad = atan2f(target_z_m, target_x_m);
+    y_rad = atan2f(target_y_m, target_x_m);
+    
+    if( target_x_m > 4.0f && ! K_lock)
+    {
+        Ky = 0.2f;
+    }
+    else{
+        Ky = 0.1f;
+        K_lock = true;
+    }
+
+    err_pos_y = Ky * y_rad;
+    err_pos_z = Kz * z_rad;
+    pos_sp_z = pos_ned.down_m + err_pos_z;
+    alt_thrust = altitude_thrust_control.down(pos_sp_z, pos_ned, vel_body, attitude, dt_ms);
+
+    yaw_deg = attitude.yaw_deg + rad2deg(0.8*y_rad);
+    roll_deg = calcRoll_kfy();
+	thrust = alt_thrust / ( cos(deg2rad(attitude.roll_deg)) * cos(deg2rad(attitude.pitch_deg)) );
+    return;
+}
+
+void VisionRollThrustControl::hold_roll_yaw( float& thrust, PositionNED pos_ned, VelocityBody vel_body, EulerAngle attitude, int dt_ms)
+{
+    time_change = dt_ms / 1000.0f;
+    
+    alt_thrust = altitude_thrust_control.hold(pos_ned, vel_body, attitude, dt_ms);
+ 	thrust = alt_thrust / ( cos(deg2rad(attitude.roll_deg)) * cos(deg2rad(attitude.pitch_deg)) );
+    return;
+}
+
+float VisionRollThrustControl::calcRoll_kfy()
+{
+    //cout << "err_pos_y: " << rad2deg(err_pos_y) << endl;
+    //cout << "err_pos_z: " << rad2deg(err_pos_z) << endl;
+    float thr_sp_y;
+	thrust_desired_y = Kp_y * err_pos_y;
+    //thrust_desired_y = Kp_y * err_pos_y + int_pos_y;
+    
+	float thrust_max_y_tilt = fabsf(alt_thrust) * tanf(tilt_max);//while in take_off or landing state i think the "cos(_pitch) * cos(_roll) = 1" => alt_thrust = thrust_z 
+	float thrust_max_y = sqrtf(thrust_max * thrust_max - alt_thrust * alt_thrust);
+	thrust_max_y = thrust_max_y_tilt < thrust_max_y ? thrust_max_y_tilt : thrust_max_y;
+	// Saturate thrust in NE-direction.
+    thr_sp_y = thrust_desired_y;
+
+	if (thr_sp_y  > thrust_max_y) {
+		thr_sp_y = thrust_max_y;			
+	}
+	// Use tracking Anti-Windup for NE-direction: during saturation, the integrator is used to unsaturate the output
+	// see Anti-Reset Windup for PID controllers, L.Rundqwist, 1990
+	float arw_gain = 2.f / Kp_y;
+    float vel_err_lim = 0.0f;
+	vel_err_lim = err_pos_y - (thrust_desired_y - thr_sp_y) * arw_gain;
+    // Update integral
+	int_pos_y = int_pos_y + Ki_y * vel_err_lim * time_change;
+	//_thr_int(1) += _param_mpc_xy_vel_i.get() * vel_err_lim(1) * dt;
+
+	thr_sp_y = limit_values(thr_sp_y, -0.707f * alt_thrust, 0.707f * alt_thrust);
+	//cout << "_thr_sp[0] = " << _thr_sp[0] << " " << "_thr_sp[1] = " << _thr_sp[1] << " " << "_thr_sp[2] = " << _thr_sp[2] << endl;
+	//kfy:float roll_sp = asinf(thr_sp_y / alt_thrust);
+    float roll_sp = atan2f(thr_sp_y, alt_thrust);
+    //cout << "roll_deg: " << rad2deg(roll_sp) << endl;
+    return limit_values( rad2deg(roll_sp), -30.0f, 30.0f);
+}
+
 void AltitudeThrustControl::reset(FileNode altitude_pid)
 {
     altitude_pid["Kp_z"] >> Kp_z;
