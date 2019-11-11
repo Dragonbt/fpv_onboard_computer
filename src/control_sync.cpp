@@ -347,7 +347,6 @@ void AltitudeThrustControl::takeoff(float alttitude_set,float& roll_deg, float& 
     pitch_deg= limit_values(pitch_deg,-30.0f,30.0f);
 
 	thrust = alt_thrust / ( cos(deg2rad(attitude.roll_deg)) * cos(deg2rad(attitude.pitch_deg)) );
-    
 }
 
 

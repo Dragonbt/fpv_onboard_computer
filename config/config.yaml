@@ -22,9 +22,9 @@ CONTROL_NODE:{
     URL: "serial:///dev/ttyS0:115200",
     TAKEOFF_ALTITUDE: 4.0}
 ALTITUDE_PID_PARAM:{
-    Kp_z: 1.0,
+    Kp_z: 0.8,
     Ki_z: 0.002,
-    Kd_z: 0.3}
+    Kd_z: 0.6}
 VISION_PID_PARAM:{
     Ky: 1,
     Kz: 1,

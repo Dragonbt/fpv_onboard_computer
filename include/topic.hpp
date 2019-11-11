@@ -90,10 +90,10 @@ void Topic<Struct>::recent(std::vector< std::pair<int64_t, Struct> >& topic_vect
             topic = topic_deque[i];
             if( topic.first > timestamp )
             {
+                timestamp = topic.first;
                 topic_vector.push_back(topic);
             }
         }
-        timestamp = topic_deque.back().first;
     }
     topic_mutex.unlock();
     return;
