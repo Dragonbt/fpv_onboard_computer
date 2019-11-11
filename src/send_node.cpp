@@ -55,6 +55,7 @@ void sendLoop( FileNode send_config )
             sendStruct<Vector2f>(ne_reference_topic, sent_ne_reference_ms, REFERENCE_NE_MSG);
             sendStruct<Vector2f>(pos_err_xy_topic, sent_err_ms, POS_XY_ERR_MSG);
             sendString();
+            cout << sent_input_attitude_ms << endl;
             t0 = high_resolution_clock::now();
         }
         else{
