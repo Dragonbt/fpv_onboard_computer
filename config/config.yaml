@@ -27,7 +27,7 @@ ALTITUDE_PID_PARAM:{
     Kd_z: 0.3}
 VISION_PID_PARAM:{
     Ky: 1,
-    Kz: 1,
+    Kz: 1.5,
     Kp_y: 0.5,
     Ki_y: 0.001,
     Kd_y: 0.2}

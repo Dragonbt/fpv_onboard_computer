@@ -362,11 +362,11 @@ void testLoop(shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, Fi
 			if (latest<DetectionResult>(target_topic, target_timestamp, target, target_mtx) && timestampf() - target_timestamp < 30)
 			{
 				remotePrint("VISION CONTROL!");
-				status = VISION_CONTROL_MODE_YAW;
-				//status = VISION_CONTROL_MODE;
-				//vision_roll_thrust_control.angleOffset(roll_deg, thrust, target, position_ned, velocity_body, attitude, period_ms);
-				vision_roll_thrust_control.angleOffset_Yaw(yaw_deg, thrust, target, position_ned, velocity_body, attitude, period_ms);
-				vision_roll_thrust_control.braking(roll_deg, pitch_deg, thrust_n, position_ned, velocity_body, attitude, period_ms);
+				status = VISION_CONTROL_MODE;
+				vision_roll_thrust_control.angleOffset(roll_deg, thrust, target, position_ned, velocity_body, attitude, period_ms);
+				//status = VISION_CONTROL_MODE_YAW;
+				// vision_roll_thrust_control.angleOffset_Yaw(yaw_deg, thrust, target, position_ned, velocity_body, attitude, period_ms);
+				// vision_roll_thrust_control.braking(roll_deg, pitch_deg, thrust_n, position_ned, velocity_body, attitude, period_ms);
 				input_attitude = {roll_deg, -2.0f, yaw_deg, thrust};
 				offbCtrlAttitude(offboard, input_attitude);
 				fail_cnt = 0;
