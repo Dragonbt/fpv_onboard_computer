@@ -413,6 +413,7 @@ void testLoop(shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, Fi
 					break;
 				}
 			}
+			cout << "yaw_deg_sp: " << yaw_deg << endl;
 			input_attitude = {roll_deg, -2.0f, yaw_deg, thrust};
 			offbCtrlAttitude(offboard, input_attitude);
 			break;
