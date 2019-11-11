@@ -194,6 +194,7 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 				offbCtrlAttitude(offboard, input_attitude);
 				break;
 			case MISSIONS_AUTO:
+				cout << missions_status << endl;
 				switch(missions_status){
 					case INIT_MISSION:
 					flag_climb_init = false;
@@ -207,16 +208,17 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 					break;
 					case TAKEOFF_MISSION:
 						cout << "TAKEOFF_MISSION" << endl;
-						if(altitude_set<1.0f) altitude_set += 0.5/CONTROL_FREQUENCY;
+						if(altitude_set<1.1f) altitude_set += 0.5/CONTROL_FREQUENCY;
 						altitude_thrust_control.takeoff(-altitude_set ,roll_deg, pitch_deg, thrust, position_ned, velocity_body, attitude, period_ms);
 						input_attitude = {roll_deg, pitch_deg, yaw_deg, thrust};
 						//cout << thrust << endl;
 						offbCtrlAttitude(offboard, input_attitude);
-						if(-position_ned.down_m>0.8f) missions_status=SETPOINT_CLIMB_MISSION;
+						if(-position_ned.down_m>1.0f) missions_status=SETPOINT_CLIMB_MISSION;
 						break;
 					case SETPOINT_CLIMB_MISSION:
 						cout << "SETPOINT_CLIMB_MISSION" << endl;
 						if((position_ned.east_m<1e-4)&&(position_ned.north_m<1e-4)){
+							cout << "FLOw CAN NOT THRUST" << endl;
 							altitude_thrust_control.takeoff(-altitude_set ,roll_deg, pitch_deg, thrust, position_ned, velocity_body, attitude, period_ms);
 							input_attitude = {roll_deg, pitch_deg, yaw_deg, thrust};
 							//cout << thrust << endl;
@@ -284,7 +286,7 @@ void testLoop( shared_ptr<Telemetry> telemetry, shared_ptr<Offboard> offboard, F
 					case SEARCH_TARGET_MISSION:
 					break;
 					case LAND_MISSION:
-					cout << "LAND_MISSION" << endl;
+					//cout << "LAND_MISSION" << endl;
 					if(-position_ned.down_m > 1.0){
 						if((position_ned.east_m<1e-4)&&(position_ned.north_m<1e-4)){
 							altitude_thrust_control.takeoff(-altitude_set ,roll_deg, pitch_deg, thrust, position_ned, velocity_body, attitude, period_ms);
